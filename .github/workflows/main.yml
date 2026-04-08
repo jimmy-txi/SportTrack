@@ -3,7 +3,7 @@ name: Deploy SportTrack
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
