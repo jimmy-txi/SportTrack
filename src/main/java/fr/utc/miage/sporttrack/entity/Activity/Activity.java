@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.entity;
+package fr.utc.miage.sporttrack.entity.Activity;
 
 import java.time.LocalDate;
 

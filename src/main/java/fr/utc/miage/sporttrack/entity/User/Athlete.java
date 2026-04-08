@@ -1,4 +1,7 @@
-package fr.utc.miage.sporttrack.entity;
+package fr.utc.miage.sporttrack.entity.User;
+
+import fr.utc.miage.sporttrack.entity.Event.Badge;
+import fr.utc.miage.sporttrack.entity.Event.Challenge;
 
 import java.util.List;
 

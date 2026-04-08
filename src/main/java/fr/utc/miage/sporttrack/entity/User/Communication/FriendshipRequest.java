@@ -1,4 +1,6 @@
-package fr.utc.miage.sporttrack.entity.User;
+package fr.utc.miage.sporttrack.entity.User.Communication;
+
+import fr.utc.miage.sporttrack.entity.User.Athlete;
 
 public class FriendshipRequest {
 

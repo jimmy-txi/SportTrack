@@ -1,4 +1,6 @@
-package fr.utc.miage.sporttrack.entity;
+package fr.utc.miage.sporttrack.entity.Activity;
+
+import fr.utc.miage.sporttrack.entity.Enumeration.SportType;
 
 public class Sport {
 

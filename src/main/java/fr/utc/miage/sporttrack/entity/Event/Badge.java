@@ -1,11 +1,12 @@
-package fr.utc.miage.sporttrack.entity;
+package fr.utc.miage.sporttrack.entity.Event;
+
+import fr.utc.miage.sporttrack.entity.Activity.Sport;
 
 public class Badge {
 
     private int id;
     private String label;
     private String description;
-    private String verificationLambda;
     private boolean makeItBoolean;
 
     public Badge() {}
