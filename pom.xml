@@ -107,10 +107,43 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>
+						@{argLine}
 						-XX:+EnableDynamicAgentLoading
 						-Xshare:off
 					</argLine>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<configuration>
+							<!-- Restrict coverage instrumentation to application classes -->
+							<includes>
+								<include>fr/utc/miage/sporttrack/**</include>
+							</includes>
+							<!-- Exclude bytecode generated at runtime by Hibernate/ByteBuddy -->
+							<excludes>
+								<exclude>**/*$Hibernate*</exclude>
+								<exclude>**/*$MockitoMock*</exclude>
+								<exclude>**/*$auxiliary$*</exclude>
+							</excludes>
+						</configuration>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
