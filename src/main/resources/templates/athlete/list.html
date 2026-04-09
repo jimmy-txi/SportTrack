@@ -1,0 +1,30 @@
+<!-- Athletes List -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Athletes List</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">        
+</head>
+<body>
+    <h1>Athletes List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Sport</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="athlete : ${athletes}">
+                <td th:text="${athlete.id}">1</td>
+                <td th:text="${athlete.name}">John Doe</td>
+                <td th:text="${athlete.age}">25</td>
+                <td th:text="${athlete.sport}">Basketball</td>
+            </tr>
+        </tbody>
+    </table>
+</html>
