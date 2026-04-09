@@ -1,5 +1,6 @@
-package fr.utc.miage.sporttrack.entity.User;
+package fr.utc.miage.sporttrack.entity.user;
 
+<<<<<<< Updated upstream
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,11 +10,23 @@ import jakarta.persistence.MappedSuperclass;
 import java.util.Objects;
 
 @MappedSuperclass
+=======
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+
+@Entity
+>>>>>>> Stashed changes
 public abstract class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+<<<<<<< Updated upstream
     private Integer idU;
+=======
+    private int idU;
+>>>>>>> Stashed changes
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -30,6 +43,7 @@ public abstract class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+<<<<<<< Updated upstream
     // --- Getters ---
 
     public Integer getIdU() {
@@ -110,4 +124,10 @@ public abstract class User {
     public void logout() {
         // logic
     }
+=======
+    public int getIdU() {
+        return idU;
+    }
+
+>>>>>>> Stashed changes
 }

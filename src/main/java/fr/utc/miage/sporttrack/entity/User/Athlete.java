@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 package fr.utc.miage.sporttrack.entity.User;
 
 import jakarta.persistence.Column;
@@ -77,4 +78,40 @@ public class Athlete extends User {
     public void setBio(String bio) {
         this.bio = bio;
     }
-}
+}
+=======
+package fr.utc.miage.sporttrack.entity.user;
+
+import java.util.List;
+
+import fr.utc.miage.sporttrack.entity.event.Badge;
+import fr.utc.miage.sporttrack.entity.event.Challenge;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+
+@Entity
+public class Athlete extends User {
+    
+    @ElementCollection
+    private List<Badge> badges;
+    
+    @ElementCollection
+    private List<Challenge> historyChallenges;
+
+    @ElementCollection
+    private List<Athlete> friends;
+
+    public Athlete() {}
+
+    public List<Badge> getAcquiredBadges() {
+        return badges;
+    }
+
+    public void addFriend(Athlete athlete) {}
+
+    public List<Athlete> getFriends() {
+        return friends;
+    }
+
+}
+>>>>>>> Stashed changes

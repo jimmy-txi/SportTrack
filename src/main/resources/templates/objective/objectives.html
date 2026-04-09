@@ -1,0 +1,24 @@
+<DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des objectifs</title>
+</head>
+<body>
+<h1>Liste des objectifs</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Nom</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="objective : ${objectives}">
+        <td th:text="${objective.name}">Nom de l'objectif</td>
+        <td th:text="${objective.description}">Description de l'objectif</td>
+    </tr>
+    </tbody>
+</table>
+<a th:href="@{/objectives/add}">Créer un nouvel objectif</a>
+</body>

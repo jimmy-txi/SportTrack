@@ -1,0 +1,18 @@
+<DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire objectif</title>
+</head>
+<body>
+<h1>Nouvel Objectif</h1>
+<form th:action="@{/objectives}" method="post">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="description">Description : </label>
+    <textarea id="description" name="description" required></textarea><br><br>
+
+    <button type="submit">Créer l'objectif</button>
+</form>
+</body>

@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.service.User;
+package fr.utc.miage.sporttrack.service.user;
 
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import fr.utc.miage.sporttrack.repository.User.AthleteRepository;

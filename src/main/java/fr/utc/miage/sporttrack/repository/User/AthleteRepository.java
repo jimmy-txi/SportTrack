@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.repository.User;
+package fr.utc.miage.sporttrack.repository.user;
 
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import org.springframework.data.jpa.repository.JpaRepository;
