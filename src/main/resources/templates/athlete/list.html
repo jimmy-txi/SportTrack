@@ -51,14 +51,12 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">ID</th>
                                 <th scope="col">Username</th>
                                 <th scope="col">Niveau</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="athlete : ${athletes}">
-                                <td th:text="${athlete.idU}">1</td>
                                 <td class="fw-semibold" th:text="${athlete.username}">John Doe</td>
                                 <td>
                                     <span class="badge rounded-pill text-bg-secondary" th:text="${athlete.practiceLevel}">Niveau 1</span>

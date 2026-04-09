@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/athlete")
 public class AthleteController {
 
-    @Autowired
-    private AthleteService athleteService;
+    private final AthleteService athleteService;
+
+    public AthleteController(AthleteService athleteService) {
+        this.athleteService = athleteService;
+    }
 
     @GetMapping("/list")
     public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model) {
