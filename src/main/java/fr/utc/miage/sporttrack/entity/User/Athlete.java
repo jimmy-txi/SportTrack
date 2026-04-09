@@ -1,61 +1,33 @@
 package fr.utc.miage.sporttrack.entity.User;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "athletes")
+@Setter
+@Getter
 public class Athlete extends User {
 
+    @Column(name = "gender")
     private String gender;
+
+    @Column(name = "age")
     private Integer age;
+
+    @Column(name = "height")
     private Double height;
+
+    @Column(name = "weight")
     private Double weight;
+
+    @Column(name = "practice_level")
     private String practiceLevel;
+
+    @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public Double getHeight() {
-        return height;
-    }
-
-    public void setHeight(Double height) {
-        this.height = height;
-    }
-
-    public Double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
-
-    public String getPracticeLevel() {
-        return practiceLevel;
-    }
-
-    public void setPracticeLevel(String practiceLevel) {
-        this.practiceLevel = practiceLevel;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
 
 }

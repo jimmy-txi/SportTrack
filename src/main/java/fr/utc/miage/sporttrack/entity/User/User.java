@@ -1,30 +1,39 @@
 package fr.utc.miage.sporttrack.entity.User;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Objects;
 
+@Getter
+@MappedSuperclass
 public abstract class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idU;
 
+    @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false)
     private String password;
 
+    @Setter
+    @Column(name = "last_name")
     private String lastName;
+
+    @Setter
+    @Column(name = "first_name")
     private String firstName;
 
+    @Column(nullable = false, unique = true)
     private String email;
-
-    public Integer getIdU() {
-        return idU;
-    }
-
-    public void setIdU(Integer idU) {
-        this.idU = idU;
-    }
-
-    public String getUsername() {
-        return username;
-    }
 
     public void setUsername(String username) {
         if (isBlank(username)) {
@@ -33,35 +42,11 @@ public abstract class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
     public void setPassword(String password) {
         if (isBlank(password)) {
             throw new IllegalArgumentException("Password is required");
         }
         this.password = password;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public void setEmail(String email) {
@@ -74,7 +59,7 @@ public abstract class User {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
-        return idU == user.idU && Objects.equals(email, user.email);
+        return Objects.equals(idU, user.idU) && Objects.equals(email, user.email);
     }
 
     @Override
