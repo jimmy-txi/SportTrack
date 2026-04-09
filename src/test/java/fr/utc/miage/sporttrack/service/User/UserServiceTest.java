@@ -4,6 +4,8 @@ import fr.utc.miage.sporttrack.entity.user.Admin;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.user.AdminRepository;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.service.user.UserService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

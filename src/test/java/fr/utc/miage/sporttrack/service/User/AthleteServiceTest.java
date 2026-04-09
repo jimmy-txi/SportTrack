@@ -2,6 +2,8 @@ package fr.utc.miage.sporttrack.service.user;
 
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

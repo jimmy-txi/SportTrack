@@ -2,6 +2,8 @@ package fr.utc.miage.sporttrack.entity.user;
 
 import org.junit.jupiter.api.Test;
 
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AthleteTest {
