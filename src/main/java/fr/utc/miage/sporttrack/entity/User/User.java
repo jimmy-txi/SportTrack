@@ -89,7 +89,8 @@ public abstract class User {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof User user)) return false;
+        if (!(o instanceof User user))
+            return false;
         return Objects.equals(idU, user.idU) && Objects.equals(email, user.email);
     }
 
@@ -101,13 +102,5 @@ public abstract class User {
     // for verify the String value not blank
     protected boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
-    }
-
-    public void login() {
-        // logic
-    }
-
-    public void logout() {
-        // logic
     }
 }

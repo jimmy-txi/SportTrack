@@ -8,8 +8,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.util.List;
 
@@ -23,6 +26,9 @@ class AthleteServiceTest {
 
     @Mock
     private AthleteRepository repository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AthleteService service;
@@ -40,6 +46,7 @@ class AthleteServiceTest {
         secondAthlete.setEmail(EMAIL);
 
         when(repository.existsByEmail(EMAIL)).thenReturn(false, true);
+        when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("hashedpassword");
 
         service.createProfile(firstAthlete);
 
