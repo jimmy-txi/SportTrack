@@ -18,6 +18,8 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Prepare sqlite folder
+        run: mkdir -p db
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
