@@ -2,6 +2,9 @@ package fr.utc.miage.sporttrack.service.user;
 
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,5 +27,15 @@ public class AthleteService {
         athlete.setPassword(encodedPassword);
         athleteRepository.save(athlete);
     }
+    
+    public List<Athlete> getAllAthletes() {
+        return athleteRepository.findAll();
+    }
+
+    public List<Athlete> searchAthletesByName(String query) {
+        return athleteRepository.findByUsernameContainingIgnoreCase(query);
+    }
+ 
+
 
 }
