@@ -15,7 +15,7 @@ public class Objective {
 
     public Objective() {}
 
-    public Objective(String name, String description) {
+    public Objective( String name, String description) {
         this.name = name;
         this.description = description;
     }
@@ -30,6 +30,14 @@ public class Objective {
 
     public Athlete getUser() {
         return athlete;
+    }
+
+    public void setAthlete(Athlete athlete) {
+        this.athlete = athlete;
+    }
+
+    public void setSport(Sport sport) {
+        this.sport = sport;
     }
 
     @ManyToOne

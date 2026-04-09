@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.service.User;
+package fr.utc.miage.sporttrack.service.user;
 
 public class UserService {
 }

@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.event;
 
+import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 
@@ -14,8 +15,10 @@ public class ObjectiveService {
     @Autowired
     private ObjectiveRepository objectiveRepository;
 
-    public void saveObjective(Objective objective) {
+    public void saveObjective(Objective objective, Athlete athlete, Sport sport) {
         if (objective != null) {
+            objective.setAthlete(athlete);
+            objective.setSport(sport);
             objectiveRepository.save(objective);
         }
     }

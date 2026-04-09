@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.event.ObjectiveService;
@@ -23,18 +24,21 @@ public class objectiveController {
         Athlete athlete = (Athlete) session.getAttribute("athlete");
         if (athlete != null) {
             model.addAttribute("objectives", objectiveService.getObjectivesByUser(athlete));
+            return "/objective/objectives";
         }
-        return "/objective/objectives";
+        return "redirect:/login";
     }
 
     @PostMapping("/objectives")
     public String createObjective(
         @RequestParam String name,
         @RequestParam String description,
+        @RequestParam Athlete athlete,
+        @RequestParam Sport sport,
         Model model
     ) {
         Objective objective = new Objective(name, description);
-        objectiveService.saveObjective(objective);
+        objectiveService.saveObjective(objective, athlete, sport);
         
         return "redirect:/objectives";
     }
