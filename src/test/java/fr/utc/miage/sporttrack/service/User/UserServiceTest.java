@@ -1,9 +1,9 @@
-package fr.utc.miage.sporttrack.service.User;
+package fr.utc.miage.sporttrack.service.user;
 
-import fr.utc.miage.sporttrack.entity.User.Admin;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.repository.User.AdminRepository;
-import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
+import fr.utc.miage.sporttrack.entity.user.Admin;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.repository.user.AdminRepository;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

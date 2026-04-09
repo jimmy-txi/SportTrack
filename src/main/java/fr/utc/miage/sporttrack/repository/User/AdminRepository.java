@@ -1,6 +1,6 @@
 package fr.utc.miage.sporttrack.repository.user;
 
-import fr.utc.miage.sporttrack.entity.User.Admin;
+import fr.utc.miage.sporttrack.entity.user.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
