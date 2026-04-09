@@ -1,12 +1,16 @@
 name: Deploy SportTrack
 
 on:
-  push:
-    branches:
-      - prod
+  workflow_run:
+    workflows: ["Test Spring Boot App"]
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'prod'
     runs-on: ubuntu-latest
 
     steps:
