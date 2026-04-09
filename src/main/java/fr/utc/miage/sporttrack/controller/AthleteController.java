@@ -3,7 +3,7 @@ package fr.utc.miage.sporttrack.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-import fr.utc.miage.sporttrack.service.User.AthleteService;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

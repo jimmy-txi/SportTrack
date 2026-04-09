@@ -19,6 +19,18 @@ public class Sport {
 
     public Sport() {}
 
+    public int getIdS() {
+        return idS;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public SportType getType() {
         return type;
     }

@@ -13,6 +13,12 @@
     <label for="description">Description : </label>
     <textarea id="description" name="description" required></textarea><br><br>
 
+    <label for="sportId">Sport :</label>
+    <select id="sportId" name="sportId" required>
+        <option value="" disabled selected>Sélectionnez un sport</option>
+        <option th:each="sport : ${sports}" th:value="${sport.idS}" th:text="${sport.name}">Sport</option>
+    </select><br><br>
+
     <button type="submit">Créer l'objectif</button>
 </form>
 </body>

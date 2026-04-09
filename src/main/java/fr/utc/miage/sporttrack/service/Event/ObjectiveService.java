@@ -16,7 +16,7 @@ public class ObjectiveService {
     private ObjectiveRepository objectiveRepository;
 
     public void saveObjective(Objective objective, Athlete athlete, Sport sport) {
-        if (objective != null) {
+        if (objective != null && athlete != null && sport != null) {
             objective.setAthlete(athlete);
             objective.setSport(sport);
             objectiveRepository.save(objective);
@@ -24,6 +24,6 @@ public class ObjectiveService {
     }
 
     public Iterable<Objective> getObjectivesByUser(Athlete athlete) {
-        return objectiveRepository.findByUser(athlete);
+        return objectiveRepository.findByAthlete(athlete);
     }
 }
