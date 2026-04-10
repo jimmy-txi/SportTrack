@@ -1,12 +1,14 @@
 package fr.utc.miage.sporttrack.entity.user;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "athletes")
-public class Athlete extends User {
+public class Athlete extends User implements Serializable {
 
     @Column(name = "gender")
     private String gender;
