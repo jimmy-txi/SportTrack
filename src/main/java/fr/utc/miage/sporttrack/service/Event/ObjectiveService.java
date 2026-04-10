@@ -26,4 +26,8 @@ public class ObjectiveService {
     public Iterable<Objective> getObjectivesByUser(Athlete athlete) {
         return objectiveRepository.findByAthlete(athlete);
     }
+
+    public void deleteById(int id) {
+        objectiveRepository.deleteById(id);
+    }
 }

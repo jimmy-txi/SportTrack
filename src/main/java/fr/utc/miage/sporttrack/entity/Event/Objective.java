@@ -15,7 +15,7 @@ public class Objective {
 
     public Objective() {}
 
-    public Objective( String name, String description) {
+    public Objective(String name, String description) {
         this.name = name;
         this.description = description;
     }
@@ -46,6 +46,10 @@ public class Objective {
 
     public void setSport(Sport sport) {
         this.sport = sport;
+    }
+
+    public int getIdO() {
+        return idO;
     }
 
     @ManyToOne
