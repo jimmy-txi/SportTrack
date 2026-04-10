@@ -20,6 +20,11 @@ import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.service.event.ObjectiveService;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Controller for objective-related pages and actions.
+ *
+ * This controller manages objective listing, creation, and the objective form display.
+ */
 @Controller
 public class objectiveController {
     
@@ -32,6 +37,13 @@ public class objectiveController {
     @Autowired
     private AthleteRepository athleteRepository;
 
+    /**
+     * Shows the list of objectives for the authenticated athlete.
+     *
+     * @param session the current HTTP session
+     * @param model the model used by the view template
+     * @return the objectives view or a redirect to login
+     */
     @GetMapping("/objectives")
     public String getObjectives(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
@@ -43,6 +55,15 @@ public class objectiveController {
         return "/objective/objectives";
     }
 
+    /**
+     * Creates a new objective for the authenticated athlete.
+     *
+     * @param session the current HTTP session
+     * @param name the objective title
+     * @param description the objective description
+     * @param sportId the selected sport identifier
+     * @return a redirect to the objectives list, add form, or login page
+     */
     @PostMapping("/objectives")
     public String createObjective(
         HttpSession session,
@@ -67,6 +88,13 @@ public class objectiveController {
         return "redirect:/objectives";
     }
 
+    /**
+     * Displays the objective creation form for the authenticated athlete.
+     *
+     * @param session the current HTTP session
+     * @param model the model used by the view template
+     * @return the objective form view or a redirect to login
+     */
     @GetMapping("/objectives/add")
     public String showObjectivesForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
@@ -78,6 +106,12 @@ public class objectiveController {
         return "/objective/objective_form";
     }
 
+    /**
+     * Returns the authenticated athlete from the session or the security context.
+     *
+     * @param session the current HTTP session
+     * @return the authenticated athlete, or null if no valid athlete is authenticated
+     */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
         Athlete athlete = (Athlete) session.getAttribute("athlete");
         if (athlete != null) {
