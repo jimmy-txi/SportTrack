@@ -2,14 +2,20 @@ package fr.utc.miage.sporttrack.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+
+import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
 
 @Entity
 @Table(name = "athletes")
 public class Athlete extends User {
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
-    private String gender;
+    private Gender gender;
 
     @Column(name = "age")
     private Integer age;
@@ -20,15 +26,16 @@ public class Athlete extends User {
     @Column(name = "weight")
     private Double weight;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "practice_level")
-    private String practiceLevel;
+    private PracticeLevel practiceLevel;
 
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
     // --- Getters ---
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
@@ -44,7 +51,7 @@ public class Athlete extends User {
         return weight;
     }
 
-    public String getPracticeLevel() {
+    public PracticeLevel getPracticeLevel() {
         return practiceLevel;
     }
 
@@ -54,7 +61,7 @@ public class Athlete extends User {
 
     // --- Setters ---
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 
@@ -70,7 +77,7 @@ public class Athlete extends User {
         this.weight = weight;
     }
 
-    public void setPracticeLevel(String practiceLevel) {
+    public void setPracticeLevel(PracticeLevel practiceLevel) {
         this.practiceLevel = practiceLevel;
     }
 
