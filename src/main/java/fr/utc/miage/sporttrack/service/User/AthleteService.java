@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.service.User;
 import java.util.List;
 
+import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +33,7 @@ public class AthleteService {
     }
 
     // Update athlete profile
-    public void updateProfile(String email, Athlete updatedData) {
+    public void updateProfile(String email, AthleteProfileUpdateDTO updatedData) {
         Athlete existingAthlete = getCurrentAthlete(email);
 
         // Update allowed fields

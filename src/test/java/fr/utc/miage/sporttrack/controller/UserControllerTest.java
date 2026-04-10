@@ -1,6 +1,6 @@
 package fr.utc.miage.sporttrack.controller;
 
-import fr.utc.miage.sporttrack.entity.User.Athlete;
+import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
 import fr.utc.miage.sporttrack.service.User.AthleteService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ class UserControllerTest {
 
     @Test
     void testUpdateProfileSuccess() {
-        Athlete updatedAthlete = new Athlete();
+        AthleteProfileUpdateDTO updatedAthlete = new AthleteProfileUpdateDTO();
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getName()).thenReturn("czy@test.com");
 
@@ -38,7 +38,7 @@ class UserControllerTest {
 
     @Test
     void testUpdateProfileUnauthenticated() {
-        String redirectUrl = controller.updateProfile(new Athlete(), null);
+        String redirectUrl = controller.updateProfile(new AthleteProfileUpdateDTO(), null);
 
         assertEquals("redirect:/login", redirectUrl);
         verifyNoInteractions(athleteService);
@@ -46,11 +46,11 @@ class UserControllerTest {
 
     @Test
     void testUpdateProfileException() {
-        Athlete updatedAthlete = new Athlete();
+        AthleteProfileUpdateDTO updatedAthlete = new AthleteProfileUpdateDTO();
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getName()).thenReturn("czy@test.com");
         
-        doThrow(new RuntimeException("Simulated exception")).when(athleteService).updateProfile(anyString(), any(Athlete.class));
+        doThrow(new RuntimeException("Simulated exception")).when(athleteService).updateProfile(anyString(), any(AthleteProfileUpdateDTO.class));
 
         String redirectUrl = controller.updateProfile(updatedAthlete, authentication);
 

@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.User;
 
+import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ class AthleteServiceTest {
         existingAthlete.setEmail(EMAIL);
         existingAthlete.setUsername("oldUsername");
 
-        Athlete updatedData = new Athlete();
+        AthleteProfileUpdateDTO updatedData = new AthleteProfileUpdateDTO();
         updatedData.setUsername("newUsername");
         updatedData.setFirstName("New");
         updatedData.setLastName("Name");
