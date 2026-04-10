@@ -1,10 +1,11 @@
-package fr.utc.miage.sporttrack.entity.user;
+package fr.utc.miage.sporttrack.entity.event;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.event.Objective;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.event.ObjectiveService;
 
 import static org.junit.jupiter.api.Assertions.*;
