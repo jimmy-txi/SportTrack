@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.User;
 
+import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,63 @@ class AthleteServiceTest {
     }
 
     @Test
+    void shouldGetCurrentAthlete() {
+        Athlete athlete = new Athlete();
+        athlete.setEmail(EMAIL);
+        when(repository.findByEmail(EMAIL)).thenReturn(java.util.Optional.of(athlete));
+
+        Athlete result = service.getCurrentAthlete(EMAIL);
+
+        assertNotNull(result);
+        assertEquals(EMAIL, result.getEmail());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenGettingNonexistentAthlete() {
+        when(repository.findByEmail("notfound@test.com")).thenReturn(java.util.Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getCurrentAthlete("notfound@test.com")
+        );
+
+        assertEquals("Athlete not found", exception.getMessage());
+    }
+
+    @Test
+    void shouldUpdateProfileSuccessfully() {
+        Athlete existingAthlete = new Athlete();
+        existingAthlete.setEmail(EMAIL);
+        existingAthlete.setUsername("oldUsername");
+
+        AthleteProfileUpdateDTO updatedData = new AthleteProfileUpdateDTO();
+        updatedData.setUsername("newUsername");
+        updatedData.setFirstName("New");
+        updatedData.setLastName("Name");
+        updatedData.setAge(25);
+        updatedData.setHeight(175.5);
+        updatedData.setWeight(70.0);
+        updatedData.setGender(fr.utc.miage.sporttrack.entity.Enumeration.Gender.MALE);
+        updatedData.setPracticeLevel(fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel.ADVANCED);
+        updatedData.setBio("Updated bio");
+
+        when(repository.findByEmail(EMAIL)).thenReturn(java.util.Optional.of(existingAthlete));
+
+        service.updateProfile(EMAIL, updatedData);
+
+        assertEquals("newUsername", existingAthlete.getUsername());
+        assertEquals("New", existingAthlete.getFirstName());
+        assertEquals("Name", existingAthlete.getLastName());
+        assertEquals(25, existingAthlete.getAge());
+        assertEquals(175.5, existingAthlete.getHeight());
+        assertEquals(70.0, existingAthlete.getWeight());
+        assertEquals(fr.utc.miage.sporttrack.entity.Enumeration.Gender.MALE, existingAthlete.getGender());
+        assertEquals(fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel.ADVANCED, existingAthlete.getPracticeLevel());
+        assertEquals("Updated bio", existingAthlete.getBio());
+
+        org.mockito.Mockito.verify(repository).save(existingAthlete);
+    }
+    @Test
     void shouldSearchAthletesByName() {
         Athlete athlete1 = new Athlete();
         athlete1.setUsername("Chen");
@@ -76,7 +134,7 @@ class AthleteServiceTest {
         assertEquals(2, result.size());
         assertTrue(result.contains(athlete1));
         assertTrue(result.contains(athlete2));
-    } 
+    }
 
     @Test
     void shouldSearchAthletesByPartialName() {
@@ -117,7 +175,7 @@ class AthleteServiceTest {
         assertTrue(result.isEmpty());
     }
 
-    @Test 
+    @Test
     void shouldGetAllAthletes() {
         Athlete athlete1 = new Athlete();
         athlete1.setUsername("Chen");

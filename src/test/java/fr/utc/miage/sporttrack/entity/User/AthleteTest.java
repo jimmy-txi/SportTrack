@@ -1,5 +1,7 @@
 package fr.utc.miage.sporttrack.entity.User;
 
+import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,11 +13,11 @@ class AthleteTest {
     private static final String EMAIL = "czy@test.com";
     private static final String FIRST_NAME = "Zheng yi";
     private static final String LAST_NAME = "Chen";
-    private static final String GENDER = "Male";
+    private static final Gender GENDER = Gender.MALE;
     private static final Integer AGE = 23;
     private static final Double HEIGHT = 185.0;
     private static final Double WEIGHT = 85.0;
-    private static final String PRACTICE_LEVEL = "Beginner";
+    private static final PracticeLevel PRACTICE_LEVEL = PracticeLevel.BEGINNER;
     private static final String BIO = "I like running";
 
     //for US #1
