@@ -13,6 +13,14 @@ public class Objective {
     private String name;
     private String description;
 
+    @ManyToOne
+    @JoinColumn(name = "athlete_id")
+    private Athlete athlete;
+
+    @ManyToOne
+    @JoinColumn(name = "sport_id")
+    private Sport sport;
+
     public Objective() {}
         
     public Objective(String name, String description) {
@@ -54,12 +62,4 @@ public class Objective {
     public Sport getSport() {
         return sport;
     }
-
-    @ManyToOne
-    @JoinColumn(name = "athlete_id")
-    private Athlete athlete;
-
-    @ManyToOne
-    @JoinColumn(name = "sport_id")
-    private Sport sport;
 }

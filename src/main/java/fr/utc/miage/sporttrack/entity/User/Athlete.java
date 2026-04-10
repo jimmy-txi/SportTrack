@@ -8,8 +8,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
-import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 
 @Entity
 @Table(name = "athletes")

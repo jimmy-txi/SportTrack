@@ -1,7 +1,7 @@
 package fr.utc.miage.sporttrack.entity.user;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
-import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 import org.junit.jupiter.api.Test;
 
 import fr.utc.miage.sporttrack.entity.user.Athlete;

@@ -28,14 +28,17 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class objectiveController {
     
-    @Autowired
-    private ObjectiveService objectiveService;
+    private final ObjectiveService objectiveService;
 
-    @Autowired
-    private SportRepository sportRepository;
+    private final SportRepository sportRepository;
 
-    @Autowired
-    private AthleteRepository athleteRepository;
+    private final AthleteRepository athleteRepository;
+
+    public objectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository) {
+        this.objectiveService = objectiveService;
+        this.sportRepository = sportRepository;
+        this.athleteRepository = athleteRepository;
+    }
 
     /**
      * Shows the list of objectives for the authenticated athlete.

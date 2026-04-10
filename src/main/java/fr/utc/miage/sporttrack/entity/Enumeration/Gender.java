@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.entity.Enumeration;
+package fr.utc.miage.sporttrack.entity.enumeration;
 
 public enum Gender {
     MALE("Homme"),
