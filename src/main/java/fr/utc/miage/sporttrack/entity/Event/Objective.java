@@ -16,6 +16,9 @@ public class Objective {
     public Objective() {}
 
     public Objective(String name, String description) {
+        if (name == null) {
+            throw new NullPointerException("Name cannot be null");
+        }
         this.name = name;
         this.description = description;
     }
@@ -50,6 +53,10 @@ public class Objective {
 
     public int getIdO() {
         return idO;
+    }
+
+    public Sport getSport() {
+        return sport;
     }
 
     @ManyToOne
