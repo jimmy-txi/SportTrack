@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
+import java.util.List;
+
 @ExtendWith(MockitoExtension.class)
 class AthleteServiceTest {
 
@@ -113,4 +115,80 @@ class AthleteServiceTest {
 
         org.mockito.Mockito.verify(repository).save(existingAthlete);
     }
+    @Test
+    void shouldSearchAthletesByName() {
+        Athlete athlete1 = new Athlete();
+        athlete1.setUsername("Chen");
+
+        Athlete athlete2 = new Athlete();
+        athlete2.setUsername("chen");
+
+        Athlete athlete3 = new Athlete();
+        athlete3.setUsername("John");
+
+        when(repository.findByUsernameContainingIgnoreCase("chen")).thenReturn(List.of(athlete1, athlete2));
+
+        List<Athlete> result = service.searchAthletesByName("chen");
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(athlete1));
+        assertTrue(result.contains(athlete2));
+    }
+
+    @Test
+    void shouldSearchAthletesByPartialName() {
+        Athlete athlete1 = new Athlete();
+        athlete1.setUsername("Chen");
+
+        Athlete athlete2 = new Athlete();
+        athlete2.setUsername("chen");
+
+        Athlete athlete3 = new Athlete();
+        athlete3.setUsername("John");
+
+        when(repository.findByUsernameContainingIgnoreCase("he")).thenReturn(List.of(athlete1, athlete2));
+
+        List<Athlete> result = service.searchAthletesByName("he");
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(athlete1));
+        assertTrue(result.contains(athlete2));
+    }
+
+
+    @Test
+    void shouldSearchInvalidAthletes() {
+        Athlete athlete1 = new Athlete();
+        athlete1.setUsername("Chen");
+
+        Athlete athlete2 = new Athlete();
+        athlete2.setUsername("chen");
+
+        Athlete athlete3 = new Athlete();
+        athlete3.setUsername("John");
+
+        when(repository.findByUsernameContainingIgnoreCase("xyz")).thenReturn(List.of());
+
+        List<Athlete> result = service.searchAthletesByName("xyz");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldGetAllAthletes() {
+        Athlete athlete1 = new Athlete();
+        athlete1.setUsername("Chen");
+
+        Athlete athlete2 = new Athlete();
+        athlete2.setUsername("John");
+
+        when(repository.findAll()).thenReturn(List.of(athlete1, athlete2));
+
+        List<Athlete> result = service.getAllAthletes();
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(athlete1));
+        assertTrue(result.contains(athlete2));
+    }
+
 }

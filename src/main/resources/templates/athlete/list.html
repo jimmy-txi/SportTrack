@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des athlètes</title>
+
+    <!-- Bootswatch (Bootstrap + thème) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+
+    <!-- Optionnel: styles projet -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <main class="container py-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <div>
+                <h1 class="h3 mb-1">Athlètes</h1>
+                <p class="text-body-secondary mb-0">Liste des sportifs enregistrés dans SportTrack.</p>
+            </div>
+            <a th:href="@{/athlete/new}" class="btn btn-primary">
+                + Ajouter un athlète
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <!-- Barre de recherche -->
+                <form class="row g-2 mb-3" method="get" th:action="@{/athlete/list}">
+                    <div class="col-12 col-md-9">
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="q"
+                            th:value="${query}"
+                            placeholder="Rechercher par nom..." />
+                    </div>
+                    <div class="col-12 col-md-3 d-grid d-md-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+                        <a th:if="${query != null and !#strings.isEmpty(query)}"
+                           th:href="@{/athlete/list}"
+                           class="btn btn-outline-secondary w-100">
+                            Réinitialiser
+                        </a>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Username</th>
+                                <th scope="col">Niveau</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="athlete : ${athletes}">
+                                <td class="fw-semibold" th:text="${athlete.username}">John Doe</td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-secondary" th:text="${athlete.practiceLevel}">Niveau 1</span>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(athletes)}">
+                                <td colspan="3" class="text-center text-body-secondary py-4">
+                                    Aucun athlète trouvé.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

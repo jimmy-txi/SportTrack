@@ -1,4 +1,5 @@
 package fr.utc.miage.sporttrack.service.User;
+import java.util.List;
 
 import fr.utc.miage.sporttrack.entity.User.Athlete;
 import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
@@ -47,5 +48,15 @@ public class AthleteService {
 
         athleteRepository.save(existingAthlete);
     }
+
+    public List<Athlete> getAllAthletes() {
+        return athleteRepository.findAll();
+    }
+
+    public List<Athlete> searchAthletesByName(String query) {
+        return athleteRepository.findByUsernameContainingIgnoreCase(query);
+    }
+
+
 
 }
