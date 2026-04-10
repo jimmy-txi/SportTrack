@@ -43,4 +43,17 @@ class UserControllerTest {
         assertEquals("redirect:/login", redirectUrl);
         verifyNoInteractions(athleteService);
     }
+
+    @Test
+    void testUpdateProfileException() {
+        Athlete updatedAthlete = new Athlete();
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("czy@test.com");
+        
+        doThrow(new RuntimeException("Simulated exception")).when(athleteService).updateProfile(anyString(), any(Athlete.class));
+
+        String redirectUrl = controller.updateProfile(updatedAthlete, authentication);
+
+        assertEquals("redirect:/?error=true", redirectUrl);
+    }
 }
