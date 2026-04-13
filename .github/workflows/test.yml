@@ -25,6 +25,8 @@ jobs:
           distribution: zulu
           cache: maven
       - name: Prepare sqlite folder
+        run: mkdir -p data
+        run: cd data/
         run: mkdir -p db
       - name: Build and run tests
         run: mvn -B verify
