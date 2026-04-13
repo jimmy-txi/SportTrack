@@ -11,7 +11,7 @@ public class Sport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idS;
+    private int id;
     private String name;
     private String description;
     private double caloriesPerHour;
@@ -19,8 +19,28 @@ public class Sport {
 
     public Sport() {}
 
-    public int getIdS() {
-        return idS;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCaloriesPerHour(double caloriesPerHour) {
+        this.caloriesPerHour = caloriesPerHour;
+    }
+
+    public void setType(SportType type) {
+        this.type = type;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -36,6 +56,10 @@ public class Sport {
     }
 
     public double getHourlyCalories() {
+        return caloriesPerHour;
+    }
+
+    public double getCaloriesPerHour() {
         return caloriesPerHour;
     }
 }

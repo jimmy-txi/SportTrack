@@ -9,7 +9,7 @@ public class Objective {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idO;
+    private int id;
     private String name;
     private String description;
 

@@ -1,14 +1,17 @@
 package fr.utc.miage.sporttrack.entity.activity;
 
-public class WeatherReport {
+import java.time.LocalDate;
 
-    private int idW;
-    private double temp;
-    private double wind;
-    private double sunExposure;
-    private boolean cloudy;
+public class Activity {
 
-    public WeatherReport() {}
+    private int id;
+    private double duration;
+    private int repetition;
+    private double distance;
+    private LocalDate dateA;
+    private String locationCity;
+
+    public Activity() {}
 
     public Sport getSportAndType() {
         return null;
