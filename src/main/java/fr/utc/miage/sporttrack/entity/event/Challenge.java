@@ -15,7 +15,7 @@ public class Challenge {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idC;
+    private int id;
     private String nom;
     private String description;
 
