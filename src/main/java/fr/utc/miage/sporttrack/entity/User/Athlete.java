@@ -1,25 +1,81 @@
 package fr.utc.miage.sporttrack.entity.User;
 
-import fr.utc.miage.sporttrack.entity.Event.Badge;
-import fr.utc.miage.sporttrack.entity.Event.Challenge;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-import java.util.List;
-
+@Entity
+@Table(name = "athletes")
 public class Athlete extends User {
 
-    private List<Badge> badges;
-    private List<Challenge> historyChallenges;
-    private List<Athlete> friends;
+    @Column(name = "gender")
+    private String gender;
 
-    public Athlete() {}
+    @Column(name = "age")
+    private Integer age;
 
-    public List<Badge> getAcquiredBadges() {
-        return badges;
+    @Column(name = "height")
+    private Double height;
+
+    @Column(name = "weight")
+    private Double weight;
+
+    @Column(name = "practice_level")
+    private String practiceLevel;
+
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio;
+
+    // --- Getters ---
+
+    public String getGender() {
+        return gender;
     }
 
-    public void addFriend(Athlete athlete) {}
+    public Integer getAge() {
+        return age;
+    }
 
-    public List<Athlete> getFriends() {
-        return friends;
+    public Double getHeight() {
+        return height;
+    }
+
+    public Double getWeight() {
+        return weight;
+    }
+
+    public String getPracticeLevel() {
+        return practiceLevel;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    // --- Setters ---
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
+    }
+
+    public void setWeight(Double weight) {
+        this.weight = weight;
+    }
+
+    public void setPracticeLevel(String practiceLevel) {
+        this.practiceLevel = practiceLevel;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 }
+
