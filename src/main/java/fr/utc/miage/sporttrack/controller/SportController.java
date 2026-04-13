@@ -85,18 +85,4 @@ public class SportController {
         }
         return "redirect:/admin/sports";
     }
-
-    /**
-     * Supprime un sport
-     */
-    @PostMapping("/delete/{id}")
-    public String deleteSport(@PathVariable int id, RedirectAttributes redirectAttributes) {
-        try {
-            sportService.deleteSport(id);
-            redirectAttributes.addAttribute("deleted", true);
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
-        }
-        return "redirect:/admin/sports";
-    }
 }

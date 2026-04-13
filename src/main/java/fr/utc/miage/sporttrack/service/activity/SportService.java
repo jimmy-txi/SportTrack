@@ -54,13 +54,6 @@ public class SportService {
         return repository.save(sport);
     }
 
-    public void deleteSport(int id) {
-        if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("Sport not found with id: " + id);
-        }
-        repository.deleteById(id);
-    }
-
     private void checkSportName(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Sport name cannot be null or empty");
