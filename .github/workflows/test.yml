@@ -24,10 +24,7 @@ jobs:
           java-version: 21
           distribution: zulu
           cache: maven
-      - name: Prepare sqlite folder
-        run: |
-          sudo mkdir -p /opt/sporttrack/data/db
-          sudo touch /opt/sporttrack/data/db/app.db
-          sudo chmod -R 777 /opt/sporttrack/data
+      - name: Prepare sqlite folder 
+        run: mkdir -p data/db
       - name: Build and run tests
         run: mvn -B verify
