@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.entity.User.Communication;
+package fr.utc.miage.sporttrack.entity.user.communication;
 
 public class Comment {
 }

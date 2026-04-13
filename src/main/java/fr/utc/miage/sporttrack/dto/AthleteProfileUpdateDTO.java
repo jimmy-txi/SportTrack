@@ -1,7 +1,7 @@
 package fr.utc.miage.sporttrack.dto;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
-import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 
 //for security >.< 
 public class AthleteProfileUpdateDTO {

@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.entity.User;
+package fr.utc.miage.sporttrack.entity.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

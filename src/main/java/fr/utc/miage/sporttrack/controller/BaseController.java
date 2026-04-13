@@ -1,9 +1,9 @@
 package fr.utc.miage.sporttrack.controller;
 
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
-import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
-import fr.utc.miage.sporttrack.service.User.AthleteService;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

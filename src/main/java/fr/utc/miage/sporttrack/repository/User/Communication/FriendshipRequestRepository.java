@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.repository.User.Communication;
+package fr.utc.miage.sporttrack.repository.user.Communication;
 
 public class FriendshipRequestRepository {
 }

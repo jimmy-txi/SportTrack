@@ -1,8 +1,15 @@
-package fr.utc.miage.sporttrack.service.User;
+package fr.utc.miage.sporttrack.service.user;
+
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
 
 import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -96,8 +103,8 @@ class AthleteServiceTest {
         updatedData.setAge(25);
         updatedData.setHeight(175.5);
         updatedData.setWeight(70.0);
-        updatedData.setGender(fr.utc.miage.sporttrack.entity.Enumeration.Gender.MALE);
-        updatedData.setPracticeLevel(fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel.ADVANCED);
+        updatedData.setGender(Gender.MALE);
+        updatedData.setPracticeLevel(PracticeLevel.ADVANCED);
         updatedData.setBio("Updated bio");
 
         when(repository.findByEmail(EMAIL)).thenReturn(java.util.Optional.of(existingAthlete));
@@ -110,8 +117,8 @@ class AthleteServiceTest {
         assertEquals(25, existingAthlete.getAge());
         assertEquals(175.5, existingAthlete.getHeight());
         assertEquals(70.0, existingAthlete.getWeight());
-        assertEquals(fr.utc.miage.sporttrack.entity.Enumeration.Gender.MALE, existingAthlete.getGender());
-        assertEquals(fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel.ADVANCED, existingAthlete.getPracticeLevel());
+        assertEquals(Gender.MALE, existingAthlete.getGender());
+        assertEquals(PracticeLevel.ADVANCED, existingAthlete.getPracticeLevel());
         assertEquals("Updated bio", existingAthlete.getBio());
 
         org.mockito.Mockito.verify(repository).save(existingAthlete);
