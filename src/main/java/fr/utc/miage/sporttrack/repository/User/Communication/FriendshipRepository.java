@@ -1,8 +1,8 @@
-package fr.utc.miage.sporttrack.repository.User.Communication;
+package fr.utc.miage.sporttrack.repository.user.communication;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.FriendshipStatus;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.entity.User.Communication.Friendship;
+import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -40,7 +40,7 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
      * @return List of matching friendship records
      */
     @Query("SELECT f FROM Friendship f WHERE " +
-            "(f.initiator.idU = :athleteId OR f.recipient.idU = :athleteId) AND " +
+            "(f.initiator.id = :athleteId OR f.recipient.id = :athleteId) AND " +
             "f.status = :status")
     List<Friendship> findByAthleteAndStatus(@Param("athleteId") Integer athleteId,
                                             @Param("status") FriendshipStatus status);

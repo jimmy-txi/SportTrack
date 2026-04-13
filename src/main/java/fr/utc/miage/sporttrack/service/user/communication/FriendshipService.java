@@ -1,10 +1,10 @@
-package fr.utc.miage.sporttrack.service.User.Communication;
+package fr.utc.miage.sporttrack.service.user.communication;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.FriendshipStatus;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.entity.User.Communication.Friendship;
-import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
-import fr.utc.miage.sporttrack.repository.User.Communication.FriendshipRepository;
+import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +37,8 @@ public class FriendshipService {
         }
 
         // Look up both athletes
-        Athlete initiator = athleteRepository.findByIdU(initiatorId).orElseThrow(() -> new IllegalArgumentException("Initiator not found"));
-        Athlete recipient = athleteRepository.findByIdU(recipientId).orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
+        Athlete initiator = athleteRepository.findById(initiatorId).orElseThrow(() -> new IllegalArgumentException("Initiator not found"));
+        Athlete recipient = athleteRepository.findById(recipientId).orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
 
         // Check if a relationship already exists between the two athletes
         friendshipRepository.findBetweenAthletes(initiator, recipient).ifPresentOrElse(existing -> handleExistingFriendship(existing, initiator, recipient), () ->
@@ -81,7 +81,7 @@ public class FriendshipService {
         Friendship friendship = findFriendshipOrThrow(friendshipId);
 
         // Only the recipient can accept
-        if (!friendship.getRecipient().getIdU().equals(currentUserId)) {
+        if (!friendship.getRecipient().getId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the recipient can accept a friend request");
         }
 
@@ -102,7 +102,7 @@ public class FriendshipService {
         Friendship friendship = findFriendshipOrThrow(friendshipId);
 
         // Only the recipient can reject
-        if (!friendship.getRecipient().getIdU().equals(currentUserId)) {
+        if (!friendship.getRecipient().getId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the recipient can reject a friend request");
         }
 
@@ -121,8 +121,8 @@ public class FriendshipService {
     @Transactional
     public void removeFriend(Integer currentUserId, Integer otherUserId) {
         // Look up both athletes
-        Athlete currentUser = athleteRepository.findByIdU(currentUserId).orElseThrow(() -> new IllegalArgumentException("Current user not found"));
-        Athlete otherUser = athleteRepository.findByIdU(otherUserId).orElseThrow(() -> new IllegalArgumentException("Other user not found"));
+        Athlete currentUser = athleteRepository.findById(currentUserId).orElseThrow(() -> new IllegalArgumentException("Current user not found"));
+        Athlete otherUser = athleteRepository.findById(otherUserId).orElseThrow(() -> new IllegalArgumentException("Other user not found"));
 
         // Find the friendship between them
         Friendship friendship = friendshipRepository.findBetweenAthletes(currentUser, otherUser).orElseThrow(() -> new IllegalArgumentException("Friendship does not exist"));
@@ -143,7 +143,7 @@ public class FriendshipService {
 
         List<Athlete> friends = new ArrayList<>();
         for (Friendship f : friendships) {
-            if (f.getInitiator().getIdU().equals(athleteId)) {
+            if (f.getInitiator().getId().equals(athleteId)) {
                 friends.add(f.getRecipient());
             } else {
                 friends.add(f.getInitiator());
@@ -156,7 +156,7 @@ public class FriendshipService {
      * Returns all pending friend requests waiting for the athlete to accept.
      */
     public List<Friendship> getPendingRequestsForAthlete(Integer athleteId) {
-        Athlete athlete = athleteRepository.findByIdU(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
+        Athlete athlete = athleteRepository.findById(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
 
         return friendshipRepository.findByRecipientAndStatus(athlete, FriendshipStatus.PENDING);
     }
@@ -165,7 +165,7 @@ public class FriendshipService {
      * Returns all friend requests sent by the athlete that are still pending.
      */
     public List<Friendship> getSentPendingRequests(Integer athleteId) {
-        Athlete athlete = athleteRepository.findByIdU(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
+        Athlete athlete = athleteRepository.findById(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
 
         return friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.PENDING);
     }

@@ -1,7 +1,8 @@
-package fr.utc.miage.sporttrack.entity.User.Communication;
+package fr.utc.miage.sporttrack.entity.user.Communication;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.FriendshipStatus;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
+import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ class FriendshipTest {
         a.setEmail("user" + id + "@test.com");
         // Use reflection to set idU since there is no setter for idU
         try {
-            var field = a.getClass().getSuperclass().getDeclaredField("idU");
+            var field = a.getClass().getSuperclass().getDeclaredField("id");
             field.setAccessible(true);
             field.set(a, id);
         } catch (Exception e) {

@@ -1,10 +1,11 @@
 package fr.utc.miage.sporttrack.service.User.Communication;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.FriendshipStatus;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
-import fr.utc.miage.sporttrack.entity.User.Communication.Friendship;
-import fr.utc.miage.sporttrack.repository.User.AthleteRepository;
-import fr.utc.miage.sporttrack.repository.User.Communication.FriendshipRepository;
+import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
+import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +44,7 @@ class FriendshipServiceTest {
         a.setPassword("pass" + id);
         a.setEmail("user" + id + "@test.com");
         try {
-            var field = a.getClass().getSuperclass().getDeclaredField("idU");
+            var field = a.getClass().getSuperclass().getDeclaredField("id");
             field.setAccessible(true);
             field.set(a, id);
         } catch (Exception e) {
@@ -76,7 +77,7 @@ class FriendshipServiceTest {
 
     @Test
     void sendFriendRequest_shouldThrowWhenInitiatorNotFound() {
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.sendFriendRequest(USER_ID_1, USER_ID_2));
@@ -86,8 +87,8 @@ class FriendshipServiceTest {
     @Test
     void sendFriendRequest_shouldThrowWhenRecipientNotFound() {
         Athlete initiator = createAthlete(USER_ID_1);
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(initiator));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.sendFriendRequest(USER_ID_1, USER_ID_2));
@@ -100,8 +101,8 @@ class FriendshipServiceTest {
         Athlete recipient = createAthlete(USER_ID_2);
         Friendship existing = createFriendship(FRIENDSHIP_ID, initiator, recipient, FriendshipStatus.PENDING);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(initiator));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
         when(friendshipRepository.findBetweenAthletes(initiator, recipient)).thenReturn(Optional.of(existing));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
@@ -115,8 +116,8 @@ class FriendshipServiceTest {
         Athlete recipient = createAthlete(USER_ID_2);
         Friendship existing = createFriendship(FRIENDSHIP_ID, initiator, recipient, FriendshipStatus.ACCEPTED);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(initiator));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
         when(friendshipRepository.findBetweenAthletes(initiator, recipient)).thenReturn(Optional.of(existing));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
@@ -130,8 +131,8 @@ class FriendshipServiceTest {
         Athlete recipient = createAthlete(USER_ID_2);
         Friendship existing = createFriendship(FRIENDSHIP_ID, initiator, recipient, FriendshipStatus.REJECTED);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(initiator));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
         when(friendshipRepository.findBetweenAthletes(initiator, recipient)).thenReturn(Optional.of(existing));
 
         service.sendFriendRequest(USER_ID_1, USER_ID_2);
@@ -146,8 +147,8 @@ class FriendshipServiceTest {
         Athlete initiator = createAthlete(USER_ID_1);
         Athlete recipient = createAthlete(USER_ID_2);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(initiator));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
         when(friendshipRepository.findBetweenAthletes(initiator, recipient)).thenReturn(Optional.empty());
 
         service.sendFriendRequest(USER_ID_1, USER_ID_2);
@@ -261,7 +262,7 @@ class FriendshipServiceTest {
 
     @Test
     void removeFriend_shouldThrowWhenCurrentUserNotFound() {
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.removeFriend(USER_ID_1, USER_ID_2));
@@ -271,8 +272,8 @@ class FriendshipServiceTest {
     @Test
     void removeFriend_shouldThrowWhenOtherUserNotFound() {
         Athlete currentUser = createAthlete(USER_ID_1);
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(currentUser));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(currentUser));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.removeFriend(USER_ID_1, USER_ID_2));
@@ -284,8 +285,8 @@ class FriendshipServiceTest {
         Athlete currentUser = createAthlete(USER_ID_1);
         Athlete otherUser = createAthlete(USER_ID_2);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(currentUser));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(otherUser));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(currentUser));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(otherUser));
         when(friendshipRepository.findBetweenAthletes(currentUser, otherUser)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -299,8 +300,8 @@ class FriendshipServiceTest {
         Athlete otherUser = createAthlete(USER_ID_2);
         Friendship f = createFriendship(FRIENDSHIP_ID, currentUser, otherUser, FriendshipStatus.PENDING);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(currentUser));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(otherUser));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(currentUser));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(otherUser));
         when(friendshipRepository.findBetweenAthletes(currentUser, otherUser)).thenReturn(Optional.of(f));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
@@ -314,8 +315,8 @@ class FriendshipServiceTest {
         Athlete otherUser = createAthlete(USER_ID_2);
         Friendship f = createFriendship(FRIENDSHIP_ID, currentUser, otherUser, FriendshipStatus.ACCEPTED);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(currentUser));
-        when(athleteRepository.findByIdU(USER_ID_2)).thenReturn(Optional.of(otherUser));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(currentUser));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(otherUser));
         when(friendshipRepository.findBetweenAthletes(currentUser, otherUser)).thenReturn(Optional.of(f));
 
         service.removeFriend(USER_ID_1, USER_ID_2);
@@ -387,7 +388,7 @@ class FriendshipServiceTest {
 
     @Test
     void getPendingRequestsForAthlete_shouldThrowWhenAthleteNotFound() {
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.getPendingRequestsForAthlete(USER_ID_1));
@@ -400,7 +401,7 @@ class FriendshipServiceTest {
         Athlete sender = createAthlete(USER_ID_2);
         Friendship f = createFriendship(FRIENDSHIP_ID, sender, athlete, FriendshipStatus.PENDING);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
         when(friendshipRepository.findByRecipientAndStatus(athlete, FriendshipStatus.PENDING))
                 .thenReturn(List.of(f));
 
@@ -414,7 +415,7 @@ class FriendshipServiceTest {
     void getPendingRequestsForAthlete_shouldReturnEmptyListWhenNone() {
         Athlete athlete = createAthlete(USER_ID_1);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
         when(friendshipRepository.findByRecipientAndStatus(athlete, FriendshipStatus.PENDING))
                 .thenReturn(List.of());
 
@@ -427,7 +428,7 @@ class FriendshipServiceTest {
 
     @Test
     void getSentPendingRequests_shouldThrowWhenAthleteNotFound() {
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.empty());
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.getSentPendingRequests(USER_ID_1));
@@ -440,7 +441,7 @@ class FriendshipServiceTest {
         Athlete recipient = createAthlete(USER_ID_2);
         Friendship f = createFriendship(FRIENDSHIP_ID, athlete, recipient, FriendshipStatus.PENDING);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
         when(friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.PENDING))
                 .thenReturn(List.of(f));
 
@@ -454,7 +455,7 @@ class FriendshipServiceTest {
     void getSentPendingRequests_shouldReturnEmptyListWhenNone() {
         Athlete athlete = createAthlete(USER_ID_1);
 
-        when(athleteRepository.findByIdU(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
         when(friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.PENDING))
                 .thenReturn(List.of());
 

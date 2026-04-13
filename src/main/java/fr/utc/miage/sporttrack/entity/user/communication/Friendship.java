@@ -1,7 +1,7 @@
-package fr.utc.miage.sporttrack.entity.User.Communication;
+package fr.utc.miage.sporttrack.entity.user.communication;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.FriendshipStatus;
-import fr.utc.miage.sporttrack.entity.User.Athlete;
+import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -100,6 +100,6 @@ public class Friendship {
 
     @Override
     public String toString() {
-        return "Friendship{" + "id=" + id + ", initiator=" + (initiator != null ? initiator.getIdU() : null) + ", recipient=" + (recipient != null ? recipient.getIdU() : null) + ", status=" + status + ", createdAt=" + createdAt + '}';
+        return "Friendship{" + "id=" + id + ", initiator=" + (initiator != null ? initiator.getId() : null) + ", recipient=" + (recipient != null ? recipient.getId() : null) + ", status=" + status + ", createdAt=" + createdAt + '}';
     }
 }
