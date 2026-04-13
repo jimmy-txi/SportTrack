@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.service.Activity;
+package fr.utc.miage.sporttrack.service.activity;
 
 public class WeatherReportService {
 }

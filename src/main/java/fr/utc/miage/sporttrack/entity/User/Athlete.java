@@ -1,4 +1,6 @@
-package fr.utc.miage.sporttrack.entity.User;
+package fr.utc.miage.sporttrack.entity.user;
+
+import java.io.Serializable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,12 +8,12 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
-import fr.utc.miage.sporttrack.entity.Enumeration.Gender;
-import fr.utc.miage.sporttrack.entity.Enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.entity.enumeration.Gender;
+import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 
 @Entity
 @Table(name = "athletes")
-public class Athlete extends User {
+public class Athlete extends User implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
@@ -85,4 +87,3 @@ public class Athlete extends User {
         this.bio = bio;
     }
 }
-

@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.entity.User;
+package fr.utc.miage.sporttrack.entity.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
@@ -6,10 +6,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @MappedSuperclass
-public abstract class User {
+public abstract class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,7 +1,7 @@
 package fr.utc.miage.sporttrack.controller;
 
 import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
-import fr.utc.miage.sporttrack.service.User.AthleteService;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
