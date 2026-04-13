@@ -14,7 +14,7 @@ public abstract class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idU;
+    private Integer id;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -33,8 +33,8 @@ public abstract class User implements Serializable {
 
     // --- Getters ---
 
-    public Integer getIdU() {
-        return idU;
+    public Integer getId() {
+        return id;
     }
 
     public String getUsername() {
@@ -92,12 +92,12 @@ public abstract class User implements Serializable {
     public boolean equals(Object o) {
         if (!(o instanceof User user))
             return false;
-        return Objects.equals(idU, user.idU) && Objects.equals(email, user.email);
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idU, email);
+        return Objects.hash(id, email);
     }
 
     // for verify the String value not blank

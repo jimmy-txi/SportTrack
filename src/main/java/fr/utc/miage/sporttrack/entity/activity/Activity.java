@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Activity {
 
-    private int idA;
+    private int id;
     private double duration;
     private int repetition;
     private double distance;

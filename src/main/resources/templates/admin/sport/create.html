@@ -15,8 +15,8 @@
             </a>
             <h1>
                 <i class="bi bi-plus-circle"></i>
-                <span th:if="${sport.idS == null}">Créer un nouveau sport</span>
-                <span th:if="${sport.idS != null}">Modifier le sport</span>
+                <span th:if="${sport.id == null}">Créer un nouveau sport</span>
+                <span th:if="${sport.id != null}">Modifier le sport</span>
             </h1>
         </div>
 
@@ -110,8 +110,8 @@
                             <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-success">
                                 <i class="bi bi-check"></i>
-                                <span th:if="${sport.idS == 0}">Créer le sport</span>
-                                <span th:if="${sport.idS != 0}">Mettre à jour</span>
+                                <span th:if="${sport.id == 0}">Créer le sport</span>
+                                <span th:if="${sport.id != 0}">Mettre à jour</span>
                             </button>
                                 <a th:href="@{/admin/sports}" class="btn btn-secondary">
                                     <i class="bi bi-x"></i> Annuler

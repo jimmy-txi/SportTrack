@@ -2,7 +2,7 @@ package fr.utc.miage.sporttrack.entity.activity;
 
 public class WeatherReport {
 
-    private int idW;
+    private int id;
     private double temp;
     private double wind;
     private double sunExposure;

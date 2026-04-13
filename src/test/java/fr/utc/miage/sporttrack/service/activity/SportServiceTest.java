@@ -211,7 +211,7 @@ class SportServiceTest {
      */
     private Sport createSport(int id, String name, String description, double caloriesPerHour, SportType type) {
         Sport sport = new Sport();
-        sport.setIdS(id);
+        sport.setId(id);
         sport.setName(name);
         sport.setDescription(description);
         sport.setCaloriesPerHour(caloriesPerHour);

@@ -21,25 +21,11 @@ public class AdminController {
     @GetMapping("")
     public String home(Model model, Authentication auth) {
 
-        if (!checkAdminLoggedIn(auth)) {
+        if (!adminService.checkAdminLoggedIn(auth)) {
             return "redirect:/login";
         }
 
         return "admin/home";
-    }
-
-    private boolean checkAdminLoggedIn(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
-            return false;
-        }
-        Admin admin;
-        try {
-            admin = adminService.findByEmail(auth.getName());
-        }
-        catch (Exception e) {
-            return false;
-        }
-        return true;
     }
 
 }
