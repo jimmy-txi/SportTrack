@@ -2,7 +2,6 @@ package fr.utc.miage.sporttrack.controller;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +26,7 @@ import jakarta.servlet.http.HttpSession;
  * This controller manages objective listing, creation, and the objective form display.
  */
 @Controller
-public class objectiveController {
+public class ObjectiveController {
     
     private final ObjectiveService objectiveService;
 
@@ -35,7 +34,7 @@ public class objectiveController {
 
     private final AthleteRepository athleteRepository;
 
-    public objectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository) {
+    public ObjectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository) {
         this.objectiveService = objectiveService;
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;

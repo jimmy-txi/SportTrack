@@ -19,6 +19,10 @@ public class Sport {
 
     public Sport() {}
 
+    public void setIdS(int idS) {
+        this.idS = idS;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -55,5 +59,7 @@ public class Sport {
         return caloriesPerHour;
     }
 
-
+    public double getCaloriesPerHour() {
+        return caloriesPerHour;
+    }
 }

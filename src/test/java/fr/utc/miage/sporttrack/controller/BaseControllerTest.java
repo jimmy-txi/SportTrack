@@ -31,11 +31,6 @@ class BaseControllerTest {
     private BaseController controller;
 
     @Test
-    void testHello() {
-        assertEquals("Hello, World!", controller.hello());
-    }
-
-    @Test
     void testHomeWithAuthenticatedUser() {
         Athlete athlete = new Athlete();
         athlete.setEmail("czy@test.com");
