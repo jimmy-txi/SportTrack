@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -55,7 +56,7 @@ public class objectiveController {
         }
 
         model.addAttribute("objectives", objectiveService.getObjectivesByUser(athlete));
-        return "/objective/objectives";
+        return "objective/objectives";
     }
 
     /**
@@ -91,13 +92,12 @@ public class objectiveController {
         return "redirect:/objectives";
     }
 
-    /**
-     * Displays the objective creation form for the authenticated athlete.
-     *
-     * @param session the current HTTP session
-     * @param model the model used by the view template
-     * @return the objective form view or a redirect to login
-     */
+    @PostMapping("/objectives/delete/{id}")
+    public String deleteObjective(@PathVariable("id") int id) {
+        objectiveService.deleteById(id);
+        return "redirect:/objectives";
+    }
+
     @GetMapping("/objectives/add")
     public String showObjectivesForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
@@ -106,7 +106,7 @@ public class objectiveController {
         }
 
         model.addAttribute("sports", sportRepository.findAll());
-        return "/objective/objective_form";
+        return "objective/objective_form";
     }
 
     /**
