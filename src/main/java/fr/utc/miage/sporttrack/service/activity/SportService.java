@@ -21,6 +21,10 @@ public class SportService {
         return repository.findAll();
     }
 
+    public List<Sport> findAllActive() {
+        return repository.findAllByActive(true);
+    }
+
     public Optional<Sport> findById(int id) {
         return repository.findById(id);
     }
@@ -52,6 +56,20 @@ public class SportService {
         sport.setType(type);
 
         return repository.save(sport);
+    }
+
+    public void disableSport(int id) {
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+
+        sport.setActive(false);
+        repository.save(sport);
+    }
+
+    public void enableSport(int id) {
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+
+        sport.setActive(true);
+        repository.save(sport);
     }
 
     private void checkSportName(String name) {

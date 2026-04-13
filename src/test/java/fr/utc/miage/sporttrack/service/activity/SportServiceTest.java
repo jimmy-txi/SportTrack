@@ -207,6 +207,107 @@ class SportServiceTest {
     }
 
     /**
+     * Test : enableSport() active un sport existant
+     */
+    @Test
+    void shouldEnableSportSuccessfully() {
+        Sport sport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        sport.setActive(false);
+        when(sportRepository.findById(SPORT_ID)).thenReturn(Optional.of(sport));
+
+        Sport enabledSport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        enabledSport.setActive(true);
+        when(sportRepository.save(any(Sport.class))).thenReturn(enabledSport);
+
+        sportService.enableSport(SPORT_ID);
+
+        verify(sportRepository, times(1)).findById(SPORT_ID);
+        verify(sportRepository, times(1)).save(any(Sport.class));
+    }
+
+    /**
+     * Test : enableSport() lève une exception si le sport n'existe pas
+     */
+    @Test
+    void shouldThrowExceptionWhenEnablingNonExistentSport() {
+        when(sportRepository.findById(SPORT_ID)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sportService.enableSport(SPORT_ID);
+        });
+        verify(sportRepository, times(1)).findById(SPORT_ID);
+        verify(sportRepository, never()).save(any(Sport.class));
+    }
+
+    /**
+     * Test : disableSport() désactive un sport existant
+     */
+    @Test
+    void shouldDisableSportSuccessfully() {
+        Sport sport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        sport.setActive(true);
+        when(sportRepository.findById(SPORT_ID)).thenReturn(Optional.of(sport));
+
+        Sport disabledSport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        disabledSport.setActive(false);
+        when(sportRepository.save(any(Sport.class))).thenReturn(disabledSport);
+
+        sportService.disableSport(SPORT_ID);
+
+        verify(sportRepository, times(1)).findById(SPORT_ID);
+        verify(sportRepository, times(1)).save(any(Sport.class));
+    }
+
+    /**
+     * Test : disableSport() lève une exception si le sport n'existe pas
+     */
+    @Test
+    void shouldThrowExceptionWhenDisablingNonExistentSport() {
+        when(sportRepository.findById(SPORT_ID)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sportService.disableSport(SPORT_ID);
+        });
+        verify(sportRepository, times(1)).findById(SPORT_ID);
+        verify(sportRepository, never()).save(any(Sport.class));
+    }
+
+    /**
+     * Test : findAllActive() retourne uniquement les sports actifs
+     */
+    @Test
+    void shouldFindAllActiveSports() {
+        Sport activeSport1 = createSport(1, "Course", "Running", 500, SportType.DURATION);
+        activeSport1.setActive(true);
+        Sport activeSport2 = createSport(2, "Natation", "Swimming", 400, SportType.DISTANCE);
+        activeSport2.setActive(true);
+        List<Sport> activeSports = List.of(activeSport1, activeSport2);
+
+        when(sportRepository.findAllByActive(true)).thenReturn(activeSports);
+
+        List<Sport> result = sportService.findAllActive();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.stream().allMatch(Sport::isActive));
+        verify(sportRepository, times(1)).findAllByActive(true);
+    }
+
+    /**
+     * Test : findAllActive() retourne une liste vide quand aucun sport n'est actif
+     */
+    @Test
+    void shouldReturnEmptyListWhenNoActiveSports() {
+        when(sportRepository.findAllByActive(true)).thenReturn(List.of());
+
+        List<Sport> result = sportService.findAllActive();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(sportRepository, times(1)).findAllByActive(true);
+    }
+
+    /**
      * Méthode helper pour créer un sport de test
      */
     private Sport createSport(int id, String name, String description, double caloriesPerHour, SportType type) {
