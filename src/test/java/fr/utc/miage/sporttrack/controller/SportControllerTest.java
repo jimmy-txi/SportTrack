@@ -1,8 +1,8 @@
 package fr.utc.miage.sporttrack.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -209,6 +209,94 @@ class SportControllerTest {
         assertEquals("redirect:/admin/sports/create", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
         verify(redirectAttributes, times(1)).addAttribute("error", "Calories per hour must be greater than zero");
+    }
+
+    /**
+     * Test : enable() active un sport avec succès
+     */
+    @Test
+    void shouldEnableSportSuccessfully() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+        doNothing().when(sportService).enableSport(SPORT_ID);
+
+        String viewName = sportController.enable(SPORT_ID, authentication);
+
+        assertEquals("redirect:/admin/sports", viewName);
+        verify(adminService, times(1)).checkAdminLoggedIn(authentication);
+        verify(sportService, times(1)).enableSport(SPORT_ID);
+    }
+
+    /**
+     * Test : enable() redirige vers login si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginWhenEnablingWithoutAuth() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+
+        String viewName = sportController.enable(SPORT_ID, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verify(sportService, never()).enableSport(SPORT_ID);
+    }
+
+    /**
+     * Test : disable() désactive un sport avec succès
+     */
+    @Test
+    void shouldDisableSportSuccessfully() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+        doNothing().when(sportService).disableSport(SPORT_ID);
+
+        String viewName = sportController.disable(SPORT_ID, authentication);
+
+        assertEquals("redirect:/admin/sports", viewName);
+        verify(adminService, times(1)).checkAdminLoggedIn(authentication);
+        verify(sportService, times(1)).disableSport(SPORT_ID);
+    }
+
+    /**
+     * Test : disable() redirige vers login si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginWhenDisablingWithoutAuth() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+
+        String viewName = sportController.disable(SPORT_ID, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verify(sportService, never()).disableSport(SPORT_ID);
+    }
+
+    /**
+     * Test : enable() gère les exceptions lors de l'activation
+     */
+    @Test
+    void shouldHandleExceptionWhenEnablingSport() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+        doThrow(new IllegalArgumentException("Sport not found with id: " + SPORT_ID))
+                .when(sportService).enableSport(SPORT_ID);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sportController.enable(SPORT_ID, authentication);
+        });
+        verify(adminService, times(1)).checkAdminLoggedIn(authentication);
+        verify(sportService, times(1)).enableSport(SPORT_ID);
+    }
+
+    /**
+     * Test : disable() gère les exceptions lors de la désactivation
+     */
+    @Test
+    void shouldHandleExceptionWhenDisablingSport() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+        doThrow(new IllegalArgumentException("Sport not found with id: " + SPORT_ID))
+                .when(sportService).disableSport(SPORT_ID);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sportController.disable(SPORT_ID, authentication);
+        });
+        verify(adminService, times(1)).checkAdminLoggedIn(authentication);
+        verify(sportService, times(1)).disableSport(SPORT_ID);
     }
 
     /**
