@@ -13,11 +13,19 @@ public class Objective {
     private String name;
     private String description;
 
-    public Objective() {}
+    @ManyToOne
+    @JoinColumn(name = "athlete_id")
+    private Athlete athlete;
 
+    @ManyToOne
+    @JoinColumn(name = "sport_id")
+    private Sport sport;
+
+    public Objective() {}
+        
     public Objective(String name, String description) {
         if (name == null) {
-            throw new NullPointerException("Name cannot be null");
+            throw new NullPointerException("Objective name cannot be null");
         }
         this.name = name;
         this.description = description;
@@ -51,19 +59,7 @@ public class Objective {
         this.sport = sport;
     }
 
-    public int getIdO() {
-        return idO;
-    }
-
     public Sport getSport() {
         return sport;
     }
-
-    @ManyToOne
-    @JoinColumn(name = "athlete_id")
-    private Athlete athlete;
-
-    @ManyToOne
-    @JoinColumn(name = "sport_id")
-    private Sport sport;
 }

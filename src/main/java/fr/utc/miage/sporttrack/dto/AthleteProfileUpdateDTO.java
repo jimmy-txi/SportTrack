@@ -1,41 +1,33 @@
-package fr.utc.miage.sporttrack.entity.user;
-
-import java.io.Serializable;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+package fr.utc.miage.sporttrack.dto;
 
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 
-@Entity
-@Table(name = "athletes")
-public class Athlete extends User implements Serializable {
+//for security >.< 
+public class AthleteProfileUpdateDTO {
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender")
+    private String username;
+    private String firstName;
+    private String lastName;
     private Gender gender;
-
-    @Column(name = "age")
     private Integer age;
-
-    @Column(name = "height")
     private Double height;
-
-    @Column(name = "weight")
     private Double weight;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "practice_level")
     private PracticeLevel practiceLevel;
-
-    @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
     // --- Getters ---
+    public String getUsername() {
+        return username;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
 
     public Gender getGender() {
         return gender;
@@ -62,6 +54,17 @@ public class Athlete extends User implements Serializable {
     }
 
     // --- Setters ---
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
     public void setGender(Gender gender) {
         this.gender = gender;
