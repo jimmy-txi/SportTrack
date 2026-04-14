@@ -78,6 +78,13 @@
                     <i class="bi bi-person-plus me-1"></i> Ajouter
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="blocked-tab" data-bs-toggle="tab" data-bs-target="#tab-blocked"
+                        type="button" role="tab" aria-controls="tab-blocked" aria-selected="false">
+                    <i class="bi bi-slash-circle me-1"></i> Liste noire
+                    <span class="badge bg-danger ms-1 tab-badge" th:text="${#lists.size(blockedUsers)}">0</span>
+                </button>
+            </li>
         </ul>
 
         <!-- Tab Content -->
@@ -267,12 +274,83 @@
                                         </span>
                                     </div>
                                 </div>
-                                <form th:action="@{/friends/send}" method="post">
-                                    <input type="hidden" name="recipientId" th:value="${a.id}"/>
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-person-plus"></i> Envoyer une demande
-                                    </button>
-                                </form>
+
+                                <!-- Status-aware buttons -->
+                                <div th:with="rs=${relationshipStatuses.get(a.id)}">
+
+                                    <!-- NONE: can send request -->
+                                    <form th:if="${rs != null and rs.name() == 'NONE'}" th:action="@{/friends/send}" method="post">
+                                        <input type="hidden" name="recipientId" th:value="${a.id}"/>
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-person-plus"></i> Envoyer une demande
+                                        </button>
+                                    </form>
+
+                                    <!-- REQUEST_SENT: pending, show disabled -->
+                                    <span th:if="${rs != null and rs.name() == 'REQUEST_SENT'}" class="badge bg-warning text-dark">
+                                        <i class="bi bi-hourglass-split"></i> Demande envoyée
+                                    </span>
+
+                                    <!-- REQUEST_RECEIVED: link to requests tab -->
+                                    <a th:if="${rs != null and rs.name() == 'REQUEST_RECEIVED'}"
+                                       href="javascript:void(0)" onclick="switchTab('requests')"
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-inbox"></i> Vous a envoyé une demande
+                                    </a>
+
+                                    <!-- FRIENDS: show friendship badge -->
+                                    <span th:if="${rs != null and rs.name() == 'FRIENDS'}" class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Ami
+                                    </span>
+
+                                    <!-- REJECTED: can resend -->
+                                    <form th:if="${rs != null and rs.name() == 'REJECTED'}" th:action="@{/friends/send}" method="post">
+                                        <input type="hidden" name="recipientId" th:value="${a.id}"/>
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-arrow-repeat"></i> Renvoyer une demande
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Tab 5: Liste noire (Blocked users) ==================== -->
+            <div class="tab-pane fade" id="tab-blocked" role="tabpanel" aria-labelledby="blocked-tab">
+                <div th:if="${#lists.isEmpty(blockedUsers)}" class="text-center py-5">
+                    <i class="bi bi-shield-check display-1 text-muted"></i>
+                    <p class="text-muted mt-3 fs-5">Votre liste noire est vide.</p>
+                    <p class="text-muted small">Bloquez un utilisateur pour l'empêcher de vous envoyer des demandes d'ami.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(blockedUsers)}" class="row g-3">
+                    <div class="col-12" th:each="blocked : ${blockedUsers}">
+                        <div class="card shadow-sm border-danger">
+                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-person-circle display-5 text-danger"></i>
+                                    <div>
+                                        <span class="fw-semibold fs-5"
+                                              th:text="${blocked.recipient.username}">Username</span>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-slash-circle"></i> Bloqué le
+                                            <span th:text="${#temporals.format(blocked.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <!-- Unblock button -->
+                                    <form th:action="@{/friends/unblock/{id}(id=${blocked.recipient.id})}" method="post">
+                                        <button type="submit" class="btn btn-outline-success btn-sm"
+                                                onclick="return confirm('Débloquer cet utilisateur ?')">
+                                            <i class="bi bi-unlock"></i> Débloquer
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -292,7 +370,8 @@
                 'friends': 'friends-tab',
                 'requests': 'requests-tab',
                 'sent': 'sent-tab',
-                'add': 'add-tab'
+                'add': 'add-tab',
+                'blocked': 'blocked-tab'
             };
             var tabId = tabMap[tab] || 'friends-tab';
             var tabEl = document.getElementById(tabId);
@@ -308,7 +387,8 @@
                 'friends': 'friends-tab',
                 'requests': 'requests-tab',
                 'sent': 'sent-tab',
-                'add': 'add-tab'
+                'add': 'add-tab',
+                'blocked': 'blocked-tab'
             };
             var tabId = tabMap[tabName];
             if (tabId) {
