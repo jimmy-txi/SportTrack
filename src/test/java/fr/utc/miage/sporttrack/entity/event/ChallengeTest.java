@@ -1,27 +1,31 @@
 package fr.utc.miage.sporttrack.entity.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.geo.Metric;
+
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
+import fr.utc.miage.sporttrack.entity.enumeration.Metric;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 
-public class ChallengeTest {
+class ChallengeTest {
  
     private static final String NAME = "Défi de course à pied";
     private static final String DESCRIPTION = "Un défi pour courir la plus grande distance cumulée en une semaine.";
     private static final LocalDate START_DATE = LocalDate.of(2024, 1, 1);
     private static final LocalDate END_DATE = LocalDate.of(2024, 1, 7);
+    private static final Metric TYPE = Metric.DURATION;
     private static final Athlete ATHLETE = new Athlete();
     private static final Sport SPORT = new Sport();
 
     @Test
     void shouldCreateChallengeSuccessfullyWithValidData() {
-        Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
+        Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, TYPE);
         challenge.setOrganizer(ATHLETE);
         challenge.setSport(SPORT);
 
@@ -67,5 +71,30 @@ public class ChallengeTest {
         challenge.setMetric(Metric.DISTANCE);
 
         assertEquals(Metric.DISTANCE, challenge.getMetric());
+    }
+
+    @Test
+    void shouldAllowUpdatingParticipants() {
+        Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
+        Athlete participant1 = new Athlete();
+        Athlete participant2 = new Athlete();
+        challenge.setParticipants(List.of(participant1, participant2));
+
+        assertEquals(2, challenge.getParticipants().size());
+        assertTrue(challenge.getParticipants().contains(participant1));
+        assertTrue(challenge.getParticipants().contains(participant2));
+    }
+
+    @Test
+    void shouldGetParticipants() {
+        Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
+        Athlete participant1 = new Athlete();
+        Athlete participant2 = new Athlete();
+        challenge.setParticipants(List.of(participant1, participant2));
+
+        List<Athlete> participants = challenge.getParticipants();
+        assertEquals(2, participants.size());
+        assertTrue(participants.contains(participant1));
+        assertTrue(participants.contains(participant2));
     }
 }

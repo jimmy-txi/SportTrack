@@ -1,11 +1,11 @@
 package fr.utc.miage.sporttrack.entity.enumeration;
 
 public enum Metric {
-    Duration("Durée"),
-    Repetition("Répétition"),
-    Distance("Distance"),
-    MeanVelocity("Vitesse moyenne"),
-    RepsPerMinute("Répétitions par minute");
+    DURATION("Durée"),
+    REPETITION("Répétition"),
+    DISTANCE("Distance"),
+    MEAN_VELOCITY("Vitesse moyenne"),
+    REPS_PER_MINUTE("Répétitions par minute");
 
     private final String displayValue;
 
