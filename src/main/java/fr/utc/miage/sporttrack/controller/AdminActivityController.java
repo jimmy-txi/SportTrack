@@ -69,7 +69,7 @@ public class AdminActivityController {
             return REDIRECT_ACTIVITIES;
         }
         model.addAttribute("activity", toFormDTO(activity.get()));
-        model.addAttribute("sports", sportService.findAll());
+        model.addAttribute("sports", sportService.findAllActive());
         return EDIT_VIEW;
     }
 

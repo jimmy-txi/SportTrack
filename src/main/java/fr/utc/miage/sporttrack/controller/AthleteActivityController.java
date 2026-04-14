@@ -65,7 +65,7 @@ public class AthleteActivityController {
         }
 
         model.addAttribute("activity", new ActivityFormDTO());
-        model.addAttribute("sports", sportService.findAll());
+        model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
     }
 
@@ -84,7 +84,7 @@ public class AthleteActivityController {
         }
 
         model.addAttribute("activity", toFormDTO(activity));
-        model.addAttribute("sports", sportService.findAll());
+        model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
     }
 
