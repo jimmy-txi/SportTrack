@@ -84,7 +84,7 @@ public class SportController {
                 sportService.createSport(
                         sport.getName(),
                         sport.getDescription(),
-                        sport.getHourlyCalories(),
+                        sport.getCaloriesPerHour(),
                         sport.getType()
                 );
                 redirectAttributes.addAttribute("created", true);
@@ -94,7 +94,7 @@ public class SportController {
                         sport.getId(),
                         sport.getName(),
                         sport.getDescription(),
-                        sport.getHourlyCalories(),
+                        sport.getCaloriesPerHour(),
                         sport.getType()
                 );
                 redirectAttributes.addAttribute("updated", true);
@@ -103,6 +103,26 @@ public class SportController {
             redirectAttributes.addAttribute("error", e.getMessage());
             return "redirect:/admin/sports/create";
         }
+        return "redirect:/admin/sports";
+    }
+
+    @PostMapping("/enable/{id}")
+    public String enable(@PathVariable int id, Authentication auth) {
+        if (!adminService.checkAdminLoggedIn(auth)) {
+            return "redirect:/login";
+        }
+
+        sportService.enableSport(id);
+        return "redirect:/admin/sports";
+    }
+
+    @PostMapping("/disable/{id}")
+    public String disable(@PathVariable int id, Authentication auth) {
+        if (!adminService.checkAdminLoggedIn(auth)) {
+            return "redirect:/login";
+        }
+
+        sportService.disableSport(id);
         return "redirect:/admin/sports";
     }
 }

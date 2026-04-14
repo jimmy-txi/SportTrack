@@ -64,7 +64,7 @@
                                 <td>
                                     <span class="badge bg-info" th:text="${sport.type}">Type</span>
                                 </td>
-                                <td th:text="${sport.hourlyCalories}">0</td>
+                                <td th:text="${sport.caloriesPerHour}">0</td>
                                 <td>
                                     <small class="text-muted" th:text="${sport.description != null ? sport.description : 'N/A'}">Description</small>
                                 </td>
@@ -72,6 +72,16 @@
                                     <a th:href="@{/admin/sports/edit/{id}(id=${sport.id})}" class="btn btn-sm btn-primary me-2" title="Modifier">
                                         <i class="bi bi-pencil"></i> Modifier
                                     </a>
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#disableModal"
+                                            th:if="${sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
+                                            onclick="setDisableData(this)" title="Désactiver">
+                                        <i class="bi bi-cross"></i> Désactiver
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#enableModal"
+                                            th:if="${!sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
+                                            onclick="setEnableData(this)" title="Activer">
+                                        <i class="bi bi-check2"></i> Activer
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
@@ -81,21 +91,44 @@
         </div>
     </div>
 
-    <!-- Delete Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <!-- Disable Modal -->
+    <div class="modal fade" id="disableModal" tabindex="-1" aria-labelledby="disableModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                    <h5 class="modal-title" id="disableModalLabel">Confirmer la désactivation</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer le sport <strong id="deleteModalSportName"></strong> ?
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="disableModalSportName"></strong> ?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <form id="deleteForm" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    <form id="disableForm" method="post" style="display: inline;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger">Désactiver</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enable Modal -->
+    <div class="modal fade" id="enableModal" tabindex="-1" aria-labelledby="enableModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="enableModalLabel">Confirmer la désactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="enableModalSportName"></strong> ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="enableForm" method="post" style="display: inline;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-info">Activer</button>
                     </form>
                 </div>
             </div>
@@ -109,6 +142,18 @@
             const name = button.dataset.name;
             document.getElementById('deleteModalSportName').textContent = name;
             document.getElementById('deleteForm').action = '/admin/sports/delete/' + id;
+        }
+        function setDisableData(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            document.getElementById('disableModalSportName').textContent = name;
+            document.getElementById('disableForm').action = '/admin/sports/disable/' + id;
+        }
+        function setEnableData(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            document.getElementById('enableModalSportName').textContent = name;
+            document.getElementById('enableForm').action = '/admin/sports/enable/' + id;
         }
     </script>
 </body>

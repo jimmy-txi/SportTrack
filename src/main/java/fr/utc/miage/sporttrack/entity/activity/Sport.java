@@ -16,6 +16,7 @@ public class Sport {
     private String description;
     private double caloriesPerHour;
     private SportType type;
+    private boolean active = true;
 
     public Sport() {}
 
@@ -39,6 +40,10 @@ public class Sport {
         this.type = type;
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public int getId() {
         return id;
     }
@@ -55,11 +60,11 @@ public class Sport {
         return type;
     }
 
-    public double getHourlyCalories() {
+    public double getCaloriesPerHour() {
         return caloriesPerHour;
     }
 
-    public double getCaloriesPerHour() {
-        return caloriesPerHour;
+    public boolean isActive() {
+        return active;
     }
 }
