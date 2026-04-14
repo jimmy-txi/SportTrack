@@ -26,14 +26,14 @@ public class Challenge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String nom;
+    private String name;
     private String description;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate dateDebut;
+    private LocalDate endDate;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate dateFin;
+    private LocalDate startDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Metric")
@@ -56,11 +56,11 @@ public class Challenge {
 
     public Challenge() {}
 
-    public Challenge(String nom, String description, LocalDate dateDebut, LocalDate dateFin, Metric metric) {
-        this.nom = nom;
+    public Challenge(String name, String description, LocalDate startDate, LocalDate endDate, Metric metric) {
+        this.name = name;
         this.description = description;
-        this.dateDebut = dateDebut;
-        this.dateFin = dateFin;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.metric = metric;
     }
 
@@ -68,12 +68,12 @@ public class Challenge {
         return organizer;
     }
  
-    public String getNom() {
-        return nom;
+    public String getName() {
+        return name;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -84,20 +84,20 @@ public class Challenge {
         this.description = description;
     }
 
-    public LocalDate getDateDebut() {
-        return dateDebut;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setDateDebut(LocalDate dateDebut) {
-        this.dateDebut = dateDebut;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
-    public LocalDate getDateFin() {
-        return dateFin;
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public void setDateFin(LocalDate dateFin) {
-        this.dateFin = dateFin;
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
     public List<Athlete> getParticipants() {

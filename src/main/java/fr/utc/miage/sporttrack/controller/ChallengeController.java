@@ -21,6 +21,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.event.ChallengeRepository;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.service.activity.SportService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -31,11 +32,14 @@ public class ChallengeController {
     private final AthleteRepository athleteRepository;
     
     private final ChallengeRepository challengeRepository;
+
+    private final SportService sportService;
     
-    public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository) {
+    public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository, SportService sportService) {
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;
         this.challengeRepository = challengeRepository;
+        this.sportService = sportService;
     }
     
     @GetMapping("/challenges/new")
@@ -46,7 +50,7 @@ public class ChallengeController {
         }
         model.addAttribute("challenge", new Challenge());
         model.addAttribute("allMetrics", Metric.values());
-        model.addAttribute("sports", sportRepository.findAll());
+        model.addAttribute("sports", sportService.findAllActive());
         return "challenge/challenge_form";
     }
     
@@ -65,16 +69,16 @@ public class ChallengeController {
             if (sportId == null || sportId <= 0) {
                 model.addAttribute("error", "Veuillez sélectionner une discipline sportive valide.");
                 model.addAttribute("allMetrics", Metric.values());
-                model.addAttribute("sports", sportRepository.findAll());
+                model.addAttribute("sports", sportService.findAllActive());
                 return "challenge/challenge_form";
             }
 
             Optional<Sport> sportOpt = sportRepository.findById(sportId);
 
-            if (challenge.getDateDebut().isAfter(challenge.getDateFin()) || challenge.getDateDebut().isBefore(now) || challenge.getDateFin().isBefore(now)) {
+            if (challenge.getStartDate().isAfter(challenge.getEndDate()) || challenge.getStartDate().isBefore(now) || challenge.getEndDate().isBefore(now)) {
                 model.addAttribute("error", "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
                 model.addAttribute("allMetrics", Metric.values());
-                model.addAttribute("sports", sportRepository.findAll());
+                model.addAttribute("sports", sportService.findAllActive());
                 return "challenge/challenge_form";
             }
 

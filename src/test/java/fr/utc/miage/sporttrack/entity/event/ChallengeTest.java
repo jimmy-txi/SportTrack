@@ -29,7 +29,7 @@ class ChallengeTest {
         challenge.setOrganizer(ATHLETE);
         challenge.setSport(SPORT);
 
-        assertEquals(NAME, challenge.getNom());
+        assertEquals(NAME, challenge.getName());
         assertEquals(DESCRIPTION, challenge.getDescription());
         assertEquals(ATHLETE, challenge.getOrganizer());
         assertEquals(SPORT, challenge.getSport());
@@ -48,9 +48,9 @@ class ChallengeTest {
     void shouldAllowUpdatingName() {
         Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
         String newName = "Défi de course à pied - Version 2";
-        challenge.setNom(newName);
+        challenge.setName(newName);
 
-        assertEquals(newName, challenge.getNom());
+        assertEquals(newName, challenge.getName());
     }
 
     @Test
@@ -58,11 +58,11 @@ class ChallengeTest {
         Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
         LocalDate newStartDate = LocalDate.of(2024, 2, 1);
         LocalDate newEndDate = LocalDate.of(2024, 2, 7);
-        challenge.setDateDebut(newStartDate);
-        challenge.setDateFin(newEndDate);
+        challenge.setStartDate(newStartDate);
+        challenge.setEndDate(newEndDate);
 
-        assertEquals(newStartDate, challenge.getDateDebut());
-        assertEquals(newEndDate, challenge.getDateFin());
+        assertEquals(newStartDate, challenge.getStartDate());
+        assertEquals(newEndDate, challenge.getEndDate());
     }
 
     @Test

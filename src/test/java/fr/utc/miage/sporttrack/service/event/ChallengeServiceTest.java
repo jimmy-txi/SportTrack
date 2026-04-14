@@ -1,5 +1,7 @@
 package fr.utc.miage.sporttrack.service.event;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -42,5 +44,25 @@ class ChallengeServiceTest {
 
         challengeService.saveChallenge(challenge, ATHLETE, SPORT);
         verify(challengeRepository).save(challenge);
+    }
+
+    @Test
+    void shouldNotSaveChallengeWhenNull() {
+        challengeService.saveChallenge(null, ATHLETE, SPORT);
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldNotSaveWhenAthleteIsNull() {
+        Challenge challenge = new Challenge();
+        challengeService.saveChallenge(challenge, null, SPORT);
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldNotSaveWhenSportIsNull() {
+        Challenge challenge = new Challenge();
+        challengeService.saveChallenge(challenge, ATHLETE, null);
+        verify(challengeRepository, never()).save(any());
     }
 }
