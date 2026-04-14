@@ -15,9 +15,12 @@
         <div class="col-md-8 col-lg-6">
 
             <!-- Back button -->
-            <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <a th:href="@{/friends}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Retour aux amis
+                </a>
+                <a th:href="@{/friends/activities}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-activity"></i> Activités de mes amis
                 </a>
             </div>
 
@@ -89,35 +92,166 @@
                         <p class="text-muted mt-2 mb-0">C'est votre propre profil.</p>
                     </div>
 
-                    <!-- NONE: Not friends -->
+                    <!-- NONE: No relationship -->
                     <div th:if="${relationshipStatus == 'NONE'}">
                         <i class="bi bi-person-x display-4 text-secondary"></i>
                         <p class="text-muted mt-2 mb-3">Vous n'êtes pas encore amis.</p>
-                        <form th:action="@{/friends/send}" method="post">
-                            <input type="hidden" name="recipientId" th:value="${profileAthlete.id}"/>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-person-plus-fill"></i> Envoyer une demande d'ami
+                        <div class="d-flex justify-content-center gap-2">
+                            <form th:action="@{/friends/send}" method="post">
+                                <input type="hidden" name="recipientId" th:value="${profileAthlete.id}"/>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus-fill"></i> Envoyer une demande d'ami
+                                </button>
+                            </form>
+                            <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Bloquer cet utilisateur ?')">
+                                    <i class="bi bi-slash-circle"></i> Bloquer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- REQUEST_SENT: Current user sent a pending request -->
+                    <div th:if="${relationshipStatus == 'REQUEST_SENT'}">
+                        <i class="bi bi-hourglass-split display-4 text-warning"></i>
+                        <p class="text-warning mt-2 mb-1 fw-semibold">Demande envoyée</p>
+                        <p class="text-muted small mb-3">Votre demande d'ami est en attente de réponse.</p>
+                        <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Bloquer cet utilisateur ?')">
+                                <i class="bi bi-slash-circle"></i> Bloquer
                             </button>
                         </form>
                     </div>
 
-                    <!-- PENDING: Request pending -->
-                    <div th:if="${relationshipStatus == 'PENDING'}">
-                        <i class="bi bi-hourglass-split display-4 text-warning"></i>
-                        <p class="text-warning mt-2 mb-1 fw-semibold">Demande en attente</p>
-                        <p class="text-muted small mb-0">Une demande d'ami est en cours de traitement.</p>
+                    <!-- REQUEST_RECEIVED: Current user received a pending request -->
+                    <div th:if="${relationshipStatus == 'REQUEST_RECEIVED'}">
+                        <i class="bi bi-inbox display-4 text-info"></i>
+                        <p class="text-info mt-2 mb-1 fw-semibold">Demande reçue</p>
+                        <p class="text-muted small mb-3">Cet utilisateur souhaite être votre ami.</p>
+                        <div class="d-flex justify-content-center gap-2" th:if="${friendship != null}">
+                            <form th:action="@{/friends/accept/{id}(id=${friendship.id})}" method="post">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check-lg"></i> Accepter
+                                </button>
+                            </form>
+                            <form th:action="@{/friends/reject/{id}(id=${friendship.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-lg"></i> Refuser
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    <!-- ACCEPTED: Are friends -->
-                    <div th:if="${relationshipStatus == 'ACCEPTED'}">
+                    <!-- FRIENDS: Already friends -->
+                    <div th:if="${relationshipStatus == 'FRIENDS'}">
                         <i class="bi bi-heart-fill display-4 text-success"></i>
                         <p class="text-success mt-2 mb-3 fw-semibold">Vous êtes amis ✅</p>
-                        <button type="button" class="btn btn-outline-danger"
-                                data-bs-toggle="modal" data-bs-target="#removeModal">
-                            <i class="bi bi-person-dash"></i> Supprimer cet ami
-                        </button>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-danger"
+                                    data-bs-toggle="modal" data-bs-target="#removeModal">
+                                <i class="bi bi-person-dash"></i> Supprimer cet ami
+                            </button>
+                            <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Bloquer cet utilisateur ? Cela supprimera votre amitié.')">
+                                    <i class="bi bi-slash-circle"></i> Bloquer
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
+                    <!-- REJECTED: Request was rejected -->
+                    <div th:if="${relationshipStatus == 'REJECTED'}">
+                        <i class="bi bi-x-circle display-4 text-secondary"></i>
+                        <p class="text-secondary mt-2 mb-3 fw-semibold">Demande refusée</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <form th:action="@{/friends/send}" method="post">
+                                <input type="hidden" name="recipientId" th:value="${profileAthlete.id}"/>
+                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-arrow-repeat"></i> Renvoyer une demande
+                                </button>
+                            </form>
+                            <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Bloquer cet utilisateur ?')">
+                                    <i class="bi bi-slash-circle"></i> Bloquer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- BLOCKED_BY_ME: Current user blocked the target -->
+                    <div th:if="${relationshipStatus == 'BLOCKED_BY_ME'}">
+                        <i class="bi bi-slash-circle-fill display-4 text-danger"></i>
+                        <p class="text-danger mt-2 mb-1 fw-semibold">Utilisateur bloqué</p>
+                        <p class="text-muted small mb-3">Vous avez bloqué cet utilisateur. Il ne peut pas vous envoyer de demande d'ami.</p>
+                        <form th:action="@{/friends/unblock/{id}(id=${profileAthlete.id})}" method="post">
+                            <button type="submit" class="btn btn-outline-success btn-sm"
+                                    onclick="return confirm('Débloquer cet utilisateur ?')">
+                                <i class="bi bi-unlock"></i> Débloquer
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- BLOCKED_ME: Target blocked the current user -->
+                    <div th:if="${relationshipStatus == 'BLOCKED_ME'}">
+                        <i class="bi bi-shield-exclamation display-4 text-danger"></i>
+                        <p class="text-danger mt-2 mb-0 fw-semibold">Action impossible</p>
+                        <p class="text-muted small mb-0">Vous ne pouvez pas interagir avec cet utilisateur.</p>
+                    </div>
+
+                    <!-- MUTUALLY_BLOCKED -->
+                    <div th:if="${relationshipStatus == 'MUTUALLY_BLOCKED'}">
+                        <i class="bi bi-shield-fill-exclamation display-4 text-danger"></i>
+                        <p class="text-danger mt-2 mb-1 fw-semibold">Bloquage mutuel</p>
+                        <p class="text-muted small mb-0">Vous et cet utilisateur vous êtes mutuellement bloqués.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Activities section -->
+            <div class="card shadow-sm mt-4" th:if="${relationshipStatus == 'FRIENDS' or relationshipStatus == 'SELF'}">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h5 class="mb-0"><i class="bi bi-activity me-1"></i> Activités</h5>
+                        <small class="text-muted" th:text="${relationshipStatus == 'SELF' ? 'Vos dernières activités' : 'Les dernières activités de cet ami'}">Activités</small>
+                    </div>
+                    <span class="badge rounded-pill text-bg-primary" th:text="${#lists.size(activities)}">0</span>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(activities)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-5"></i>
+                        <p class="mb-0 mt-2">Aucune activité à afficher.</p>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(activities)}" class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Titre</th>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Ville</th>
+                                <th>Durée</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="activity : ${activities}">
+                                <td>
+                                    <strong th:text="${activity.title}">Titre</strong>
+                                    <div class="text-muted small" th:text="${activity.description != null ? activity.description : 'N/A'}">Description</div>
+                                </td>
+                                <td th:text="${activity.dateA}">2026-01-01</td>
+                                <td th:text="${activity.startTime}">08:00</td>
+                                <td th:text="${activity.locationCity}">Ville</td>
+                                <td th:text="${activity.duration}">1.0</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

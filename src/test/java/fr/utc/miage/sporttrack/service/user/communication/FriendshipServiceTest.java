@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.user.communication;
 
+import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
@@ -11,11 +12,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -461,5 +464,549 @@ class FriendshipServiceTest {
         List<Friendship> result = service.getSentPendingRequests(USER_ID_1);
 
         assertTrue(result.isEmpty());
+    }
+
+    // ==================== sendFriendRequest - block checks ====================
+
+    @Test
+    void sendFriendRequest_shouldThrowWhenInitiatorBlockedRecipient() {
+        Athlete initiator = createAthlete(USER_ID_1);
+        Athlete recipient = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(friendshipRepository.existsBlock(initiator, recipient)).thenReturn(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.sendFriendRequest(USER_ID_1, USER_ID_2));
+        assertEquals("You have blocked this user. Unblock them first.", ex.getMessage());
+    }
+
+    @Test
+    void sendFriendRequest_shouldThrowWhenRecipientBlockedInitiator() {
+        Athlete initiator = createAthlete(USER_ID_1);
+        Athlete recipient = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(friendshipRepository.existsBlock(initiator, recipient)).thenReturn(false);
+        when(friendshipRepository.existsBlock(recipient, initiator)).thenReturn(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.sendFriendRequest(USER_ID_1, USER_ID_2));
+        assertEquals("Cannot send friend request to this user.", ex.getMessage());
+    }
+
+    @Test
+    void sendFriendRequest_shouldThrowWhenExistingBlockRelationship() {
+        Athlete initiator = createAthlete(USER_ID_1);
+        Athlete recipient = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, initiator, recipient, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(initiator));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(recipient));
+        when(friendshipRepository.existsBlock(initiator, recipient)).thenReturn(false);
+        when(friendshipRepository.existsBlock(recipient, initiator)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(initiator, recipient)).thenReturn(Optional.of(existing));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.sendFriendRequest(USER_ID_1, USER_ID_2));
+        assertEquals("A block relationship exists between you and this user", ex.getMessage());
+    }
+
+    // ==================== 8. blockUser ====================
+
+    @Test
+    void blockUser_shouldThrowWhenBlockingSelf() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.blockUser(USER_ID_1, USER_ID_1));
+        assertEquals("You cannot block yourself", ex.getMessage());
+    }
+
+    @Test
+    void blockUser_shouldThrowWhenBlockerNotFound() {
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.blockUser(USER_ID_1, USER_ID_2));
+        assertEquals("Blocker not found", ex.getMessage());
+    }
+
+    @Test
+    void blockUser_shouldThrowWhenBlockedNotFound() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.blockUser(USER_ID_1, USER_ID_2));
+        assertEquals("User to block not found", ex.getMessage());
+    }
+
+    @Test
+    void blockUser_shouldThrowWhenAlreadyBlockedBySameUser() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocker, blocked, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.blockUser(USER_ID_1, USER_ID_2));
+        assertEquals("You have already blocked this user", ex.getMessage());
+    }
+
+    @Test
+    void blockUser_shouldReverseBlockWhenOtherUserBlockedUs() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        // blocked previously blocked blocker (initiator=blocked, recipient=blocker)
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocked, blocker, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        service.blockUser(USER_ID_1, USER_ID_2);
+
+        assertEquals(blocker, existing.getInitiator());
+        assertEquals(blocked, existing.getRecipient());
+        assertEquals(FriendshipStatus.BLOCKED, existing.getStatus());
+        verify(friendshipRepository).save(existing);
+    }
+
+    @Test
+    void blockUser_shouldConvertAcceptedToBlocked() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocker, blocked, FriendshipStatus.ACCEPTED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        service.blockUser(USER_ID_1, USER_ID_2);
+
+        assertEquals(FriendshipStatus.BLOCKED, existing.getStatus());
+        assertEquals(blocker, existing.getInitiator());
+        assertEquals(blocked, existing.getRecipient());
+        verify(friendshipRepository).save(existing);
+    }
+
+    @Test
+    void blockUser_shouldConvertPendingToBlocked() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocked, blocker, FriendshipStatus.PENDING);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        service.blockUser(USER_ID_1, USER_ID_2);
+
+        assertEquals(FriendshipStatus.BLOCKED, existing.getStatus());
+        assertEquals(blocker, existing.getInitiator());
+        assertEquals(blocked, existing.getRecipient());
+        verify(friendshipRepository).save(existing);
+    }
+
+    @Test
+    void blockUser_shouldConvertRejectedToBlocked() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocker, blocked, FriendshipStatus.REJECTED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        service.blockUser(USER_ID_1, USER_ID_2);
+
+        assertEquals(FriendshipStatus.BLOCKED, existing.getStatus());
+        verify(friendshipRepository).save(existing);
+    }
+
+    @Test
+    void blockUser_shouldCreateNewBlockedWhenNoExisting() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.empty());
+
+        service.blockUser(USER_ID_1, USER_ID_2);
+
+        verify(friendshipRepository).save(any(Friendship.class));
+    }
+
+    // ==================== 9. unblockUser ====================
+
+    @Test
+    void unblockUser_shouldThrowWhenUnblockingSelf() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.unblockUser(USER_ID_1, USER_ID_1));
+        assertEquals("Invalid operation", ex.getMessage());
+    }
+
+    @Test
+    void unblockUser_shouldThrowWhenBlockerNotFound() {
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.unblockUser(USER_ID_1, USER_ID_2));
+        assertEquals("Blocker not found", ex.getMessage());
+    }
+
+    @Test
+    void unblockUser_shouldThrowWhenNoRelationshipExists() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.unblockUser(USER_ID_1, USER_ID_2));
+        assertEquals("No relationship exists between these users", ex.getMessage());
+    }
+
+    @Test
+    void unblockUser_shouldThrowWhenNotBlocked() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocker, blocked, FriendshipStatus.ACCEPTED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.unblockUser(USER_ID_1, USER_ID_2));
+        assertEquals("This user is not blocked", ex.getMessage());
+    }
+
+    @Test
+    void unblockUser_shouldThrowWhenNotTheBlocker() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        // blocked blocked blocker (initiator=blocked)
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocked, blocker, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.unblockUser(USER_ID_1, USER_ID_2));
+        assertEquals("You did not block this user, so you cannot unblock them", ex.getMessage());
+    }
+
+    @Test
+    void unblockUser_shouldSucceedWhenBlockerUnblocks() {
+        Athlete blocker = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship existing = createFriendship(FRIENDSHIP_ID, blocker, blocked, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(blocker));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(blocked));
+        when(friendshipRepository.findBetweenAthletes(blocker, blocked)).thenReturn(Optional.of(existing));
+
+        service.unblockUser(USER_ID_1, USER_ID_2);
+
+        verify(friendshipRepository).delete(existing);
+    }
+
+    // ==================== 10. getBlockedUsers ====================
+
+    @Test
+    void getBlockedUsers_shouldThrowWhenAthleteNotFound() {
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.getBlockedUsers(USER_ID_1));
+        assertEquals("Athlete not found", ex.getMessage());
+    }
+
+    @Test
+    void getBlockedUsers_shouldReturnBlockedUsers() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete blocked = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, athlete, blocked, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.BLOCKED))
+                .thenReturn(List.of(f));
+
+        List<Friendship> result = service.getBlockedUsers(USER_ID_1);
+
+        assertEquals(1, result.size());
+        assertEquals(f, result.get(0));
+    }
+
+    @Test
+    void getBlockedUsers_shouldReturnEmptyList() {
+        Athlete athlete = createAthlete(USER_ID_1);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(athlete));
+        when(friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.BLOCKED))
+                .thenReturn(List.of());
+
+        List<Friendship> result = service.getBlockedUsers(USER_ID_1);
+
+        assertTrue(result.isEmpty());
+    }
+
+    // ==================== 11. getRelationshipStatus ====================
+
+    @Test
+    void getRelationshipStatus_shouldReturnSELF() {
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_1);
+        assertEquals(RelationshipStatusDTO.SELF, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldThrowWhenViewerNotFound() {
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.getRelationshipStatus(USER_ID_1, USER_ID_2));
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnMutuallyBlocked() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(true);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(true);
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.MUTUALLY_BLOCKED, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnBlockedByMe() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(true);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.BLOCKED_BY_ME, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnBlockedMe() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(true);
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.BLOCKED_ME, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnNoneWhenNoFriendship() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.empty());
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.NONE, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnFriends() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, viewer, target, FriendshipStatus.ACCEPTED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.FRIENDS, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnRequestSent() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, viewer, target, FriendshipStatus.PENDING);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.REQUEST_SENT, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnRequestReceived() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, target, viewer, FriendshipStatus.PENDING);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.REQUEST_RECEIVED, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnRejected() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, viewer, target, FriendshipStatus.REJECTED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.REJECTED, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnBlockedByMeFromFriendship() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        // BLOCKED via friendship record but existsBlock returned false (edge case)
+        Friendship f = createFriendship(FRIENDSHIP_ID, viewer, target, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.BLOCKED_BY_ME, result);
+    }
+
+    @Test
+    void getRelationshipStatus_shouldReturnBlockedMeFromFriendship() {
+        Athlete viewer = createAthlete(USER_ID_1);
+        Athlete target = createAthlete(USER_ID_2);
+        Friendship f = createFriendship(FRIENDSHIP_ID, target, viewer, FriendshipStatus.BLOCKED);
+
+        when(athleteRepository.findById(USER_ID_1)).thenReturn(Optional.of(viewer));
+        when(athleteRepository.findById(USER_ID_2)).thenReturn(Optional.of(target));
+        when(friendshipRepository.existsBlock(viewer, target)).thenReturn(false);
+        when(friendshipRepository.existsBlock(target, viewer)).thenReturn(false);
+        when(friendshipRepository.findBetweenAthletes(viewer, target)).thenReturn(Optional.of(f));
+
+        RelationshipStatusDTO result = service.getRelationshipStatus(USER_ID_1, USER_ID_2);
+        assertEquals(RelationshipStatusDTO.BLOCKED_ME, result);
+    }
+
+    // ==================== 12. searchVisibleAthletes ====================
+
+    @Test
+    void searchVisibleAthletes_shouldFilterSelf() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete other = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findByUsernameContainingIgnoreCase("user")).thenReturn(List.of(athlete, other));
+        when(friendshipRepository.findBlockedUserIds(USER_ID_1)).thenReturn(List.of());
+        when(friendshipRepository.findBlockedByUserIds(USER_ID_1)).thenReturn(List.of());
+
+        List<Athlete> result = service.searchVisibleAthletes(USER_ID_1, "user");
+
+        assertEquals(1, result.size());
+        assertEquals(other, result.get(0));
+    }
+
+    @Test
+    void searchVisibleAthletes_shouldFilterBlockedByMe() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete other = createAthlete(USER_ID_2);
+        Athlete blocked = createAthlete(USER_ID_3);
+
+        when(athleteRepository.findByUsernameContainingIgnoreCase("user")).thenReturn(List.of(other, blocked));
+        when(friendshipRepository.findBlockedUserIds(USER_ID_1)).thenReturn(List.of(USER_ID_3));
+        when(friendshipRepository.findBlockedByUserIds(USER_ID_1)).thenReturn(List.of());
+
+        List<Athlete> result = service.searchVisibleAthletes(USER_ID_1, "user");
+
+        assertEquals(1, result.size());
+        assertEquals(other, result.get(0));
+    }
+
+    @Test
+    void searchVisibleAthletes_shouldFilterBlockedMe() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete other = createAthlete(USER_ID_2);
+        Athlete blocker = createAthlete(USER_ID_3);
+
+        when(athleteRepository.findByUsernameContainingIgnoreCase("user")).thenReturn(List.of(other, blocker));
+        when(friendshipRepository.findBlockedUserIds(USER_ID_1)).thenReturn(List.of());
+        when(friendshipRepository.findBlockedByUserIds(USER_ID_1)).thenReturn(List.of(USER_ID_3));
+
+        List<Athlete> result = service.searchVisibleAthletes(USER_ID_1, "user");
+
+        assertEquals(1, result.size());
+        assertEquals(other, result.get(0));
+    }
+
+    @Test
+    void searchVisibleAthletes_shouldReturnAllWhenNoKeyword() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete other = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findAll()).thenReturn(List.of(athlete, other));
+        when(friendshipRepository.findBlockedUserIds(USER_ID_1)).thenReturn(List.of());
+        when(friendshipRepository.findBlockedByUserIds(USER_ID_1)).thenReturn(List.of());
+
+        List<Athlete> result = service.searchVisibleAthletes(USER_ID_1, null);
+
+        assertEquals(1, result.size());
+        assertEquals(other, result.get(0));
+    }
+
+    @Test
+    void searchVisibleAthletes_shouldReturnAllWhenEmptyKeyword() {
+        Athlete athlete = createAthlete(USER_ID_1);
+        Athlete other = createAthlete(USER_ID_2);
+
+        when(athleteRepository.findAll()).thenReturn(List.of(athlete, other));
+        when(friendshipRepository.findBlockedUserIds(USER_ID_1)).thenReturn(List.of());
+        when(friendshipRepository.findBlockedByUserIds(USER_ID_1)).thenReturn(List.of());
+
+        List<Athlete> result = service.searchVisibleAthletes(USER_ID_1, "");
+
+        assertEquals(1, result.size());
+        assertEquals(other, result.get(0));
     }
 }
