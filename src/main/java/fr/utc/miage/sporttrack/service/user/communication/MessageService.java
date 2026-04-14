@@ -1,4 +1,4 @@
-package fr.utc.miage.sporttrack.service.user.Communication;
+package fr.utc.miage.sporttrack.service.user.communication;
 
 public class MessageService {
 }
