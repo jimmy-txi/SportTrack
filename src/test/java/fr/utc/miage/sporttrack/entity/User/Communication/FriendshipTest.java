@@ -1,8 +1,7 @@
-package fr.utc.miage.sporttrack.entity.user.Communication;
+package fr.utc.miage.sporttrack.entity.user.communication;
 
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
-import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

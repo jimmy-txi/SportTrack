@@ -1,8 +1,7 @@
-package fr.utc.miage.sporttrack.service.User;
+package fr.utc.miage.sporttrack.service.user;
 
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
-import fr.utc.miage.sporttrack.service.user.AthleteService;
 
 import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;

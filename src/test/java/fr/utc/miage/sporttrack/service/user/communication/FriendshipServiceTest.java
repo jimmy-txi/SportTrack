@@ -1,11 +1,10 @@
-package fr.utc.miage.sporttrack.service.User.Communication;
+package fr.utc.miage.sporttrack.service.user.communication;
 
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
-import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
