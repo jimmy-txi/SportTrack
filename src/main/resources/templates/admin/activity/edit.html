@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier une Activité</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <!-- Header -->
+        <div class="mb-4">
+            <a th:href="@{/admin}" class="btn btn-secondary btn-sm mb-3">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+            <h1>
+                <i class="bi bi-pencil-square"></i>
+                Modifier l'activité
+            </h1>
+            <p class="text-muted mb-0">Création réservée aux athlètes.</p>
+        </div>
+
+        <!-- Error Messages -->
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
+            <span th:text="${param.error}">Une erreur est survenue</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Form -->
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <form
+                            th:action="@{/admin/activities/save}"
+                            th:object="${activity}"
+                            method="post"
+                            class="needs-validation"
+                            novalidate>
+
+                            <!-- Hidden ID field for updates -->
+                            <input type="hidden" th:field="*{id}" />
+
+                            <!-- Title -->
+                            <div class="mb-3">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-card-heading"></i> Titre *
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="title"
+                                    th:field="*{title}"
+                                    placeholder="ex: Séance de fractionné"
+                                    required>
+                                <div class="form-text">Nom court de l'activité</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="bi bi-chat-left-text"></i> Description
+                                </label>
+                                <textarea
+                                    class="form-control"
+                                    id="description"
+                                    th:field="*{description}"
+                                    rows="3"
+                                    placeholder="Détails complémentaires sur l'activité"></textarea>
+                                <div class="form-text">Description optionnelle de l'activité</div>
+                            </div>
+
+                            <!-- Sport -->
+                            <div class="mb-3">
+                                <label for="sportId" class="form-label">
+                                    <i class="bi bi-trophy"></i> Sport *
+                                </label>
+                                <select
+                                    class="form-select"
+                                    id="sportId"
+                                    th:field="*{sportId}"
+                                    required>
+                                    <option value="">Selectionner un sport</option>
+                                    <option
+                                        th:each="sport : ${sports}"
+                                        th:value="${sport.id}"
+                                        th:data-type="${sport.type}"
+                                        th:text="${sport.name}">
+                                        Sport
+                                    </option>
+                                </select>
+                                <div class="form-text">Le type du sport determine la mesure a saisir</div>
+                            </div>
+
+                            <!-- Activity Date -->
+                            <div class="mb-3">
+                                <label for="dateA" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Date de l'activité *
+                                </label>
+                                <input
+                                    type="date"
+                                    class="form-control"
+                                    id="dateA"
+                                    th:field="*{dateA}"
+                                    max=""
+                                    required>
+                                <div class="form-text">Date à laquelle l'activité a été réalisée</div>
+                            </div>
+
+                            <!-- Start Time -->
+                            <div class="mb-3">
+                                <label for="startTime" class="form-label">
+                                    <i class="bi bi-clock"></i> Heure de début *
+                                </label>
+                                <input
+                                    type="time"
+                                    class="form-control"
+                                    id="startTime"
+                                    th:field="*{startTime}"
+                                    required>
+                                <div class="form-text">Heure précise du début de l'activité</div>
+                            </div>
+
+                            <!-- Activity Location -->
+                            <div class="mb-3">
+                                <label for="locationCity" class="form-label">
+                                    <i class="bi bi-geo-alt"></i> Ville *
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="locationCity"
+                                    th:field="*{locationCity}"
+                                    placeholder="ex: Compiègne"
+                                    required>
+                                <div class="form-text">Lieu principal de la séance</div>
+                                <div id="cityValidation" class="form-text"></div>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="mb-3" id="durationGroup">
+                                <label for="duration" class="form-label">
+                                    <i class="bi bi-stopwatch"></i> Durée (heures) *
+                                </label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="duration"
+                                    th:field="*{duration}"
+                                    placeholder="ex: 1.5"
+                                    min="0.1"
+                                    step="0.1"
+                                    required>
+                                <div class="form-text">La durée est obligatoire pour toute activité</div>
+                            </div>
+
+                            <!-- Distance -->
+                            <div class="mb-3" id="distanceGroup">
+                                <label for="distance" class="form-label">
+                                    <i class="bi bi-signpost-2"></i> Distance (km)
+                                </label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="distance"
+                                    th:field="*{distance}"
+                                    placeholder="ex: 10"
+                                    min="0"
+                                    step="0.1">
+                                <div class="form-text">Renseigner si l'activité est mesurée en distance</div>
+                            </div>
+
+                            <!-- Repetition -->
+                            <div class="mb-3" id="repetitionGroup">
+                                <label for="repetition" class="form-label">
+                                    <i class="bi bi-arrow-repeat"></i> Répétitions
+                                </label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="repetition"
+                                    th:field="*{repetition}"
+                                    placeholder="ex: 12"
+                                    min="0"
+                                    step="1">
+                                <div class="form-text">Renseigner si l'activité est mesurée en répétitions</div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check"></i>
+                                Mettre à jour
+                            </button>
+                                <a th:href="@{/admin}" class="btn btn-secondary">
+                                    <i class="bi bi-x"></i> Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var dateInput = document.getElementById('dateA');
+                if (dateInput) {
+                    var today = new Date().toISOString().split('T')[0];
+                    dateInput.max = today;
+                    if (!dateInput.value) {
+                        dateInput.value = today;
+                    }
+                }
+
+                var sportSelect = document.getElementById('sportId');
+                var distanceGroup = document.getElementById('distanceGroup');
+                var repetitionGroup = document.getElementById('repetitionGroup');
+                var durationInput = document.getElementById('duration');
+                var distanceInput = document.getElementById('distance');
+                var repetitionInput = document.getElementById('repetition');
+                var cityInput = document.getElementById('locationCity');
+                var cityValidation = document.getElementById('cityValidation');
+                var cityAbortController = null;
+
+                function toggleMetricInputs() {
+                    if (!sportSelect) {
+                        return;
+                    }
+
+                    var selected = sportSelect.options[sportSelect.selectedIndex];
+                    var type = selected ? selected.dataset.type : '';
+
+                    distanceGroup.style.display = type === 'DISTANCE' ? '' : 'none';
+                    repetitionGroup.style.display = type === 'REPETITION' ? '' : 'none';
+
+                    durationInput.required = true;
+                    distanceInput.required = type === 'DISTANCE';
+                    repetitionInput.required = type === 'REPETITION';
+
+                    if (type !== 'DISTANCE') {
+                        distanceInput.value = '';
+                    }
+                    if (type !== 'REPETITION') {
+                        repetitionInput.value = '';
+                    }
+                }
+
+                if (sportSelect) {
+                    sportSelect.addEventListener('change', toggleMetricInputs);
+                    toggleMetricInputs();
+                }
+
+                async function validateCityWithOpenMeteo(cityName) {
+                    if (!cityValidation) {
+                        return;
+                    }
+
+                    if (!cityName || cityName.trim().length < 2) {
+                        cityValidation.textContent = '';
+                        cityValidation.className = 'form-text';
+                        return;
+                    }
+
+                    if (cityAbortController) {
+                        cityAbortController.abort();
+                    }
+
+                    cityAbortController = new AbortController();
+
+                    try {
+                        var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(cityName.trim()) + '&count=1&language=fr&format=json';
+                        var response = await fetch(url, { signal: cityAbortController.signal });
+
+                        if (!response.ok) {
+                            throw new Error('Geocoding API error');
+                        }
+
+                        var data = await response.json();
+                        if (data && data.results && data.results.length > 0) {
+                            var result = data.results[0];
+                            var country = result.country || 'Pays inconnu';
+                            cityValidation.textContent = 'Ville valide - Pays: ' + country;
+                            cityValidation.className = 'form-text text-success';
+                        } else {
+                            cityValidation.textContent = 'Ville non reconnue';
+                            cityValidation.className = 'form-text text-danger';
+                        }
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            return;
+                        }
+                        cityValidation.textContent = 'Verification impossible pour le moment';
+                        cityValidation.className = 'form-text text-warning';
+                    }
+                }
+
+                if (cityInput) {
+                    cityInput.addEventListener('input', function() {
+                        validateCityWithOpenMeteo(cityInput.value);
+                    });
+                    if (cityInput.value) {
+                        validateCityWithOpenMeteo(cityInput.value);
+                    }
+                }
+
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+</body>
+</html>

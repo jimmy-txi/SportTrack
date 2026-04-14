@@ -78,8 +78,9 @@
                                             <tr><th>Biographie</th><td th:text="${athlete.bio}"></td></tr>
                                         </tbody>
                                     </table>
-                                    <div class="text-center">
+                                    <div class="text-center d-flex justify-content-center gap-2 flex-wrap">
                                         <button onclick="toggleEdit()" class="btn btn-primary">Modifier le profil</button>
+                                        <a th:href="@{/athlete/activities}" class="btn btn-success">Mes activités</a>
                                     </div>
                                 </div>
 
