@@ -109,7 +109,7 @@ public class WeatherReport {
             return "Nuageux";
         }
 
-        return "Ensoleille";
+        return "Ensoleillé";
     }
 
     public String getWeatherIconClass() {
