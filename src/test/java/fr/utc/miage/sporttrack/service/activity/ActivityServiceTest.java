@@ -76,6 +76,8 @@ class ActivityServiceTest {
     @Test
     void shouldRefuseActivityCreationWhenMandatoryFieldsMissing_Test35() {
         Athlete athlete = buildAthlete(10);
+        LocalDate activityDate = LocalDate.now();
+        LocalTime activityTime = LocalTime.of(9, 0);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -86,8 +88,8 @@ class ActivityServiceTest {
                         "Sans titre valide",
                         0,
                         5.0,
-                        LocalDate.now(),
-                        LocalTime.of(9, 0),
+                        activityDate,
+                        activityTime,
                         "Compiegne",
                         1
                 )
@@ -108,6 +110,26 @@ class ActivityServiceTest {
 
         assertEquals(2, result.size());
         verify(activityRepository).findByCreatedBy_IdOrderByDateADescStartTimeDesc(42);
+    }
+
+    @Test
+    void shouldReturnAllActivitiesForMultipleAthletes() {
+        List<Activity> expected = List.of(new Activity(), new Activity(), new Activity());
+
+        when(activityRepository.findByCreatedBy_IdInOrderByDateADescStartTimeDesc(List.of(2, 3))).thenReturn(expected);
+
+        List<Activity> result = activityService.findAllByAthleteIds(List.of(2, 3));
+
+        assertEquals(3, result.size());
+        verify(activityRepository).findByCreatedBy_IdInOrderByDateADescStartTimeDesc(List.of(2, 3));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenAthleteIdsMissing() {
+        List<Activity> result = activityService.findAllByAthleteIds(List.of());
+
+        assertTrue(result.isEmpty());
+        verify(activityRepository, never()).findByCreatedBy_IdInOrderByDateADescStartTimeDesc(any());
     }
 
     @Test
@@ -197,12 +219,14 @@ class ActivityServiceTest {
         Sport sport = buildSport(2, SportType.DISTANCE);
         when(sportRepository.findById(2)).thenReturn(Optional.of(sport));
         when(activityRepository.findById(77)).thenReturn(Optional.empty());
+        LocalDate activityDate = LocalDate.now().minusDays(1);
+        LocalTime activityTime = LocalTime.of(8, 0);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
                 () -> activityService.updateActivity(
-                        77, 1.2, "x", "x", 0, 5,
-                        LocalDate.now().minusDays(1), LocalTime.of(8, 0), "Paris", 2
+                77, 1.2, "x", "x", 0, 5,
+                activityDate, activityTime, "Paris", 2
                 )
         );
         assertEquals("Activity not found with id: 77", ex.getMessage());
@@ -257,12 +281,14 @@ class ActivityServiceTest {
         Athlete athlete = buildAthlete(10);
         Sport sport = buildSport(5, SportType.REPETITION);
         when(sportRepository.findById(5)).thenReturn(Optional.of(sport));
+        LocalDate activityDate = LocalDate.now().minusDays(1);
+        LocalTime activityTime = LocalTime.of(10, 0);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
                 () -> activityService.createActivityForAthlete(
                         athlete, 1.0, "Pompes", "", 0, 0,
-                        LocalDate.now().minusDays(1), LocalTime.of(10, 0), "Compiegne", 5
+                activityDate, activityTime, "Compiegne", 5
                 )
         );
 

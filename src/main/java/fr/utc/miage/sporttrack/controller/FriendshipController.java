@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
+import fr.utc.miage.sporttrack.service.activity.ActivityService;
+import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
@@ -36,12 +39,16 @@ public class FriendshipController {
     private final FriendshipRepository friendshipRepository;
     private final AthleteRepository athleteRepository;
     private final AthleteService athleteService;
+    private final ActivityService activityService;
+    private final WeatherReportService weatherReportService;
 
-    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
         this.athleteService = athleteService;
+        this.activityService = activityService;
+        this.weatherReportService = weatherReportService;
     }
 
     /**
@@ -133,8 +140,30 @@ public class FriendshipController {
         model.addAttribute("relationshipStatus", relationshipStatus);
         model.addAttribute("friendship", friendshipOpt.orElse(null));
         model.addAttribute("currentAthlete", athlete);
+        model.addAttribute("activities", loadVisibleActivities(target, relationshipStatus));
 
         return "athlete/friend/profile";
+    }
+
+    /**
+     * Shows the aggregated activity feed for all accepted friends.
+     */
+    @GetMapping("/friends/activities")
+    public String friendsActivities(HttpSession session, Model model) {
+        Athlete athlete = getAuthenticatedAthlete(session);
+        if (athlete == null) {
+            return "redirect:/login";
+        }
+
+        List<Athlete> friends = friendshipService.getFriendsOfAthlete(athlete.getId());
+        List<Integer> friendIds = friends.stream().map(Athlete::getId).toList();
+        List<Activity> activities = loadActivitiesForAthletes(friendIds);
+
+        model.addAttribute("activities", activities);
+        model.addAttribute("friends", friends);
+        model.addAttribute("currentAthlete", athlete);
+
+        return "athlete/friend/activities";
     }
 
     /**
@@ -261,5 +290,21 @@ public class FriendshipController {
         }
 
         return athlete;
+    }
+
+    private List<Activity> loadVisibleActivities(Athlete target, String relationshipStatus) {
+        if (!"ACCEPTED".equals(relationshipStatus) && !"SELF".equals(relationshipStatus)) {
+            return List.of();
+        }
+
+        return loadActivitiesForAthletes(List.of(target.getId()));
+    }
+
+    private List<Activity> loadActivitiesForAthletes(List<Integer> athleteIds) {
+        List<Activity> activities = activityService.findAllByAthleteIds(athleteIds);
+        activities.forEach(activity -> activity.setWeatherReport(
+                weatherReportService.findByActivityId(activity.getId()).orElse(null)
+        ));
+        return activities;
     }
 }

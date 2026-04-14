@@ -32,9 +32,14 @@
                 <h2 class="mb-1"><i class="bi bi-people-fill me-2"></i>Gestion des amis</h2>
                 <p class="text-body-secondary mb-0">Gérez vos amis et vos demandes d'amitié.</p>
             </div>
-            <a th:href="@{/}" class="btn btn-outline-secondary">
-                <i class="bi bi-house"></i> Accueil
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/friends/activities}" class="btn btn-outline-primary">
+                    <i class="bi bi-activity"></i> Activités des amis
+                </a>
+                <a th:href="@{/}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house"></i> Accueil
+                </a>
+            </div>
         </div>
 
         <!-- Success / Error messages -->

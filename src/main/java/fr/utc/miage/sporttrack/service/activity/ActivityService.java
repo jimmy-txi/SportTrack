@@ -41,6 +41,13 @@ public class ActivityService {
         return activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(athlete.getId());
     }
 
+    public List<Activity> findAllByAthleteIds(List<Integer> athleteIds) {
+        if (athleteIds == null || athleteIds.isEmpty()) {
+            return List.of();
+        }
+        return activityRepository.findByCreatedBy_IdInOrderByDateADescStartTimeDesc(athleteIds);
+    }
+
     public Optional<Activity> findById(int id) {
         return activityRepository.findById(id);
     }
