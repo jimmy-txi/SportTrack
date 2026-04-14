@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.user.communication;
 
+import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
@@ -10,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class FriendshipService {
@@ -26,8 +30,11 @@ public class FriendshipService {
         this.athleteRepository = athleteRepository;
     }
 
+    // ========================= Friend Request =========================
+
     /**
      * Sends a friend request from one user to another.
+     * Checks for block relationships before allowing the request.
      */
     @Transactional
     public void sendFriendRequest(Integer initiatorId, Integer recipientId) {
@@ -37,14 +44,23 @@ public class FriendshipService {
         }
 
         // Look up both athletes
-        Athlete initiator = athleteRepository.findById(initiatorId).orElseThrow(() -> new IllegalArgumentException("Initiator not found"));
-        Athlete recipient = athleteRepository.findById(recipientId).orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
+        Athlete initiator = findAthleteOrThrow(initiatorId, "Initiator not found");
+        Athlete recipient = findAthleteOrThrow(recipientId, "Recipient not found");
+
+        // Check if initiator has blocked recipient
+        if (friendshipRepository.existsBlock(initiator, recipient)) {
+            throw new IllegalStateException("You have blocked this user. Unblock them first.");
+        }
+
+        // Check if recipient has blocked initiator
+        if (friendshipRepository.existsBlock(recipient, initiator)) {
+            throw new IllegalStateException("Cannot send friend request to this user.");
+        }
 
         // Check if a relationship already exists between the two athletes
-        friendshipRepository.findBetweenAthletes(initiator, recipient).ifPresentOrElse(existing -> handleExistingFriendship(existing, initiator, recipient), () ->
-                // No existing relationship → create a new one
-                friendshipRepository.save(new Friendship(initiator, recipient))
-
+        friendshipRepository.findBetweenAthletes(initiator, recipient).ifPresentOrElse(
+                existing -> handleExistingFriendship(existing, initiator, recipient),
+                () -> friendshipRepository.save(new Friendship(initiator, recipient))
         );
     }
 
@@ -63,29 +79,21 @@ public class FriendshipService {
                 existing.setCreatedAt(LocalDateTime.now());
                 friendshipRepository.save(existing);
             }
+            case BLOCKED -> throw new IllegalStateException("A block relationship exists between you and this user");
         }
     }
 
     /**
      * Accept a pending friend request.
-     * <ul>
-     *   <li>Only the recipient can accept</li>
-     *   <li>Only a PENDING request can be accepted</li>
-     * </ul>
-     *
-     * @param friendshipId  the ID of the friendship record
-     * @param currentUserId the ID of the current user (must be the recipient)
      */
     @Transactional
     public void acceptFriendRequest(Integer friendshipId, Integer currentUserId) {
         Friendship friendship = findFriendshipOrThrow(friendshipId);
 
-        // Only the recipient can accept
         if (!friendship.getRecipient().getId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the recipient can accept a friend request");
         }
 
-        // Only PENDING requests can be accepted
         if (friendship.getStatus() != FriendshipStatus.PENDING) {
             throw new IllegalStateException("Only pending friend requests can be accepted");
         }
@@ -101,12 +109,10 @@ public class FriendshipService {
     public void rejectFriendRequest(Integer friendshipId, Integer currentUserId) {
         Friendship friendship = findFriendshipOrThrow(friendshipId);
 
-        // Only the recipient can reject
         if (!friendship.getRecipient().getId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the recipient can reject a friend request");
         }
 
-        // Only PENDING requests can be rejected
         if (friendship.getStatus() != FriendshipStatus.PENDING) {
             throw new IllegalStateException("Only pending friend requests can be rejected");
         }
@@ -120,20 +126,106 @@ public class FriendshipService {
      */
     @Transactional
     public void removeFriend(Integer currentUserId, Integer otherUserId) {
-        // Look up both athletes
-        Athlete currentUser = athleteRepository.findById(currentUserId).orElseThrow(() -> new IllegalArgumentException("Current user not found"));
-        Athlete otherUser = athleteRepository.findById(otherUserId).orElseThrow(() -> new IllegalArgumentException("Other user not found"));
+        Athlete currentUser = findAthleteOrThrow(currentUserId, "Current user not found");
+        Athlete otherUser = findAthleteOrThrow(otherUserId, "Other user not found");
 
-        // Find the friendship between them
-        Friendship friendship = friendshipRepository.findBetweenAthletes(currentUser, otherUser).orElseThrow(() -> new IllegalArgumentException("Friendship does not exist"));
+        Friendship friendship = friendshipRepository.findBetweenAthletes(currentUser, otherUser)
+                .orElseThrow(() -> new IllegalArgumentException("Friendship does not exist"));
 
-        // Only ACCEPTED friendships can be removed
         if (friendship.getStatus() != FriendshipStatus.ACCEPTED) {
             throw new IllegalStateException("Only accepted friendships can be removed");
         }
 
         friendshipRepository.delete(friendship);
     }
+
+    // ========================= Block / Unblock =========================
+
+    /**
+     * Blocks a user. Handles all existing relationship states:
+     * - If already friends: removes friendship and blocks.
+     * - If pending request: cancels it and blocks.
+     * - If rejected: blocks.
+     * - If already blocked by blocker: throws exception.
+     * - If no relationship: creates a new BLOCKED record.
+     *
+     * @param blockerId the user performing the block
+     * @param blockedId the user being blocked
+     */
+    @Transactional
+    public void blockUser(Integer blockerId, Integer blockedId) {
+        if (blockerId.equals(blockedId)) {
+            throw new IllegalArgumentException("You cannot block yourself");
+        }
+
+        Athlete blocker = findAthleteOrThrow(blockerId, "Blocker not found");
+        Athlete blocked = findAthleteOrThrow(blockedId, "User to block not found");
+
+        Optional<Friendship> existingOpt = friendshipRepository.findBetweenAthletes(blocker, blocked);
+
+        if (existingOpt.isPresent()) {
+            Friendship existing = existingOpt.get();
+            switch (existing.getStatus()) {
+                case BLOCKED -> {
+                    if (existing.getInitiator().getId().equals(blockerId)) {
+                        throw new IllegalStateException("You have already blocked this user");
+                    } else {
+                        // The other user blocked us — but we still want to block them too.
+                        // Update the existing record: make blocker the initiator.
+                        existing.setInitiator(blocker);
+                        existing.setRecipient(blocked);
+                        existing.setStatus(FriendshipStatus.BLOCKED);
+                        existing.setCreatedAt(LocalDateTime.now());
+                        friendshipRepository.save(existing);
+                    }
+                }
+                case ACCEPTED, PENDING, REJECTED -> {
+                    // Any existing relationship → convert to BLOCKED
+                    existing.setInitiator(blocker);
+                    existing.setRecipient(blocked);
+                    existing.setStatus(FriendshipStatus.BLOCKED);
+                    existing.setCreatedAt(LocalDateTime.now());
+                    friendshipRepository.save(existing);
+                }
+            }
+        } else {
+            // No existing relationship → create a new BLOCKED record
+            friendshipRepository.save(new Friendship(blocker, blocked, FriendshipStatus.BLOCKED));
+        }
+    }
+
+    /**
+     * Unblocks a previously blocked user.
+     * Only the user who initiated the block can unblock.
+     *
+     * @param blockerId the user who performed the block
+     * @param blockedId the user to unblock
+     */
+    @Transactional
+    public void unblockUser(Integer blockerId, Integer blockedId) {
+        if (blockerId.equals(blockedId)) {
+            throw new IllegalArgumentException("Invalid operation");
+        }
+
+        Athlete blocker = findAthleteOrThrow(blockerId, "Blocker not found");
+        Athlete blocked = findAthleteOrThrow(blockedId, "Blocked user not found");
+
+        Friendship friendship = friendshipRepository.findBetweenAthletes(blocker, blocked)
+                .orElseThrow(() -> new IllegalArgumentException("No relationship exists between these users"));
+
+        if (friendship.getStatus() != FriendshipStatus.BLOCKED) {
+            throw new IllegalStateException("This user is not blocked");
+        }
+
+        if (!friendship.getInitiator().getId().equals(blockerId)) {
+            throw new IllegalStateException("You did not block this user, so you cannot unblock them");
+        }
+
+        // Remove the block record entirely
+        friendshipRepository.delete(friendship);
+    }
+
+    // ========================= Query Methods =========================
 
     /**
      * Returns a list of all accepted friends for a specific athlete.
@@ -156,8 +248,7 @@ public class FriendshipService {
      * Returns all pending friend requests waiting for the athlete to accept.
      */
     public List<Friendship> getPendingRequestsForAthlete(Integer athleteId) {
-        Athlete athlete = athleteRepository.findById(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
-
+        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
         return friendshipRepository.findByRecipientAndStatus(athlete, FriendshipStatus.PENDING);
     }
 
@@ -165,16 +256,135 @@ public class FriendshipService {
      * Returns all friend requests sent by the athlete that are still pending.
      */
     public List<Friendship> getSentPendingRequests(Integer athleteId) {
-        Athlete athlete = athleteRepository.findById(athleteId).orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
-
+        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
         return friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.PENDING);
     }
 
+    /**
+     * Returns all users blocked by the given athlete.
+     */
+    public List<Friendship> getBlockedUsers(Integer athleteId) {
+        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
+        return friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.BLOCKED);
+    }
+
+    // ========================= Relationship Status =========================
+
+    /**
+     * Computes the relationship status from the perspective of viewerId looking at targetId.
+     * Returns a RelationshipStatusDTO that the frontend can use to determine button display.
+     *
+     * @param viewerId the current user
+     * @param targetId the user being viewed
+     * @return the computed relationship status
+     */
+    public RelationshipStatusDTO getRelationshipStatus(Integer viewerId, Integer targetId) {
+        if (viewerId.equals(targetId)) {
+            return RelationshipStatusDTO.SELF;
+        }
+
+        Athlete viewer = findAthleteOrThrow(viewerId, "Viewer not found");
+        Athlete target = findAthleteOrThrow(targetId, "Target not found");
+
+        boolean viewerBlockedTarget = friendshipRepository.existsBlock(viewer, target);
+        boolean targetBlockedViewer = friendshipRepository.existsBlock(target, viewer);
+
+        if (viewerBlockedTarget && targetBlockedViewer) {
+            return RelationshipStatusDTO.MUTUALLY_BLOCKED;
+        }
+        if (viewerBlockedTarget) {
+            return RelationshipStatusDTO.BLOCKED_BY_ME;
+        }
+        if (targetBlockedViewer) {
+            return RelationshipStatusDTO.BLOCKED_ME;
+        }
+
+        Optional<Friendship> friendshipOpt = friendshipRepository.findBetweenAthletes(viewer, target);
+        if (friendshipOpt.isEmpty()) {
+            return RelationshipStatusDTO.NONE;
+        }
+
+        Friendship friendship = friendshipOpt.get();
+        return switch (friendship.getStatus()) {
+            case ACCEPTED -> RelationshipStatusDTO.FRIENDS;
+            case PENDING -> {
+                if (friendship.getInitiator().getId().equals(viewerId)) {
+                    yield RelationshipStatusDTO.REQUEST_SENT;
+                } else {
+                    yield RelationshipStatusDTO.REQUEST_RECEIVED;
+                }
+            }
+            case REJECTED -> RelationshipStatusDTO.REJECTED;
+            case BLOCKED -> {
+                // This case should be handled above, but just in case
+                if (friendship.getInitiator().getId().equals(viewerId)) {
+                    yield RelationshipStatusDTO.BLOCKED_BY_ME;
+                } else {
+                    yield RelationshipStatusDTO.BLOCKED_ME;
+                }
+            }
+        };
+    }
+
+    // ========================= Search =========================
+
+    /**
+     * Searches for athletes visible to the current user.
+     * Filters out:
+     * - The current user themselves
+     * - Users the current user has blocked
+     * - Users who have blocked the current user
+     *
+     * @param currentUserId the ID of the user performing the search
+     * @param keyword       the search keyword (username)
+     * @return list of visible athletes matching the keyword
+     */
+    public List<Athlete> searchVisibleAthletes(Integer currentUserId, String keyword) {
+        // Get all athletes matching the keyword
+        List<Athlete> allAthletes;
+        if (keyword != null && !keyword.isEmpty()) {
+            allAthletes = athleteRepository.findByUsernameContainingIgnoreCase(keyword);
+        } else {
+            allAthletes = athleteRepository.findAll();
+        }
+
+        // Build the set of IDs to exclude
+        Set<Integer> excludedIds = new HashSet<>();
+        excludedIds.add(currentUserId); // exclude self
+
+        // Exclude users the current user has blocked
+        List<Integer> blockedByMe = friendshipRepository.findBlockedUserIds(currentUserId);
+        excludedIds.addAll(blockedByMe);
+
+        // Exclude users who have blocked the current user
+        List<Integer> blockedMe = friendshipRepository.findBlockedByUserIds(currentUserId);
+        excludedIds.addAll(blockedMe);
+
+        // Filter the results
+        List<Athlete> visibleAthletes = new ArrayList<>();
+        for (Athlete a : allAthletes) {
+            if (!excludedIds.contains(a.getId())) {
+                visibleAthletes.add(a);
+            }
+        }
+        return visibleAthletes;
+    }
+
+    // ========================= Helpers =========================
 
     /**
      * Finds a friendship by its ID or throws an error if not found.
      */
     private Friendship findFriendshipOrThrow(Integer friendshipId) {
-        return friendshipRepository.findById(friendshipId).orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
+        return friendshipRepository.findById(friendshipId)
+                .orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
+    }
+
+    /**
+     * Finds an athlete by ID or throws an error if not found.
+     */
+    private Athlete findAthleteOrThrow(Integer athleteId, String errorMessage) {
+        return athleteRepository.findById(athleteId)
+                .orElseThrow(() -> new IllegalArgumentException(errorMessage));
     }
 }

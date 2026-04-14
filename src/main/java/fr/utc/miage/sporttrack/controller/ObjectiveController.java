@@ -17,6 +17,7 @@ import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
+import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.event.ObjectiveService;
 import jakarta.servlet.http.HttpSession;
 
@@ -34,10 +35,13 @@ public class ObjectiveController {
 
     private final AthleteRepository athleteRepository;
 
-    public ObjectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository) {
+    private final SportService sportService;
+
+    public ObjectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository, SportService sportService) {
         this.objectiveService = objectiveService;
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;
+        this.sportService = sportService;
     }
 
     /**
@@ -104,7 +108,7 @@ public class ObjectiveController {
             return "redirect:/login";
         }
 
-        model.addAttribute("sports", sportRepository.findAll());
+        model.addAttribute("sports", sportService.findAllActive());
         return "objective/objective_form";
     }
 

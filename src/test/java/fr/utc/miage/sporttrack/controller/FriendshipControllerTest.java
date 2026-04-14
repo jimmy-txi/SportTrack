@@ -1,7 +1,10 @@
 package fr.utc.miage.sporttrack.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -9,7 +12,9 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +32,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import fr.utc.miage.sporttrack.entity.activity.Activity;
+import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
@@ -96,7 +102,6 @@ class FriendshipControllerTest {
     @Test
     void friendsPage_shouldRedirectToLogin_whenNotAuthenticated() {
         when(session.getAttribute("athlete")).thenReturn(null);
-        // SecurityContextHolder has no authentication by default after clear
 
         String result = controller.friendsPage(session, null, null, model);
 
@@ -109,7 +114,9 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(List.of(otherAthlete));
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>(List.of(currentAthlete, otherAthlete)));
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), eq(null))).thenReturn(List.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.NONE);
 
         String result = controller.friendsPage(session, null, null, model);
 
@@ -117,6 +124,7 @@ class FriendshipControllerTest {
         verify(model).addAttribute("friends", List.of(otherAthlete));
         verify(model).addAttribute("requests", Collections.emptyList());
         verify(model).addAttribute("sentRequests", Collections.emptyList());
+        verify(model).addAttribute("blockedUsers", Collections.emptyList());
         verify(model).addAttribute("activeTab", "friends");
         verify(model).addAttribute("currentAthlete", currentAthlete);
     }
@@ -134,7 +142,8 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>(List.of(currentAthlete)));
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(Collections.emptyList());
 
         String result = controller.friendsPage(session, null, null, model);
 
@@ -148,7 +157,9 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.searchAthletesByName("other")).thenReturn(new ArrayList<>(List.of(otherAthlete)));
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(1, "other")).thenReturn(List.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.NONE);
 
         String result = controller.friendsPage(session, "other", null, model);
 
@@ -163,7 +174,8 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(Collections.emptyList());
 
         String result = controller.friendsPage(session, null, "requests", model);
 
@@ -177,7 +189,8 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(Collections.emptyList());
 
         String result = controller.friendsPage(session, null, null, model);
 
@@ -186,37 +199,34 @@ class FriendshipControllerTest {
     }
 
     @Test
-    void friendsPage_shouldRemoveCurrentUserFromAthleteList() {
+    void friendsPage_shouldNotAddQueryAttribute_whenQueryIsEmpty() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        // Return a mutable list containing the current user
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>(List.of(currentAthlete, otherAthlete, thirdAthlete)));
-
-        controller.friendsPage(session, null, null, model);
-
-        // Verify the athletes attribute does not contain the current user
-        verify(model).addAttribute(eq("athletes"), argThat(list -> {
-            @SuppressWarnings("unchecked")
-            List<Athlete> athletes = (List<Athlete>) list;
-            return athletes.stream().noneMatch(a -> a.getId().equals(currentAthlete.getId()))
-                    && athletes.size() == 2;
-        }));
-    }
-
-    @Test
-    void friendsPage_shouldNotSearch_whenQueryIsEmpty() {
-        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
-        when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
-        when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
-        when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), eq(""))).thenReturn(Collections.emptyList());
 
         controller.friendsPage(session, "", null, model);
 
-        verify(athleteService, never()).searchAthletesByName(anyString());
-        verify(athleteService).getAllAthletes();
+        verify(model, never()).addAttribute(eq("query"), anyString());
+    }
+
+    @Test
+    void friendsPage_shouldComputeRelationshipStatuses() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(List.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.FRIENDS);
+
+        controller.friendsPage(session, null, null, model);
+
+        Map<Integer, RelationshipStatusDTO> expectedMap = new HashMap<>();
+        expectedMap.put(2, RelationshipStatusDTO.FRIENDS);
+        verify(model).addAttribute("relationshipStatuses", expectedMap);
     }
 
     // ======================== friendProfile tests ========================
@@ -245,6 +255,8 @@ class FriendshipControllerTest {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(1)).thenReturn(Optional.of(currentAthlete));
         when(activityService.findAllByAthleteIds(List.of(1))).thenReturn(Collections.emptyList());
+        when(friendshipService.getRelationshipStatus(1, 1)).thenReturn(RelationshipStatusDTO.SELF);
+        when(friendshipRepository.findBetweenAthletes(currentAthlete, currentAthlete)).thenReturn(Optional.empty());
 
         String result = controller.friendProfile(1, session, model);
 
@@ -254,9 +266,26 @@ class FriendshipControllerTest {
     }
 
     @Test
-    void friendProfile_shouldReturnNONE_whenNoFriendshipExists() {
+    void friendProfile_shouldReturnFRIENDS_whenFriends() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.FRIENDS);
+
+        Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
+        when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+
+        String result = controller.friendProfile(2, session, model);
+
+        assertEquals("athlete/friend/profile", result);
+        verify(model).addAttribute("relationshipStatus", "FRIENDS");
+        verify(model).addAttribute("friendship", friendship);
+    }
+
+    @Test
+    void friendProfile_shouldReturnNONE_whenNoFriendship() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.NONE);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.empty());
 
         String result = controller.friendProfile(2, session, model);
@@ -267,9 +296,10 @@ class FriendshipControllerTest {
     }
 
     @Test
-    void friendProfile_shouldReturnACCEPTED_whenFriends() {
+    void friendProfile_shouldReturnFRIENDS_whenFriends_withActivitiesLoaded() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.FRIENDS);
 
         Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
@@ -278,7 +308,7 @@ class FriendshipControllerTest {
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
-        verify(model).addAttribute("relationshipStatus", "ACCEPTED");
+        verify(model).addAttribute("relationshipStatus", "FRIENDS");
         verify(model).addAttribute("friendship", friendship);
     }
 
@@ -286,6 +316,7 @@ class FriendshipControllerTest {
     void friendProfile_shouldReturnPENDING_whenRequestPending() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.REQUEST_SENT);
 
         Friendship friendship = createFriendship(11, currentAthlete, otherAthlete, FriendshipStatus.PENDING);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
@@ -293,21 +324,22 @@ class FriendshipControllerTest {
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
-        verify(model).addAttribute("relationshipStatus", "PENDING");
+        verify(model).addAttribute("relationshipStatus", "REQUEST_SENT");
     }
 
     @Test
-    void friendProfile_shouldReturnNONE_whenFriendshipRejected() {
+    void friendProfile_shouldReturnBLOCKED_BY_ME_whenBlocked() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.BLOCKED_BY_ME);
 
-        Friendship friendship = createFriendship(12, currentAthlete, otherAthlete, FriendshipStatus.REJECTED);
+        Friendship friendship = createFriendship(12, currentAthlete, otherAthlete, FriendshipStatus.BLOCKED);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
-        verify(model).addAttribute("relationshipStatus", "NONE");
+        verify(model).addAttribute("relationshipStatus", "BLOCKED_BY_ME");
     }
 
     @Test
@@ -373,15 +405,15 @@ class FriendshipControllerTest {
     }
 
     @Test
-    void sendFriendRequest_shouldRedirectWithError_whenSelfRequest() {
+    void sendFriendRequest_shouldRedirectWithError_whenBlockedException() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
-        doThrow(new IllegalArgumentException("You cannot send a friend request to yourself"))
-                .when(friendshipService).sendFriendRequest(1, 1);
+        doThrow(new IllegalStateException("Cannot send friend request to this user."))
+                .when(friendshipService).sendFriendRequest(1, 2);
 
-        String result = controller.sendFriendRequest(session, 1, redirectAttributes);
+        String result = controller.sendFriendRequest(session, 2, redirectAttributes);
 
         assertEquals("redirect:/friends?tab=add", result);
-        verify(redirectAttributes).addFlashAttribute("error", "You cannot send a friend request to yourself");
+        verify(redirectAttributes).addFlashAttribute("error", "Cannot send friend request to this user.");
     }
 
     // ======================== acceptFriendRequest tests ========================
@@ -416,18 +448,6 @@ class FriendshipControllerTest {
 
         assertEquals("redirect:/friends?tab=requests", result);
         verify(redirectAttributes).addFlashAttribute("error", "Only the recipient can accept a friend request");
-    }
-
-    @Test
-    void acceptFriendRequest_shouldRedirectWithError_whenNotPending() {
-        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
-        doThrow(new IllegalStateException("Only pending friend requests can be accepted"))
-                .when(friendshipService).acceptFriendRequest(10, 1);
-
-        String result = controller.acceptFriendRequest(10, session, redirectAttributes);
-
-        assertEquals("redirect:/friends?tab=requests", result);
-        verify(redirectAttributes).addFlashAttribute("error", "Only pending friend requests can be accepted");
     }
 
     // ======================== rejectFriendRequest tests ========================
@@ -498,16 +518,96 @@ class FriendshipControllerTest {
         verify(redirectAttributes).addFlashAttribute("error", "Friendship does not exist");
     }
 
+    // ======================== blockUser tests ========================
+
     @Test
-    void removeFriend_shouldRedirectWithError_whenNotAccepted() {
+    void blockUser_shouldRedirectToLogin_whenNotAuthenticated() {
+        when(session.getAttribute("athlete")).thenReturn(null);
+
+        String result = controller.blockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/login", result);
+    }
+
+    @Test
+    void blockUser_shouldRedirectWithSuccess_whenBlocked() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
-        doThrow(new IllegalStateException("Only accepted friendships can be removed"))
-                .when(friendshipService).removeFriend(1, 2);
 
-        String result = controller.removeFriend(2, session, redirectAttributes);
+        String result = controller.blockUser(2, session, redirectAttributes);
 
-        assertEquals("redirect:/friends?tab=friends", result);
-        verify(redirectAttributes).addFlashAttribute("error", "Only accepted friendships can be removed");
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(friendshipService).blockUser(1, 2);
+        verify(redirectAttributes).addFlashAttribute("success", "Utilisateur bloqué avec succès.");
+    }
+
+    @Test
+    void blockUser_shouldRedirectWithError_whenExceptionThrown() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        doThrow(new IllegalArgumentException("You cannot block yourself"))
+                .when(friendshipService).blockUser(1, 1);
+
+        String result = controller.blockUser(1, session, redirectAttributes);
+
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(redirectAttributes).addFlashAttribute("error", "You cannot block yourself");
+    }
+
+    @Test
+    void blockUser_shouldRedirectWithError_whenAlreadyBlocked() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        doThrow(new IllegalStateException("You have already blocked this user"))
+                .when(friendshipService).blockUser(1, 2);
+
+        String result = controller.blockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(redirectAttributes).addFlashAttribute("error", "You have already blocked this user");
+    }
+
+    // ======================== unblockUser tests ========================
+
+    @Test
+    void unblockUser_shouldRedirectToLogin_whenNotAuthenticated() {
+        when(session.getAttribute("athlete")).thenReturn(null);
+
+        String result = controller.unblockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/login", result);
+    }
+
+    @Test
+    void unblockUser_shouldRedirectWithSuccess_whenUnblocked() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+
+        String result = controller.unblockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(friendshipService).unblockUser(1, 2);
+        verify(redirectAttributes).addFlashAttribute("success", "Utilisateur débloqué avec succès.");
+    }
+
+    @Test
+    void unblockUser_shouldRedirectWithError_whenExceptionThrown() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        doThrow(new IllegalStateException("This user is not blocked"))
+                .when(friendshipService).unblockUser(1, 2);
+
+        String result = controller.unblockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(redirectAttributes).addFlashAttribute("error", "This user is not blocked");
+    }
+
+    @Test
+    void unblockUser_shouldRedirectWithError_whenNotTheBlocker() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        doThrow(new IllegalStateException("You did not block this user, so you cannot unblock them"))
+                .when(friendshipService).unblockUser(1, 2);
+
+        String result = controller.unblockUser(2, session, redirectAttributes);
+
+        assertEquals("redirect:/friends?tab=blocked", result);
+        verify(redirectAttributes).addFlashAttribute("error", "You did not block this user, so you cannot unblock them");
     }
 
     // ======================== getAuthenticatedAthlete (via public methods) ========================
@@ -577,7 +677,8 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(Collections.emptyList());
 
         String result = controller.friendsPage(session, null, null, model);
 
@@ -591,12 +692,12 @@ class FriendshipControllerTest {
         when(friendshipService.getFriendsOfAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getPendingRequestsForAthlete(1)).thenReturn(Collections.emptyList());
         when(friendshipService.getSentPendingRequests(1)).thenReturn(Collections.emptyList());
-        when(athleteService.getAllAthletes()).thenReturn(new ArrayList<>());
+        when(friendshipService.getBlockedUsers(1)).thenReturn(Collections.emptyList());
+        when(friendshipService.searchVisibleAthletes(eq(1), any())).thenReturn(Collections.emptyList());
 
         String result = controller.friendsPage(session, null, null, model);
 
         assertEquals("athlete/friend/friends", result);
-        // Should NOT query the repository since session already has the athlete
         verify(athleteRepository, never()).findByEmail(anyString());
     }
 
