@@ -79,4 +79,11 @@ class ObjectiveServiceTest {
         objectiveService.saveObjective(objective, ATHLETE, null);
         verify(objectiveRepository, never()).save(any());
     }
+
+    @Test   
+    void deleteByIdShouldCallRepository() {
+        int id = 1;
+        objectiveService.deleteById(id);
+        verify(objectiveRepository, times(1)).deleteById(id);
+    }
 }

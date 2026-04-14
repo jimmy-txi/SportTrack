@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Sports</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-trophy"></i> Gestion des Sports
+            </h1>
+            <div>
+                <a th:href="@{/admin}" class="btn btn-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+                <a th:href="@{/admin/sports/create}" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus"></i> Nouveau Sport
+                </a>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> Sport créé avec succès.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.updated}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> Sport mis à jour avec succès.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i> Une erreur est survenue.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Sports Table -->
+        <div class="card shadow">
+            <div class="card-body">
+                <div th:if="${sports.isEmpty()}" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Aucun sport disponible. <a th:href="@{/admin/sports/create}">Créer un sport</a></p>
+                </div>
+
+                <div th:if="${!sports.isEmpty()}" class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Calories/h</th>
+                                <th>Description</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sport : ${sports}">
+                                <td>
+                                    <strong th:text="${sport.name}">Sport Name</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info" th:text="${sport.type}">Type</span>
+                                </td>
+                                <td th:text="${sport.caloriesPerHour}">0</td>
+                                <td>
+                                    <small class="text-muted" th:text="${sport.description != null ? sport.description : 'N/A'}">Description</small>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{/admin/sports/edit/{id}(id=${sport.id})}" class="btn btn-sm btn-primary me-2" title="Modifier">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#disableModal"
+                                            th:if="${sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
+                                            onclick="setDisableData(this)" title="Désactiver">
+                                        <i class="bi bi-cross"></i> Désactiver
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#enableModal"
+                                            th:if="${!sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
+                                            onclick="setEnableData(this)" title="Activer">
+                                        <i class="bi bi-check2"></i> Activer
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disable Modal -->
+    <div class="modal fade" id="disableModal" tabindex="-1" aria-labelledby="disableModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="disableModalLabel">Confirmer la désactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="disableModalSportName"></strong> ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="disableForm" method="post" style="display: inline;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger">Désactiver</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enable Modal -->
+    <div class="modal fade" id="enableModal" tabindex="-1" aria-labelledby="enableModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="enableModalLabel">Confirmer la désactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="enableModalSportName"></strong> ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="enableForm" method="post" style="display: inline;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-info">Activer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function setDisableData(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            document.getElementById('disableModalSportName').textContent = name;
+            document.getElementById('disableForm').action = '/admin/sports/disable/' + id;
+        }
+        function setEnableData(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            document.getElementById('enableModalSportName').textContent = name;
+            document.getElementById('enableForm').action = '/admin/sports/enable/' + id;
+        }
+    </script>
+</body>
+</html>

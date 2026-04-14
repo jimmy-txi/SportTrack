@@ -28,8 +28,6 @@ public class AthleteController {
             model.addAttribute("athletes", athleteService.getAllAthletes());
         }   
         return "athlete/list";
-    }    
-
-
+    }
 
 }
