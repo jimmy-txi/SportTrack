@@ -37,7 +37,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
                                 <select class="form-select" id="sportId" name="sportId" required>
                                     <option value="" disabled selected>Choisissez un sport...</option>
                                     <option th:each="sport : ${sports}" 
-                                    th:value="${sport.idS}" 
+                                    th:value="${sport.id}" 
                                     th:text="${sport.name}">Sport</option>
                                 </select>
                             </div>

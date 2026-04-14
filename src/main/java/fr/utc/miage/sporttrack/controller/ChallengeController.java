@@ -93,7 +93,7 @@ public class ChallengeController {
                 return "redirect:/login";
             }
             model.addAttribute("athlete", athlete);
-            model.addAttribute("challenges", challengeRepository.findDistinctByOrganizer_IdUOrParticipants_IdU(athlete.getIdU(), athlete.getIdU()));
+            model.addAttribute("challenges", challengeRepository.findDistinctByOrganizer_IdOrParticipants_Id(athlete.getId(), athlete.getId()));
             return "challenge/challenge_list";
         }
         
