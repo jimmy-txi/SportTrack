@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/activities")
-public class ActivityController {
+public class AdminActivityController {
 
     private static final String REDIRECT_LOGIN = "redirect:/login";
     private static final String REDIRECT_ACTIVITIES = "redirect:/admin/activities";
@@ -30,7 +30,7 @@ public class ActivityController {
     private final WeatherReportService weatherReportService;
     private final AdminService adminService;
 
-    public ActivityController(ActivityService activityService, SportService sportService, WeatherReportService weatherReportService, AdminService adminService) {
+    public AdminActivityController(ActivityService activityService, SportService sportService, WeatherReportService weatherReportService, AdminService adminService) {
         this.activityService = activityService;
         this.sportService = sportService;
         this.weatherReportService = weatherReportService;
