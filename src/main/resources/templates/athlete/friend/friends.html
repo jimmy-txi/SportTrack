@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Amis - SportTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .friend-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .friend-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.12);
+        }
+        .tab-badge {
+            font-size: 0.75em;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div class="container py-4">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="bi bi-people-fill me-2"></i>Gestion des amis</h2>
+                <p class="text-body-secondary mb-0">Gérez vos amis et vos demandes d'amitié.</p>
+            </div>
+            <a th:href="@{/}" class="btn btn-outline-secondary">
+                <i class="bi bi-house"></i> Accueil
+            </a>
+        </div>
+
+        <!-- Success / Error messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs mb-4" id="friendTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="friends-tab" data-bs-toggle="tab" data-bs-target="#tab-friends"
+                        type="button" role="tab" aria-controls="tab-friends" aria-selected="false">
+                    <i class="bi bi-person-heart me-1"></i> Mes Amis
+                    <span class="badge bg-secondary ms-1 tab-badge" th:text="${#lists.size(friends)}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#tab-requests"
+                        type="button" role="tab" aria-controls="tab-requests" aria-selected="false">
+                    <i class="bi bi-inbox me-1"></i> Demandes reçues
+                    <span class="badge bg-warning text-dark ms-1 tab-badge" th:text="${#lists.size(requests)}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#tab-sent"
+                        type="button" role="tab" aria-controls="tab-sent" aria-selected="false">
+                    <i class="bi bi-send me-1"></i> Envoyées
+                    <span class="badge bg-info ms-1 tab-badge" th:text="${#lists.size(sentRequests)}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="add-tab" data-bs-toggle="tab" data-bs-target="#tab-add"
+                        type="button" role="tab" aria-controls="tab-add" aria-selected="false">
+                    <i class="bi bi-person-plus me-1"></i> Ajouter
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="friendTabContent">
+
+            <!-- ==================== Tab 1: Mes Amis ==================== -->
+            <div class="tab-pane fade" id="tab-friends" role="tabpanel" aria-labelledby="friends-tab">
+                <div th:if="${#lists.isEmpty(friends)}" class="text-center py-5">
+                    <i class="bi bi-emoji-neutral display-1 text-muted"></i>
+                    <p class="text-muted mt-3 fs-5">Vous n'avez pas encore d'amis.</p>
+                    <a class="btn btn-primary" href="javascript:void(0)" onclick="switchTab('add')">
+                        <i class="bi bi-person-plus"></i> Ajouter un ami
+                    </a>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(friends)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <div class="col" th:each="friend : ${friends}">
+                        <a th:href="@{/friends/profile/{id}(id=${friend.id})}" class="card friend-card h-100 text-decoration-none">
+                            <div class="card-body text-center">
+                                <div class="mb-2">
+                                    <i class="bi bi-person-circle display-4 text-primary"></i>
+                                </div>
+                                <h5 class="card-title text-dark" th:text="${friend.username}">Username</h5>
+                                <p class="card-text">
+                                    <span class="badge rounded-pill text-bg-secondary"
+                                          th:text="${friend.practiceLevel != null ? friend.practiceLevel.displayValue : 'N/A'}">
+                                        Niveau
+                                    </span>
+                                </p>
+                                <p class="text-muted small mb-0"
+                                   th:text="${friend.firstName + ' ' + friend.lastName}">Nom Prénom</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0 text-center pb-3">
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#removeModal' + ${friend.id}"
+                                        onclick="event.stopPropagation(); event.preventDefault();">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </a>
+
+                        <!-- Remove friend modal -->
+                        <div class="modal fade" th:id="'removeModal' + ${friend.id}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmer la suppression</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Êtes-vous sûr de vouloir supprimer
+                                        <strong th:text="${friend.username}"></strong> de vos amis ?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <form th:action="@{/friends/remove/{id}(id=${friend.id})}" method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Tab 2: Demandes reçues ==================== -->
+            <div class="tab-pane fade" id="tab-requests" role="tabpanel" aria-labelledby="requests-tab">
+                <div th:if="${#lists.isEmpty(requests)}" class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <p class="text-muted mt-3 fs-5">Aucune demande en attente.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(requests)}" class="row g-3">
+                    <div class="col-12" th:each="req : ${requests}">
+                        <div class="card shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-person-circle display-5 text-primary"></i>
+                                    <div>
+                                        <a th:href="@{/friends/profile/{id}(id=${req.initiator.id})}"
+                                           class="fw-semibold text-decoration-none fs-5"
+                                           th:text="${req.initiator.username}">Username</a>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i>
+                                            <span th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <form th:action="@{/friends/accept/{id}(id=${req.id})}" method="post">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-check-lg"></i> Accepter
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/friends/reject/{id}(id=${req.id})}" method="post">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-x-lg"></i> Refuser
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Tab 3: Demandes envoyées ==================== -->
+            <div class="tab-pane fade" id="tab-sent" role="tabpanel" aria-labelledby="sent-tab">
+                <div th:if="${#lists.isEmpty(sentRequests)}" class="text-center py-5">
+                    <i class="bi bi-send display-1 text-muted"></i>
+                    <p class="text-muted mt-3 fs-5">Aucune demande envoyée en attente.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(sentRequests)}" class="row g-3">
+                    <div class="col-12" th:each="req : ${sentRequests}">
+                        <div class="card shadow-sm">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <i class="bi bi-person-circle display-5 text-info"></i>
+                                <div>
+                                    <a th:href="@{/friends/profile/{id}(id=${req.recipient.id})}"
+                                       class="fw-semibold text-decoration-none fs-5"
+                                       th:text="${req.recipient.username}">Username</a>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        Envoyée le <span th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                    </small>
+                                </div>
+                                <span class="badge bg-warning text-dark ms-auto">
+                                    <i class="bi bi-hourglass-split"></i> En attente
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Tab 4: Ajouter un ami ==================== -->
+            <div class="tab-pane fade" id="tab-add" role="tabpanel" aria-labelledby="add-tab">
+                <!-- Search form -->
+                <form class="row g-2 mb-4" method="get" th:action="@{/friends}">
+                    <input type="hidden" name="tab" value="add"/>
+                    <div class="col-12 col-md-9">
+                        <input type="text" class="form-control" name="q" th:value="${query}"
+                               placeholder="Rechercher par nom d'utilisateur..."/>
+                    </div>
+                    <div class="col-12 col-md-3 d-grid d-md-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Rechercher
+                        </button>
+                        <a th:if="${query != null and !#strings.isEmpty(query)}"
+                           th:href="@{/friends(tab='add')}"
+                           class="btn btn-outline-secondary w-100">
+                            Réinitialiser
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Search results -->
+                <div th:if="${#lists.isEmpty(athletes)}" class="text-center py-4">
+                    <i class="bi bi-search display-4 text-muted"></i>
+                    <p class="text-muted mt-3" th:if="${query != null and !#strings.isEmpty(query)}">
+                        Aucun athlète trouvé pour "<strong th:text="${query}"></strong>".
+                    </p>
+                    <p class="text-muted mt-3" th:if="${query == null or #strings.isEmpty(query)}">
+                        Recherchez un athlète pour envoyer une demande d'ami.
+                    </p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(athletes)}" class="row g-3">
+                    <div class="col-12" th:each="a : ${athletes}">
+                        <div class="card shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-person-circle display-5 text-secondary"></i>
+                                    <div>
+                                        <a th:href="@{/friends/profile/{id}(id=${a.id})}"
+                                           class="fw-semibold text-decoration-none fs-5"
+                                           th:text="${a.username}">Username</a>
+                                        <br>
+                                        <span class="badge rounded-pill text-bg-secondary"
+                                              th:text="${a.practiceLevel != null ? a.practiceLevel.displayValue : 'N/A'}">
+                                            Niveau
+                                        </span>
+                                    </div>
+                                </div>
+                                <form th:action="@{/friends/send}" method="post">
+                                    <input type="hidden" name="recipientId" th:value="${a.id}"/>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-person-plus"></i> Envoyer une demande
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /tab-content -->
+    </div><!-- /container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Activate the correct tab based on the 'tab' URL parameter
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab') || 'friends';
+            var tabMap = {
+                'friends': 'friends-tab',
+                'requests': 'requests-tab',
+                'sent': 'sent-tab',
+                'add': 'add-tab'
+            };
+            var tabId = tabMap[tab] || 'friends-tab';
+            var tabEl = document.getElementById(tabId);
+            if (tabEl) {
+                var tabInstance = new bootstrap.Tab(tabEl);
+                tabInstance.show();
+            }
+        })();
+
+        // Helper to switch tab programmatically
+        function switchTab(tabName) {
+            var tabMap = {
+                'friends': 'friends-tab',
+                'requests': 'requests-tab',
+                'sent': 'sent-tab',
+                'add': 'add-tab'
+            };
+            var tabId = tabMap[tabName];
+            if (tabId) {
+                var tabEl = document.getElementById(tabId);
+                if (tabEl) {
+                    var tabInstance = new bootstrap.Tab(tabEl);
+                    tabInstance.show();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
