@@ -47,6 +47,10 @@ public class Objective {
         this.name = name;
     }
 
+    public int getIdO() {
+        return idO;
+    }
+
     public Athlete getUser() {
         return athlete;
     }
