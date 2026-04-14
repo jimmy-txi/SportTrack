@@ -31,12 +31,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
+import fr.utc.miage.sporttrack.service.activity.ActivityService;
+import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
 
@@ -55,6 +59,15 @@ class FriendshipControllerTest {
 
     @Mock
     private AthleteRepository athleteRepository;
+
+    @Mock
+    private AthleteService athleteService;
+
+    @Mock
+    private ActivityService activityService;
+
+    @Mock
+    private WeatherReportService weatherReportService;
 
     @Mock
     private Model model;
@@ -241,6 +254,7 @@ class FriendshipControllerTest {
     void friendProfile_shouldReturnSELF_whenViewingOwnProfile() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(1)).thenReturn(Optional.of(currentAthlete));
+        when(activityService.findAllByAthleteIds(List.of(1))).thenReturn(Collections.emptyList());
         when(friendshipService.getRelationshipStatus(1, 1)).thenReturn(RelationshipStatusDTO.SELF);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, currentAthlete)).thenReturn(Optional.empty());
 
@@ -282,7 +296,24 @@ class FriendshipControllerTest {
     }
 
     @Test
-    void friendProfile_shouldReturnREQUEST_SENT_whenRequestSent() {
+    void friendProfile_shouldReturnFRIENDS_whenFriends_withActivitiesLoaded() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.FRIENDS);
+
+        Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
+        when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+        when(activityService.findAllByAthleteIds(List.of(2))).thenReturn(Collections.emptyList());
+
+        String result = controller.friendProfile(2, session, model);
+
+        assertEquals("athlete/friend/profile", result);
+        verify(model).addAttribute("relationshipStatus", "FRIENDS");
+        verify(model).addAttribute("friendship", friendship);
+    }
+
+    @Test
+    void friendProfile_shouldReturnPENDING_whenRequestPending() {
         when(session.getAttribute("athlete")).thenReturn(currentAthlete);
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
         when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.REQUEST_SENT);
@@ -309,6 +340,34 @@ class FriendshipControllerTest {
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "BLOCKED_BY_ME");
+    }
+
+    @Test
+    void friendsActivities_shouldRedirectToLogin_whenNotAuthenticated() {
+        when(session.getAttribute("athlete")).thenReturn(null);
+
+        String result = controller.friendsActivities(session, model);
+
+        assertEquals("redirect:/login", result);
+    }
+
+    @Test
+    void friendsActivities_shouldShowAggregatedFeed_whenAuthenticated() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        when(friendshipService.getFriendsOfAthlete(1)).thenReturn(List.of(otherAthlete, thirdAthlete));
+
+        Activity firstActivity = new Activity();
+        firstActivity.setId(101);
+        Activity secondActivity = new Activity();
+        secondActivity.setId(102);
+
+        when(activityService.findAllByAthleteIds(List.of(2, 3))).thenReturn(List.of(firstActivity, secondActivity));
+
+        String result = controller.friendsActivities(session, model);
+
+        assertEquals("athlete/friend/activities", result);
+        verify(model).addAttribute("friends", List.of(otherAthlete, thirdAthlete));
+        verify(model).addAttribute("activities", List.of(firstActivity, secondActivity));
     }
 
     // ======================== sendFriendRequest tests ========================

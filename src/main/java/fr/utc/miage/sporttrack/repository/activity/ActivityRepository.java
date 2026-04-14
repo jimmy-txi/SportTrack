@@ -13,6 +13,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Integer> {
 
 	List<Activity> findByCreatedBy_IdOrderByDateADescStartTimeDesc(Integer athleteId);
 
+	List<Activity> findByCreatedBy_IdInOrderByDateADescStartTimeDesc(List<Integer> athleteIds);
+
 	Optional<Activity> findByIdAndCreatedBy_Id(Integer id, Integer athleteId);
 
 	boolean existsByIdAndCreatedBy_Id(Integer id, Integer athleteId);
