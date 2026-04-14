@@ -1,6 +1,8 @@
 package fr.utc.miage.sporttrack.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -14,12 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
+import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
-import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
 
@@ -27,7 +28,7 @@ import jakarta.servlet.http.HttpSession;
  * Controller for friendship-related pages and actions.
  * <p>
  * Manages friend listing, sending/accepting/rejecting friend requests,
- * removing friends, and viewing friend profiles.
+ * removing friends, blocking/unblocking users, and viewing friend profiles.
  */
 @Controller
 public class FriendshipController {
@@ -35,17 +36,15 @@ public class FriendshipController {
     private final FriendshipService friendshipService;
     private final FriendshipRepository friendshipRepository;
     private final AthleteRepository athleteRepository;
-    private final AthleteService athleteService;
 
-    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
-        this.athleteService = athleteService;
     }
 
     /**
-     * Shows the main friendship management page with 4 tabs.
+     * Shows the main friendship management page with 5 tabs.
      * Loads all data at once for all tabs.
      *
      * @param session the current HTTP session
@@ -65,22 +64,26 @@ public class FriendshipController {
         List<Athlete> friends = friendshipService.getFriendsOfAthlete(athlete.getId());
         List<Friendship> requests = friendshipService.getPendingRequestsForAthlete(athlete.getId());
         List<Friendship> sentRequests = friendshipService.getSentPendingRequests(athlete.getId());
+        List<Friendship> blockedUsers = friendshipService.getBlockedUsers(athlete.getId());
 
-        // Search athletes for "Add friend" tab
-        List<Athlete> athletes;
+        // Search athletes for "Add friend" tab — using the filtered search
+        List<Athlete> athletes = friendshipService.searchVisibleAthletes(athlete.getId(), query);
         if (query != null && !query.isEmpty()) {
-            athletes = athleteService.searchAthletesByName(query);
             model.addAttribute("query", query);
-        } else {
-            athletes = athleteService.getAllAthletes();
         }
-        // Remove current user from search results
-        athletes.removeIf(a -> a.getId().equals(athlete.getId()));
+
+        // Compute relationship status for each athlete in search results
+        Map<Integer, RelationshipStatusDTO> relationshipStatuses = new HashMap<>();
+        for (Athlete a : athletes) {
+            relationshipStatuses.put(a.getId(), friendshipService.getRelationshipStatus(athlete.getId(), a.getId()));
+        }
 
         model.addAttribute("friends", friends);
         model.addAttribute("requests", requests);
         model.addAttribute("sentRequests", sentRequests);
         model.addAttribute("athletes", athletes);
+        model.addAttribute("blockedUsers", blockedUsers);
+        model.addAttribute("relationshipStatuses", relationshipStatuses);
         model.addAttribute("activeTab", tab != null ? tab : "friends");
         model.addAttribute("currentAthlete", athlete);
 
@@ -109,28 +112,14 @@ public class FriendshipController {
         }
         Athlete target = targetOpt.get();
 
-        // Determine relationship status
-        String relationshipStatus;
+        // Compute relationship status using the service
+        RelationshipStatusDTO relationshipStatus = friendshipService.getRelationshipStatus(athlete.getId(), target.getId());
+
+        // Also get the raw friendship record for display
         Optional<Friendship> friendshipOpt = friendshipRepository.findBetweenAthletes(athlete, target);
 
-        if (athlete.getId().equals(target.getId())) {
-            relationshipStatus = "SELF";
-        } else if (friendshipOpt.isEmpty()) {
-            relationshipStatus = "NONE";
-        } else {
-            Friendship friendship = friendshipOpt.get();
-            if (friendship.getStatus() == FriendshipStatus.ACCEPTED) {
-                relationshipStatus = "ACCEPTED";
-            } else if (friendship.getStatus() == FriendshipStatus.PENDING) {
-                relationshipStatus = "PENDING";
-            } else {
-                // REJECTED or other → treat as NONE
-                relationshipStatus = "NONE";
-            }
-        }
-
         model.addAttribute("profileAthlete", target);
-        model.addAttribute("relationshipStatus", relationshipStatus);
+        model.addAttribute("relationshipStatus", relationshipStatus.name());
         model.addAttribute("friendship", friendshipOpt.orElse(null));
         model.addAttribute("currentAthlete", athlete);
 
@@ -139,11 +128,6 @@ public class FriendshipController {
 
     /**
      * Sends a friend request to another athlete.
-     *
-     * @param session            the current HTTP session
-     * @param recipientId        the ID of the athlete to send the request to
-     * @param redirectAttributes used to pass flash messages
-     * @return a redirect to the friends page
      */
     @PostMapping("/friends/send")
     public String sendFriendRequest(HttpSession session, @RequestParam("recipientId") Integer recipientId, RedirectAttributes redirectAttributes) {
@@ -164,11 +148,6 @@ public class FriendshipController {
 
     /**
      * Accepts a pending friend request.
-     *
-     * @param id                 the friendship ID
-     * @param session            the current HTTP session
-     * @param redirectAttributes used to pass flash messages
-     * @return a redirect to the friends page
      */
     @PostMapping("/friends/accept/{id}")
     public String acceptFriendRequest(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -189,11 +168,6 @@ public class FriendshipController {
 
     /**
      * Rejects a pending friend request.
-     *
-     * @param id                 the friendship ID
-     * @param session            the current HTTP session
-     * @param redirectAttributes used to pass flash messages
-     * @return a redirect to the friends page
      */
     @PostMapping("/friends/reject/{id}")
     public String rejectFriendRequest(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -214,11 +188,6 @@ public class FriendshipController {
 
     /**
      * Removes an established friendship.
-     *
-     * @param id                 the friend's athlete ID
-     * @param session            the current HTTP session
-     * @param redirectAttributes used to pass flash messages
-     * @return a redirect to the friends page
      */
     @PostMapping("/friends/remove/{id}")
     public String removeFriend(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -235,6 +204,47 @@ public class FriendshipController {
         }
 
         return "redirect:/friends?tab=friends";
+    }
+
+    /**
+     * Blocks another user.
+     */
+    @PostMapping("/friends/block/{id}")
+    public String blockUser(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Athlete athlete = getAuthenticatedAthlete(session);
+        if (athlete == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            friendshipService.blockUser(athlete.getId(), id);
+            redirectAttributes.addFlashAttribute("success", "Utilisateur bloqué avec succès.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        // Redirect back to the referring page
+        return "redirect:/friends?tab=blocked";
+    }
+
+    /**
+     * Unblocks a previously blocked user.
+     */
+    @PostMapping("/friends/unblock/{id}")
+    public String unblockUser(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Athlete athlete = getAuthenticatedAthlete(session);
+        if (athlete == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            friendshipService.unblockUser(athlete.getId(), id);
+            redirectAttributes.addFlashAttribute("success", "Utilisateur débloqué avec succès.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/friends?tab=blocked";
     }
 
     /**

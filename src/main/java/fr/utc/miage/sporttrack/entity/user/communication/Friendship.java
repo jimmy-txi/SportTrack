@@ -49,6 +49,13 @@ public class Friendship {
         this.createdAt = LocalDateTime.now();
     }
 
+    public Friendship(Athlete initiator, Athlete recipient, FriendshipStatus status) {
+        this.initiator = initiator;
+        this.recipient = recipient;
+        this.status = status;
+        this.createdAt = LocalDateTime.now();
+    }
+
 
     public Integer getId() {
         return id;
