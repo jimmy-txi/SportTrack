@@ -106,6 +106,36 @@ class ActivityTest {
         assertNull(activity.getSportId());
     }
 
+    @Test
+    void shouldCalculateCaloriesBurnedFromDurationAndSportCaloriesPerHour() {
+        Activity activity = new Activity();
+        Sport sport = new Sport();
+        sport.setCaloriesPerHour(420.0);
+
+        activity.setSportAndType(sport);
+        activity.setDuration(1.5);
+
+        assertEquals(630.0, activity.getCaloriesBurned());
+    }
+
+    @Test
+    void shouldReturnZeroCaloriesBurnedWhenDurationOrSportIsInvalid() {
+        Activity activity = new Activity();
+        Sport sport = new Sport();
+        sport.setCaloriesPerHour(500.0);
+
+        activity.setDuration(0.0);
+        activity.setSportAndType(sport);
+        assertEquals(0.0, activity.getCaloriesBurned());
+
+        activity.setDuration(-1.0);
+        assertEquals(0.0, activity.getCaloriesBurned());
+
+        activity.setDuration(1.0);
+        activity.setSportAndType(null);
+        assertEquals(0.0, activity.getCaloriesBurned());
+    }
+
     private Athlete buildAthlete(String username, String email, String firstName, String lastName) {
         Athlete athlete = new Athlete();
         athlete.setUsername(username);
