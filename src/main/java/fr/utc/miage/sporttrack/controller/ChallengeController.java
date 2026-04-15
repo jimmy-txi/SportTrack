@@ -47,6 +47,7 @@ public class ChallengeController {
         if (athlete == null) {
             return "redirect:/login";
         }
+        model.addAttribute("athlete", athlete);
         model.addAttribute("challenge", new Challenge());
         model.addAttribute("allMetrics", Metric.values());
         model.addAttribute("sports", sportService.findAllActive());
@@ -66,6 +67,7 @@ public class ChallengeController {
             }
 
             if (sportId == null || sportId <= 0) {
+                model.addAttribute("athlete", athlete);
                 model.addAttribute("error", "Veuillez sélectionner une discipline sportive valide.");
                 model.addAttribute("allMetrics", Metric.values());
                 model.addAttribute("sports", sportService.findAllActive());
@@ -75,6 +77,7 @@ public class ChallengeController {
             Optional<Sport> sportOpt = sportRepository.findById(sportId);
 
             if (challenge.getStartDate().isAfter(challenge.getEndDate()) || challenge.getStartDate().isBefore(now) || challenge.getEndDate().isBefore(now)) {
+                model.addAttribute("athlete", athlete);
                 model.addAttribute("error", "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
                 model.addAttribute("allMetrics", Metric.values());
                 model.addAttribute("sports", sportService.findAllActive());

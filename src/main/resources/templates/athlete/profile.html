@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon profil - SportTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div th:insert="~{fragments/header :: header}"></div>
+
+    <main class="container py-4 py-lg-5">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <img th:src="${athlete.profilePhotoUrl}" alt="Profil" class="rounded-circle img-fluid mb-3 w-50">
+                        <h1 class="h4 mb-1" th:text="${athlete.username}">username</h1>
+                        <p class="text-body-secondary mb-0" th:text="${athlete.email}">email</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div th:if="${param.updated}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-1"></i> Profil mis à jour avec succès.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-1"></i> Impossible de mettre à jour le profil.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h2 class="h5 mb-0"><i class="bi bi-person-lines-fill me-2"></i>Modifier mon profil</h2>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/profile/update}" th:object="${athlete}" method="post">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label">Prénom</label>
+                                    <input id="firstName" type="text" th:field="*{firstName}" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label">Nom</label>
+                                    <input id="lastName" type="text" th:field="*{lastName}" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                                    <input id="username" type="text" th:field="*{username}" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input id="email" type="email" th:value="${athlete.email}" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="gender" class="form-label">Genre</label>
+                                    <select id="gender" th:field="*{gender}" class="form-select">
+                                        <option value="">Sélectionnez</option>
+                                        <option th:each="g : ${genders}" th:value="${g}" th:text="${g.displayValue}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="practiceLevel" class="form-label">Niveau de pratique</label>
+                                    <select id="practiceLevel" th:field="*{practiceLevel}" class="form-select">
+                                        <option value="">Sélectionnez</option>
+                                        <option th:each="pl : ${practiceLevels}" th:value="${pl}" th:text="${pl.displayValue}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="age" class="form-label">Age</label>
+                                    <input id="age" type="number" min="0" step="1" th:field="*{age}" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="height" class="form-label">Taille (cm)</label>
+                                    <input id="height" type="number" min="0" step="0.1" th:field="*{height}" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="weight" class="form-label">Poids (kg)</label>
+                                    <input id="weight" type="number" min="0" step="0.1" th:field="*{weight}" class="form-control">
+                                </div>
+                                <div class="col-12">
+                                    <label for="bio" class="form-label">Biographie</label>
+                                    <textarea id="bio" th:field="*{bio}" class="form-control" rows="4"></textarea>
+                                </div>
+                            </div>
+                            <div class="mt-4 d-flex justify-content-end gap-2">
+                                <a th:href="@{/}" class="btn btn-secondary">Retour</a>
+                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

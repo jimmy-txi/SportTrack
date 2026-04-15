@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -55,6 +57,14 @@ public abstract class User implements Serializable {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getProfilePhotoUrl() {
+        if (isBlank(username)) {
+            return "https://robohash.org/default";
+        }
+        String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8);
+        return "https://robohash.org/" + encodedUsername;
     }
 
     // --- Setters ---

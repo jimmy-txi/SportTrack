@@ -5,34 +5,12 @@
     <title>Panneau d'Administration - SportTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        .admin-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            height: 100%;
-        }
-        .admin-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-        }
-        .admin-card-icon {
-            font-size: 3rem;
-            color: #47b881;
-            margin-bottom: 1rem;
-        }
-        .admin-header {
-            background: linear-gradient(135deg, #47b881 0%, #2d7a5f 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            margin-bottom: 2rem;
-        }
-    </style>
 </head>
 <body class="bg-light">
+        <div th:insert="~{fragments/header :: header}"></div>
     <div class="container mt-5 mb-5">
         <!-- Header -->
-        <div class="admin-header">
+        <div class="py-4 border-bottom">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="mb-1">Panneau d'Administration</h1>
@@ -61,7 +39,7 @@
                             </div>
                             <h5 class="card-title">Sports</h5>
                             <p class="card-text text-muted">Gérer les types de sports disponibles</p>
-                            <a th:href="@{/admin/sports}" class="btn btn-success btn-sm">
+                            <a th:href="@{/admin/sports}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-arrow-right"></i> Accéder
                             </a>
                         </div>
@@ -76,7 +54,7 @@
                             </div>
                             <h5 class="card-title">Activités</h5>
                             <p class="card-text text-muted">Gérer les activités des utilisateurs</p>
-                            <a th:href="@{/admin/activities}" class="btn btn-success btn-sm">
+                            <a th:href="@{/admin/activities}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-arrow-right"></i> Accéder
                             </a>
                         </div>
