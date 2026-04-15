@@ -188,4 +188,11 @@ public class Activity {
     public void setWeatherReport(WeatherReport weatherReport) {
         this.weatherReport = weatherReport;
     }
+
+    public double getCaloriesBurned() {
+        if (duration <= 0 || sportAndType == null) {
+            return 0d;
+        }
+        return duration * sportAndType.getCaloriesPerHour();
+    }
 }

@@ -71,6 +71,7 @@
                         <th>Ville</th>
                         <th>Météo</th>
                         <th>Durée (h)</th>
+                        <th>Calories dépensées</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -95,6 +96,7 @@
                             <span th:if="${activity.weatherReport == null}" class="text-muted">N/A</span>
                         </td>
                         <td th:text="${activity.duration}">1.0</td>
+                        <td th:text="${#numbers.formatDecimal(activity.caloriesBurned, 1, 1)} + ' kcal'">0.0 kcal</td>
                     </tr>
                     </tbody>
                 </table>
