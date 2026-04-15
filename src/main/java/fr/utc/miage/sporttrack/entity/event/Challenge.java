@@ -127,4 +127,8 @@ public class Challenge {
     public void setSport(Sport sport) {
         this.sport = sport;
     }
+
+    public int getId() {
+        return id;
+    }
 }

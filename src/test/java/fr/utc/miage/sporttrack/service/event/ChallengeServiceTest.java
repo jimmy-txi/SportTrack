@@ -1,10 +1,15 @@
 package fr.utc.miage.sporttrack.service.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,5 +69,29 @@ class ChallengeServiceTest {
         Challenge challenge = new Challenge();
         challengeService.saveChallenge(challenge, ATHLETE, null);
         verify(challengeRepository, never()).save(any());
+    }
+
+   @Test
+    void shouldReturnChallengeWhenIdExists() {
+        int id = 1;
+        Challenge expectedChallenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, TYPE);
+        when(challengeRepository.findById(id)).thenReturn(Optional.of(expectedChallenge));
+
+        Challenge result = challengeService.getChallengeById(id);
+
+        assertNotNull(result, "Le challenge ne devrait pas être nul");
+        assertEquals(NAME, result.getName());
+        verify(challengeRepository).findById(id);
+    }
+
+    @Test
+    void shouldReturnNullWhenIdDoesNotExist() {
+        int id = 999;
+        when(challengeRepository.findById(id)).thenReturn(Optional.empty());
+
+        Challenge result = challengeService.getChallengeById(id);
+
+        assertNull(result, "Le résultat devrait être nul si l'ID n'existe pas");
+        verify(challengeRepository).findById(id);
     }
 }
