@@ -51,23 +51,23 @@
                     <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
                     <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
                 </div>
-                <div class="carousel-inner rounded-3 shadow-sm">
-                    <div class="carousel-item active">
-                        <div class="bg-primary text-white p-5">
-                            <h3 class="h2">Planifiez vos sessions</h3>
-                            <p class="mb-0">Créez vos activités en quelques secondes et visualisez vos progrès semaine après semaine.</p>
+                <div class="carousel-inner rounded-3 shadow-sm p-x-5">
+                    <div class="bg-primary carousel-item active px-5">
+                        <div class="text-white p-5">
+                            <h3 class="h2 text-white px-5">Planifiez vos sessions</h3>
+                            <p class="mb-0 px-5">Créez vos activités en quelques secondes et visualisez vos progrès semaine après semaine.</p>
                         </div>
                     </div>
-                    <div class="carousel-item">
-                        <div class="bg-secondary text-white p-5">
-                            <h3 class="h2">Restez motivé en groupe</h3>
-                            <p class="mb-0">Suivez les activités de vos amis et partagez votre régularité sportive.</p>
+                    <div class="bg-secondary carousel-item px-5">
+                        <div class="p-5">
+                            <h3 class="h2 px-5">Restez motivé en groupe</h3>
+                            <p class="mb-0 px-5">Suivez les activités de vos amis et partagez votre régularité sportive.</p>
                         </div>
                     </div>
-                    <div class="carousel-item">
-                        <div class="bg-dark text-white p-5">
-                            <h3 class="h2">Atteignez vos objectifs</h3>
-                            <p class="mb-0">Définissez des objectifs mesurables et transformez vos efforts en résultats.</p>
+                    <div class="bg-dark carousel-item px-5">
+                        <div class="text-white p-5">
+                            <h3 class="h2 px-5">Atteignez vos objectifs</h3>
+                            <p class="mb-0 px-5">Définissez des objectifs mesurables et transformez vos efforts en résultats.</p>
                         </div>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
             </div>
 
             <div class="p-4 p-lg-5 bg-primary text-white rounded-3 mb-4">
-                <h2 class="mb-2">Bonjour
+                <h2 class="mb-2 text-white">Bonjour
                     <span th:if="${athlete != null}" th:text="${athlete.firstName != null ? athlete.firstName : athlete.username}"></span>
                     <span th:if="${athlete == null}" sec:authentication="name"></span>
                 </h2>
