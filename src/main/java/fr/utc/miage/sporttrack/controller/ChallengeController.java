@@ -119,5 +119,33 @@ public class ChallengeController {
             
             return athlete;
         }
+
+        @GetMapping("/challenges/participate")
+        public String participateInChallenge(@RequestParam int id, HttpSession session) {
+            Athlete athlete = getAuthenticatedAthlete(session);
+            if (athlete == null) {
+                return "redirect:/login";
+            }
+            
+            Optional<Challenge> challengeOpt = challengeRepository.findById(id);
+            if (challengeOpt.isPresent()) {
+                Challenge challenge = challengeOpt.get();
+                if (!challenge.getParticipants().contains(athlete)) {
+                    challenge.getParticipants().add(athlete);
+                    challengeRepository.save(challenge);
+                }
+            }
+            return "redirect:/challenges";
+        }
+
+        @GetMapping("/challenges/list")
+        public String listAllChallenges(HttpSession session, Model model) {
+            Athlete athlete = getAuthenticatedAthlete(session);
+            if (athlete == null) {
+                return "redirect:/login";
+            }
+            model.addAttribute("athlete", athlete);
+            model.addAttribute("challenges", challengeRepository.findAll());
+            return "challenge/challenges";
     }
-    
+}
