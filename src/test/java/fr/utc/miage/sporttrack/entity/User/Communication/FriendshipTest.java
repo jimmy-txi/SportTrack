@@ -54,6 +54,30 @@ class FriendshipTest {
         assertNotNull(f.getCreatedAt());
     }
 
+    @Test
+    void shouldCreateFriendshipWithThreeArgConstructor() {
+        Athlete initiator = createAthlete(1);
+        Athlete recipient = createAthlete(2);
+
+        Friendship f = new Friendship(initiator, recipient, FriendshipStatus.BLOCKED);
+
+        assertNull(f.getId());
+        assertEquals(initiator, f.getInitiator());
+        assertEquals(recipient, f.getRecipient());
+        assertEquals(FriendshipStatus.BLOCKED, f.getStatus());
+        assertNotNull(f.getCreatedAt());
+    }
+
+    @Test
+    void shouldCreateFriendshipWithThreeArgConstructorAccepted() {
+        Athlete initiator = createAthlete(1);
+        Athlete recipient = createAthlete(2);
+
+        Friendship f = new Friendship(initiator, recipient, FriendshipStatus.ACCEPTED);
+
+        assertEquals(FriendshipStatus.ACCEPTED, f.getStatus());
+    }
+
     // ==================== Getters and Setters ====================
 
     @Test
