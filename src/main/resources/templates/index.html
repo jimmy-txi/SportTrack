@@ -81,13 +81,11 @@
                                     <div class="text-center d-flex justify-content-center gap-2 flex-wrap">
                                         <button onclick="toggleEdit()" class="btn btn-primary">Modifier le profil</button>
                                         <a th:href="@{/athlete/activities}" class="btn btn-success">Mes activités</a>
-                                    <div class="text-center">
-                                        <button onclick="toggleEdit()" class="btn btn-primary me-2">Modifier le profil</button>
+                                        <a th:href="@{/dashboard}" class="btn btn-info text-white">Tableau de bord</a>
                                         <a th:href="@{/friends}" class="btn btn-outline-primary">
                                             <i class="bi bi-people-fill"></i> Gérer mes amis
                                         </a>
                                     </div>
-                                </div>
 
                                 <!-- Edit Mode -->
                                 <div id="profileEdit" style="display: none;">

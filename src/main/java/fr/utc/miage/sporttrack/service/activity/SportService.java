@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.service.activity;
 
+import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
@@ -82,5 +83,13 @@ public class SportService {
         if (caloriesPerHour <= 0) {
             throw new IllegalArgumentException("Calories per hour must be greater than zero");
         }
+    }
+
+    public String safeSportName(Sport sport) {
+        if (sport == null) {
+            return "Autre";
+        }
+        String name = sport.getName();
+        return name != null && !name.isBlank() ? name : "Autre";
     }
 }

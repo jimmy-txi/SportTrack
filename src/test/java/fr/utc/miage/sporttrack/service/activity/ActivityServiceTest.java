@@ -2,6 +2,7 @@ package fr.utc.miage.sporttrack.service.activity;
 
 import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
+import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
@@ -318,5 +319,28 @@ class ActivityServiceTest {
         sport.setCaloriesPerHour(500);
         sport.setType(type);
         return sport;
+    }
+
+    @Test
+    void shouldFilterByDate() {
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.of(2024, 1, 15));
+
+        assertTrue(activityService.filterByDate(activity, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31)));
+        assertFalse(activityService.filterByDate(activity, LocalDate.of(2024, 2, 1), LocalDate.of(2024, 2, 28)));
+    }
+
+    @Test
+    void shouldFilterBySport() {
+        Sport sport1 = new Sport();
+        sport1.setId(1);
+        Sport sport2 = new Sport();
+        sport2.setId(2);
+
+        Activity activity = new Activity();
+        activity.setSportAndType(sport1);
+
+        assertTrue(activityService.filterBySport(activity, sport1));
+        assertFalse(activityService.filterBySport(activity, sport2));
     }
 }

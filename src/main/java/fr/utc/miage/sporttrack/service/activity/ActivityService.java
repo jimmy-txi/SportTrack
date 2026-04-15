@@ -212,4 +212,24 @@ public class ActivityService {
             throw new IllegalArgumentException("Activity start time is required");
         }
     }
+
+    public boolean filterBySport(Activity activity, Sport selectedSport) {
+        if (selectedSport == null) {
+            return true;
+        }
+        return activity != null && activity.getSportAndType() != null && activity.getSportAndType().getId() == selectedSport.getId();
+    }
+
+    public boolean filterByDate(Activity activity, LocalDate startDate, LocalDate endDate) {
+        if (activity == null || activity.getDateA() == null) {
+            return false;
+        }
+        if (startDate != null && activity.getDateA().isBefore(startDate)) {
+            return false;
+        }
+        if (endDate != null && activity.getDateA().isAfter(endDate)) {
+            return false;
+        }
+        return true;
+    }
 }
