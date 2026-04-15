@@ -61,10 +61,10 @@ public abstract class User implements Serializable {
 
     public String getProfilePhotoUrl() {
         if (isBlank(username)) {
-            return "https://robohash.org/default";
+            return "https://robohash.org/default?set=set4";
         }
         String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8);
-        return "https://robohash.org/" + encodedUsername;
+        return "https://robohash.org/" + encodedUsername+"?set=set4";
     }
 
     // --- Setters ---
