@@ -23,4 +23,8 @@ public class ChallengeService {
             challengeRepository.save(challenge);
         }
     }
+
+    public Challenge getChallengeById(int id) {
+        return challengeRepository.findById(id).orElse(null);
+    }
 }

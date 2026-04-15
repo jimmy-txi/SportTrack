@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
+        <div th:insert="~{fragments/header :: header}"></div>
     <div class="container mt-5 mb-5">
         <!-- Header -->
         <div class="mb-4">
@@ -86,6 +87,7 @@
                                         th:each="sport : ${sports}"
                                         th:value="${sport.id}"
                                         th:data-type="${sport.type}"
+                                        th:data-calories-per-hour="${sport.caloriesPerHour}"
                                         th:text="${sport.name}">
                                         Sport
                                     </option>
@@ -155,6 +157,13 @@
                                 <div class="form-text">La durée est obligatoire pour toute activité</div>
                             </div>
 
+                            <div class="mb-3" id="caloriesInfo">
+                                <div class="alert alert-info mb-0 py-2 px-3">
+                                    <div><strong>Calories par heure :</strong> <span id="caloriesPerHourValue">-</span></div>
+                                    <div><strong>Calories brûlées estimées :</strong> <span id="caloriesBurnedValue">-</span></div>
+                                </div>
+                            </div>
+
                             <!-- Distance -->
                             <div class="mb-3" id="distanceGroup">
                                 <label for="distance" class="form-label">
@@ -189,7 +198,7 @@
 
                             <!-- Buttons -->
                             <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check"></i>
                                 Mettre à jour
                             </button>
@@ -209,6 +218,11 @@
         // Form validation
         (function() {
             'use strict';
+
+            function formatCalories(value) {
+                return Number(value).toFixed(1).replace('.', ',') + ' kcal';
+            }
+
             window.addEventListener('load', function() {
                 var dateInput = document.getElementById('dateA');
                 if (dateInput) {
@@ -228,6 +242,30 @@
                 var cityInput = document.getElementById('locationCity');
                 var cityValidation = document.getElementById('cityValidation');
                 var cityAbortController = null;
+                var caloriesPerHourValue = document.getElementById('caloriesPerHourValue');
+                var caloriesBurnedValue = document.getElementById('caloriesBurnedValue');
+
+                function updateCaloriesPreview() {
+                    if (!sportSelect || !durationInput || !caloriesPerHourValue || !caloriesBurnedValue) {
+                        return;
+                    }
+
+                    var selected = sportSelect.options[sportSelect.selectedIndex];
+                    var caloriesPerHour = selected ? Number.parseFloat(selected.dataset.caloriesPerHour) : Number.NaN;
+                    var duration = Number.parseFloat(durationInput.value);
+
+                    if (Number.isFinite(caloriesPerHour) && caloriesPerHour > 0) {
+                        caloriesPerHourValue.textContent = formatCalories(caloriesPerHour);
+                    } else {
+                        caloriesPerHourValue.textContent = '-';
+                    }
+
+                    if (Number.isFinite(caloriesPerHour) && caloriesPerHour > 0 && Number.isFinite(duration) && duration > 0) {
+                        caloriesBurnedValue.textContent = formatCalories(caloriesPerHour * duration);
+                    } else {
+                        caloriesBurnedValue.textContent = '-';
+                    }
+                }
 
                 function toggleMetricInputs() {
                     if (!sportSelect) {
@@ -250,11 +288,18 @@
                     if (type !== 'REPETITION') {
                         repetitionInput.value = '';
                     }
+
+                    updateCaloriesPreview();
                 }
 
                 if (sportSelect) {
                     sportSelect.addEventListener('change', toggleMetricInputs);
                     toggleMetricInputs();
+                }
+
+                if (durationInput) {
+                    durationInput.addEventListener('input', updateCaloriesPreview);
+                    durationInput.addEventListener('change', updateCaloriesPreview);
                 }
 
                 async function validateCityWithOpenMeteo(cityName) {

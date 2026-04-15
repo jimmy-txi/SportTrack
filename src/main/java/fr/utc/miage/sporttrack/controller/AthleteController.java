@@ -3,7 +3,7 @@ package fr.utc.miage.sporttrack.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
@@ -28,7 +28,16 @@ public class AthleteController {
     }
 
     @GetMapping("/list")
-    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model) {
+    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model, Authentication authentication) {
+        // Load current athlete for header
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            try {
+                Athlete currentAthlete = athleteService.getCurrentAthlete(authentication.getName());
+                model.addAttribute("athlete", currentAthlete);
+            } catch (Exception e) {
+                // User not found as athlete, continue without athlete data
+            }
+        }
         List<Athlete> athletes;
         if (query != null && !query.isEmpty()) {
             model.addAttribute("query", query);

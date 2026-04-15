@@ -7,6 +7,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.activity.WeatherReportRepository;
+import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +22,16 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final SportRepository sportRepository;
     private final WeatherReportRepository weatherReportRepository;
+    private final ChallengeRankingService challengeRankingService;
 
     public ActivityService(ActivityRepository activityRepository,
                            SportRepository sportRepository,
-                           WeatherReportRepository weatherReportRepository) {
+                           WeatherReportRepository weatherReportRepository,
+                           ChallengeRankingService challengeRankingService) {
         this.activityRepository = activityRepository;
         this.sportRepository = sportRepository;
         this.weatherReportRepository = weatherReportRepository;
+        this.challengeRankingService = challengeRankingService;
     }
 
     public List<Activity> findAll() {
@@ -39,6 +43,13 @@ public class ActivityService {
             throw new IllegalArgumentException("Athlete is required");
         }
         return activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(athlete.getId());
+    }
+
+    public List<Activity> findAllByAthleteIds(List<Integer> athleteIds) {
+        if (athleteIds == null || athleteIds.isEmpty()) {
+            return List.of();
+        }
+        return activityRepository.findByCreatedBy_IdInOrderByDateADescStartTimeDesc(athleteIds);
     }
 
     public Optional<Activity> findById(int id) {
@@ -76,7 +87,9 @@ public class ActivityService {
         activity.setSportAndType(sport);
         activity.setCreatedBy(athlete);
 
-        return activityRepository.save(activity);
+        Activity savedActivity = activityRepository.save(activity);
+        recalculateImpactedChallengeRankings(savedActivity.getCreatedBy(), savedActivity.getSportAndType(), savedActivity.getDateA());
+        return savedActivity;
     }
 
     public Activity updateActivity(int id, double duration, String title, String description, int repetition, double distance, LocalDate dateA, java.time.LocalTime startTime, String locationCity, int sportId) {
@@ -90,6 +103,10 @@ public class ActivityService {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + id));
 
+        Integer oldAthleteId = activity.getCreatedBy() != null ? activity.getCreatedBy().getId() : null;
+        Integer oldSportId = activity.getSportAndType() != null ? activity.getSportAndType().getId() : null;
+        LocalDate oldDate = activity.getDateA();
+
         activity.setDuration(duration);
         activity.setTitle(title);
         activity.setDescription(description);
@@ -100,7 +117,10 @@ public class ActivityService {
         activity.setLocationCity(locationCity);
         activity.setSportAndType(sport);
 
-        return activityRepository.save(activity);
+        Activity updatedActivity = activityRepository.save(activity);
+        challengeRankingService.recomputeRankingsForActivity(oldAthleteId, oldSportId, oldDate);
+        recalculateImpactedChallengeRankings(updatedActivity.getCreatedBy(), updatedActivity.getSportAndType(), updatedActivity.getDateA());
+        return updatedActivity;
     }
 
     public Activity updateActivityForAthlete(Athlete athlete, int id, double duration, String title, String description,
@@ -112,6 +132,10 @@ public class ActivityService {
 
         Activity activity = activityRepository.findByIdAndCreatedBy_Id(id, athlete.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found for current athlete"));
+
+        Integer oldAthleteId = activity.getCreatedBy() != null ? activity.getCreatedBy().getId() : null;
+        Integer oldSportId = activity.getSportAndType() != null ? activity.getSportAndType().getId() : null;
+        LocalDate oldDate = activity.getDateA();
 
         checkLocationCity(locationCity);
         checkDateA(dateA);
@@ -130,16 +154,24 @@ public class ActivityService {
         activity.setLocationCity(locationCity);
         activity.setSportAndType(sport);
 
-        return activityRepository.save(activity);
+        Activity updatedActivity = activityRepository.save(activity);
+        challengeRankingService.recomputeRankingsForActivity(oldAthleteId, oldSportId, oldDate);
+        recalculateImpactedChallengeRankings(updatedActivity.getCreatedBy(), updatedActivity.getSportAndType(), updatedActivity.getDateA());
+        return updatedActivity;
     }
 
     @Transactional
     public void deleteById(int id) {
-        if (!activityRepository.existsById(id)) {
-            throw new IllegalArgumentException("Activity not found with id: " + id);
-        }
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + id));
+
+        Integer athleteId = activity.getCreatedBy() != null ? activity.getCreatedBy().getId() : null;
+        Integer sportId = activity.getSportAndType() != null ? activity.getSportAndType().getId() : null;
+        LocalDate activityDate = activity.getDateA();
+
         weatherReportRepository.deleteByActivity_Id(id);
         activityRepository.deleteById(id);
+        challengeRankingService.recomputeRankingsForActivity(athleteId, sportId, activityDate);
     }
 
     @Transactional
@@ -147,11 +179,22 @@ public class ActivityService {
         if (athlete == null || athlete.getId() == null) {
             throw new IllegalArgumentException("Athlete is required");
         }
-        if (!activityRepository.existsByIdAndCreatedBy_Id(id, athlete.getId())) {
-            throw new IllegalArgumentException("Activity not found for current athlete");
-        }
+
+        Activity activity = activityRepository.findByIdAndCreatedBy_Id(id, athlete.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found for current athlete"));
+
+        Integer sportId = activity.getSportAndType() != null ? activity.getSportAndType().getId() : null;
+        LocalDate activityDate = activity.getDateA();
+
         weatherReportRepository.deleteByActivity_Id(id);
         activityRepository.deleteById(id);
+        challengeRankingService.recomputeRankingsForActivity(athlete.getId(), sportId, activityDate);
+    }
+
+    private void recalculateImpactedChallengeRankings(Athlete athlete, Sport sport, LocalDate activityDate) {
+        Integer athleteId = athlete != null ? athlete.getId() : null;
+        Integer sportId = sport != null ? sport.getId() : null;
+        challengeRankingService.recomputeRankingsForActivity(athleteId, sportId, activityDate);
     }
 
     private Sport checkSport(int sportId) {
