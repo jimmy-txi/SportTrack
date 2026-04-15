@@ -57,6 +57,7 @@
                                 <th>Ville</th>
                                 <th>Météo</th>
                                 <th>Duree (h)</th>
+                                <th>Calories depensees</th>
                                 <th>Distance (km)</th>
                                 <th>Repetitions</th>
                                 <th class="text-end">Actions</th>
@@ -80,6 +81,7 @@
                                     <span th:if="${activity.weatherReport == null}" class="text-muted">N/A</span>
                                 </td>
                                 <td th:text="${activity.duration}">0</td>
+                                <td th:text="${#numbers.formatDecimal(activity.caloriesBurned, 1, 1)} + ' kcal'">0.0 kcal</td>
                                 <td th:text="${activity.distance}">0</td>
                                 <td th:text="${activity.repetition}">0</td>
                                 <td class="text-end">

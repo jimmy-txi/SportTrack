@@ -236,6 +236,7 @@
                                 <th>Heure</th>
                                 <th>Ville</th>
                                 <th>Durée</th>
+                                <th>Calories dépensées</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -248,6 +249,7 @@
                                 <td th:text="${activity.startTime}">08:00</td>
                                 <td th:text="${activity.locationCity}">Ville</td>
                                 <td th:text="${activity.duration}">1.0</td>
+                                <td th:text="${#numbers.formatDecimal(activity.caloriesBurned, 1, 1)} + ' kcal'">0.0 kcal</td>
                             </tr>
                             </tbody>
                         </table>
