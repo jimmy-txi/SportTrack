@@ -58,6 +58,7 @@ public class ObjectiveController {
             return "redirect:/login";
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("objectives", objectiveService.getObjectivesByUser(athlete));
         return "objective/objectives";
     }
@@ -108,6 +109,7 @@ public class ObjectiveController {
             return "redirect:/login";
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("sports", sportService.findAllActive());
         return "objective/objective_form";
     }

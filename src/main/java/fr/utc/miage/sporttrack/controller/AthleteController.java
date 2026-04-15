@@ -1,8 +1,10 @@
 package fr.utc.miage.sporttrack.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
+import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +22,17 @@ public class AthleteController {
     }
 
     @GetMapping("/list")
-    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model) {
+    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model, Authentication authentication) {
+        // Load current athlete for header
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            try {
+                Athlete currentAthlete = athleteService.getCurrentAthlete(authentication.getName());
+                model.addAttribute("athlete", currentAthlete);
+            } catch (Exception e) {
+                // User not found as athlete, continue without athlete data
+            }
+        }
+        
         if (query != null && !query.isEmpty()) {
             model.addAttribute("query", query);
             model.addAttribute("athletes", athleteService.searchAthletesByName(query));

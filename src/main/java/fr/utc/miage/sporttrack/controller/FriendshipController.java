@@ -89,6 +89,7 @@ public class FriendshipController {
             relationshipStatuses.put(a.getId(), friendshipService.getRelationshipStatus(athlete.getId(), a.getId()));
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("friends", friends);
         model.addAttribute("requests", requests);
         model.addAttribute("sentRequests", sentRequests);
@@ -96,7 +97,6 @@ public class FriendshipController {
         model.addAttribute("blockedUsers", blockedUsers);
         model.addAttribute("relationshipStatuses", relationshipStatuses);
         model.addAttribute("activeTab", tab != null ? tab : "friends");
-        model.addAttribute("currentAthlete", athlete);
 
         return "athlete/friend/friends";
     }
@@ -129,10 +129,10 @@ public class FriendshipController {
         // Also get the raw friendship record for display
         Optional<Friendship> friendshipOpt = friendshipRepository.findBetweenAthletes(athlete, target);
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("profileAthlete", target);
         model.addAttribute("relationshipStatus", relationshipStatus.name());
         model.addAttribute("friendship", friendshipOpt.orElse(null));
-        model.addAttribute("currentAthlete", athlete);
         model.addAttribute("activities", loadVisibleActivities(target, relationshipStatus));
 
         return "athlete/friend/profile";
@@ -152,9 +152,9 @@ public class FriendshipController {
         List<Integer> friendIds = friends.stream().map(Athlete::getId).toList();
         List<Activity> activities = loadActivitiesForAthletes(friendIds);
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activities", activities);
         model.addAttribute("friends", friends);
-        model.addAttribute("currentAthlete", athlete);
 
         return "athlete/friend/activities";
     }

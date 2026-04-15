@@ -53,6 +53,7 @@ public class AthleteActivityController {
                 weatherReportService.findByActivityId(activity.getId()).orElse(null)
         ));
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activities", activities);
         return "athlete/activity/list";
     }
@@ -64,6 +65,7 @@ public class AthleteActivityController {
             return REDIRECT_LOGIN;
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activity", new ActivityFormDTO());
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
@@ -83,6 +85,7 @@ public class AthleteActivityController {
             return REDIRECT_ATHLETE_ACTIVITIES;
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activity", toFormDTO(activity));
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";

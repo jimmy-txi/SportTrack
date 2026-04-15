@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -21,6 +22,7 @@ import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.event.ChallengeRepository;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.service.activity.SportService;
+import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -33,12 +35,15 @@ public class ChallengeController {
     private final ChallengeRepository challengeRepository;
 
     private final SportService sportService;
+
+    private final ChallengeRankingService challengeRankingService;
     
-    public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository, SportService sportService) {
+    public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository, SportService sportService, ChallengeRankingService challengeRankingService) {
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;
         this.challengeRepository = challengeRepository;
         this.sportService = sportService;
+        this.challengeRankingService = challengeRankingService;
     }
     
     @GetMapping("/challenges/new")
@@ -47,6 +52,7 @@ public class ChallengeController {
         if (athlete == null) {
             return "redirect:/login";
         }
+        model.addAttribute("athlete", athlete);
         model.addAttribute("challenge", new Challenge());
         model.addAttribute("allMetrics", Metric.values());
         model.addAttribute("sports", sportService.findAllActive());
@@ -66,6 +72,7 @@ public class ChallengeController {
             }
 
             if (sportId == null || sportId <= 0) {
+                model.addAttribute("athlete", athlete);
                 model.addAttribute("error", "Veuillez sélectionner une discipline sportive valide.");
                 model.addAttribute("allMetrics", Metric.values());
                 model.addAttribute("sports", sportService.findAllActive());
@@ -73,8 +80,16 @@ public class ChallengeController {
             }
 
             Optional<Sport> sportOpt = sportRepository.findById(sportId);
+            if (sportOpt.isEmpty()) {
+                model.addAttribute("athlete", athlete);
+                model.addAttribute("error", "La discipline sportive sélectionnée est introuvable.");
+                model.addAttribute("allMetrics", Metric.values());
+                model.addAttribute("sports", sportService.findAllActive());
+                return "challenge/challenge_form";
+            }
 
             if (challenge.getStartDate().isAfter(challenge.getEndDate()) || challenge.getStartDate().isBefore(now) || challenge.getEndDate().isBefore(now)) {
+                model.addAttribute("athlete", athlete);
                 model.addAttribute("error", "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
                 model.addAttribute("allMetrics", Metric.values());
                 model.addAttribute("sports", sportService.findAllActive());
@@ -83,7 +98,8 @@ public class ChallengeController {
 
             challenge.setOrganizer(athlete);
             challenge.setSport(sportOpt.get());
-            challengeRepository.save(challenge);
+            Challenge savedChallenge = challengeRepository.save(challenge);
+            challengeRankingService.recomputeRanking(savedChallenge);
             
             return "redirect:/challenges";
         }
@@ -95,8 +111,9 @@ public class ChallengeController {
             if (athlete == null) {
                 return "redirect:/login";
             }
+            List<Challenge> challenges = challengeRepository.findDistinctByOrganizer_IdOrParticipants_Id(athlete.getId(), athlete.getId());
             model.addAttribute("athlete", athlete);
-            model.addAttribute("challenges", challengeRepository.findDistinctByOrganizer_IdOrParticipants_Id(athlete.getId(), athlete.getId()));
+            model.addAttribute("challenges", challenges);
             return "challenge/challenge_list";
         }
         
@@ -132,7 +149,8 @@ public class ChallengeController {
                 Challenge challenge = challengeOpt.get();
                 if (!challenge.getParticipants().contains(athlete)) {
                     challenge.getParticipants().add(athlete);
-                    challengeRepository.save(challenge);
+                    Challenge savedChallenge = challengeRepository.save(challenge);
+                    challengeRankingService.recomputeRanking(savedChallenge);
                 }
             }
             return "redirect:/challenges";
@@ -144,8 +162,9 @@ public class ChallengeController {
             if (athlete == null) {
                 return "redirect:/login";
             }
+            List<Challenge> challenges = challengeRepository.findAll();
             model.addAttribute("athlete", athlete);
-            model.addAttribute("challenges", challengeRepository.findAll());
+            model.addAttribute("challenges", challenges);
             return "challenge/challenges";
     }
 }

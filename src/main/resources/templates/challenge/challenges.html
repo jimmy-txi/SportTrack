@@ -1,43 +1,54 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Challenges</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>Challenges disponibles</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
-<body>
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3"><i class="bi bi-trophy me-2"></i>Challenges</h1>
-            <a href="/challenges/new" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Créer un challenge</a>
-        </div>
-        <div class="row">
-            <div th:if="${challenges.isEmpty()}" class="col-12">
-                <div class="alert alert-info text-center">
-                    <i class="bi bi-info-circle me-2"></i>Aucun challenge disponible pour le moment.
-                </div>
+<body class="bg-light">
+    <div th:insert="~{fragments/header :: header}"></div>
+
+    <div class="container mt-5 mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-people-fill me-2 text-primary"></i>Challenges disponibles
+            </h1>
+            <div class="d-flex gap-2">
+                <a th:href="@{/challenges}" class="btn btn-outline-secondary shadow-sm">
+                    <i class="bi bi-trophy me-1"></i> Mes challenges
+                </a>
+                <a th:href="@{/challenges/new}" class="btn btn-primary shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Nouveau challenge
+                </a>
             </div>
-            <div th:if="${!#lists.isEmpty(challenges)}" class="row row-cols-1 row-cols-md-2 g-4">
+        </div>
+
+        <div th:if="${#lists.isEmpty(challenges)}" class="alert alert-info text-center shadow-sm">
+            <i class="bi bi-info-circle me-2"></i> Aucun challenge disponible pour le moment.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(challenges)}" class="row row-cols-1 row-cols-md-2 g-4">
             <div th:each="challenge : ${challenges}" class="col">
                 <div class="card h-100 shadow-sm border-0">
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start">
                             <h5 class="card-title fw-bold text-dark" th:text="${challenge.name}">Nom du challenge</h5>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" 
-                            th:text="${challenge.sport != null ? challenge.sport.name : 'Sport'}">Sport</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle"
+                                  th:text="${challenge.sport != null ? challenge.sport.name : 'Sport'}">Sport</span>
                         </div>
-                        
+
                         <p class="card-text text-secondary mt-2 flex-grow-1" th:text="${challenge.description}">Description...</p>
-                        
+
                         <div class="mt-3">
                             <small class="text-dark fw-semibold">
-                                <i class="bi bi-bar-chart me-1"></i> Type du challenge : 
+                                <i class="bi bi-bar-chart me-1"></i> Type du challenge :
                                 <span class="text-muted" th:text="${challenge.metric.displayValue}">Métrique</span>
                             </small>
                         </div>
-                        
+
                         <div class="mt-2 pt-3 border-top">
                             <div class="d-flex align-items-center text-muted small">
                                 <i class="bi bi-calendar3 me-2"></i>
@@ -47,7 +58,29 @@
                                 <strong class="mx-1" th:text="${#temporals.format(challenge.endDate, 'dd/MM/yyyy')}">31/12/2024</strong>
                             </div>
                         </div>
+
+                        <div class="mt-4" th:with="ranking=${challenge.rankings}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-dark fw-semibold">
+                                    <i class="bi bi-list-ol me-1"></i> Classement
+                                </small>
+                                <span class="badge text-bg-light border"
+                                      th:text="${ranking != null ? ranking.size() : 0} + ' participant(s) classé(s)'">0 participant(s) classé(s)</span>
+                            </div>
+
+                            <div th:if="${ranking == null || #lists.isEmpty(ranking)}" class="alert alert-light border small text-muted mb-0">
+                                Aucun score n'est disponible pour ce challenge.
+                            </div>
+
+                            <ol th:if="${ranking != null && !#lists.isEmpty(ranking)}" class="list-group list-group-numbered">
+                                <li th:each="entry : ${ranking}" class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span th:text="${entry.displayName}">Participant</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" th:text="${entry.formattedScore}">0</span>
+                                </li>
+                            </ol>
+                        </div>
                     </div>
+
                     <div class="card-footer bg-transparent border-0 pb-3">
                         <small class="text-muted">
                             <i class="bi bi-people me-1"></i>
@@ -58,16 +91,17 @@
                             </span>
                         </small>
                     </div>
+
                     <div th:with="isParticipant=${challenge.participants != null and challenge.participants.contains(athlete)}">
                         <div th:if="${isParticipant}" class="card-footer bg-transparent border-0 pb-3">
                             <span class="btn btn-secondary w-100 disabled">
-                                <i class="bi bi-check-all me-1"></i>Déjà inscrit
+                                <i class="bi bi-check-all me-1"></i> Déjà inscrit
                             </span>
                         </div>
 
                         <div th:unless="${isParticipant}" class="card-footer bg-transparent border-0 pb-3">
                             <a th:href="@{/challenges/participate(id=${challenge.id})}" class="btn btn-success w-100">
-                                <i class="bi bi-person-plus me-1"></i>Rejoindre
+                                <i class="bi bi-person-plus me-1"></i> Rejoindre
                             </a>
                         </div>
                     </div>
@@ -75,5 +109,13 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="text-center mt-4 mb-5">
+        <a th:href="@{/}" class="btn btn-link text-decoration-none text-secondary">
+            <i class="bi bi-house"></i> Retour à l'accueil
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+</html>

@@ -126,7 +126,7 @@ class FriendshipControllerTest {
         verify(model).addAttribute("sentRequests", Collections.emptyList());
         verify(model).addAttribute("blockedUsers", Collections.emptyList());
         verify(model).addAttribute("activeTab", "friends");
-        verify(model).addAttribute("currentAthlete", currentAthlete);
+        verify(model).addAttribute("athlete", currentAthlete);
     }
 
     @Test
