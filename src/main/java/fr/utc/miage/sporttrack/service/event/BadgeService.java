@@ -2,7 +2,6 @@ package fr.utc.miage.sporttrack.service.event;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -12,7 +11,6 @@ import fr.utc.miage.sporttrack.entity.enumeration.Metric;
 import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
-import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.event.BadgeRepository;
 
 @Service
@@ -20,14 +18,11 @@ public class BadgeService {
 
     private final BadgeRepository badgeRepository;
     private final ActivityRepository activityRepository;
-    private final SportRepository sportRepository;
 
     public BadgeService(BadgeRepository badgeRepository,
-                        ActivityRepository activityRepository,
-                        SportRepository sportRepository) {
+                        ActivityRepository activityRepository) {
         this.badgeRepository = badgeRepository;
         this.activityRepository = activityRepository;
-        this.sportRepository = sportRepository;
     }
 
     // ========== Admin CRUD ==========
@@ -73,7 +68,7 @@ public class BadgeService {
      */
     public List<Badge> getUnearnedBadges(Integer athleteId) {
         List<Badge> earned = getEarnedBadges(athleteId);
-        List<Integer> earnedIds = earned.stream().map(Badge::getId).collect(Collectors.toList());
+        List<Integer> earnedIds = earned.stream().map(Badge::getId).toList();
         if (earnedIds.isEmpty()) {
             return badgeRepository.findAll();
         }
@@ -117,7 +112,7 @@ public class BadgeService {
                 .findByCreatedBy_IdOrderByDateADescStartTimeDesc(athlete.getId())
                 .stream()
                 .filter(a -> a.getSportAndType() != null && a.getSportAndType().getId() == sport.getId())
-                .collect(Collectors.toList());
+                .toList();
 
         // Check each badge
         for (Badge badge : sportBadges) {

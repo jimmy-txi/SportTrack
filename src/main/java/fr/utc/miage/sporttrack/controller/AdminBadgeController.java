@@ -1,7 +1,6 @@
 package fr.utc.miage.sporttrack.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -11,11 +10,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.enumeration.Metric;
+import fr.utc.miage.sporttrack.dto.BadgeFormDTO;
 import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.service.activity.SportService;
@@ -58,7 +57,7 @@ public class AdminBadgeController {
             return "redirect:/login";
         }
 
-        model.addAttribute("badge", new Badge());
+        model.addAttribute("badge", new BadgeFormDTO());
         model.addAttribute("sports", sportService.findAllActive());
         model.addAttribute("metrics", Metric.values());
         model.addAttribute("icons", PRESET_ICONS);
@@ -73,7 +72,15 @@ public class AdminBadgeController {
 
         try {
             Badge badge = badgeService.findById(id);
-            model.addAttribute("badge", badge);
+            BadgeFormDTO dto = new BadgeFormDTO();
+            dto.setId(badge.getId());
+            dto.setLabel(badge.getLabel());
+            dto.setDescription(badge.getDescription());
+            dto.setSportId(badge.getSport() != null ? badge.getSport().getId() : null);
+            dto.setMetric(badge.getMetric());
+            dto.setThreshold(badge.getThreshold());
+            dto.setIcon(badge.getIcon());
+            model.addAttribute("badge", dto);
             model.addAttribute("sports", sportService.findAllActive());
             model.addAttribute("metrics", Metric.values());
             model.addAttribute("icons", PRESET_ICONS);
@@ -85,8 +92,7 @@ public class AdminBadgeController {
     }
 
     @PostMapping("/save")
-    public String saveBadge(@ModelAttribute Badge badge,
-                            @RequestParam("sportId") int sportId,
+    public String saveBadge(@ModelAttribute BadgeFormDTO badgeForm,
                             RedirectAttributes redirectAttributes,
                             Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
@@ -94,21 +100,29 @@ public class AdminBadgeController {
         }
 
         try {
-            Sport sport = sportRepository.findById(sportId)
-                    .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + sportId));
+            Sport sport = sportRepository.findById(badgeForm.getSportId())
+                    .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + badgeForm.getSportId()));
 
-            if (badge.getLabel() == null || badge.getLabel().isBlank()) {
+            if (badgeForm.getLabel() == null || badgeForm.getLabel().isBlank()) {
                 throw new IllegalArgumentException("Badge label is required");
             }
-            if (badge.getIcon() == null || badge.getIcon().isBlank()) {
+            if (badgeForm.getIcon() == null || badgeForm.getIcon().isBlank()) {
                 throw new IllegalArgumentException("Badge icon is required");
             }
-            if (badge.getMetric() == null) {
+            if (badgeForm.getMetric() == null) {
                 throw new IllegalArgumentException("Badge metric is required");
             }
-            if (badge.getThreshold() <= 0) {
+            if (badgeForm.getThreshold() <= 0) {
                 throw new IllegalArgumentException("Threshold must be greater than zero");
             }
+
+            Badge badge = new Badge();
+            badge.setId(badgeForm.getId() != null ? badgeForm.getId() : 0);
+            badge.setLabel(badgeForm.getLabel());
+            badge.setDescription(badgeForm.getDescription());
+            badge.setMetric(badgeForm.getMetric());
+            badge.setThreshold(badgeForm.getThreshold());
+            badge.setIcon(badgeForm.getIcon());
 
             badgeService.saveBadge(badge, sport);
             redirectAttributes.addAttribute("saved", true);
