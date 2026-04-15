@@ -6,6 +6,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,15 +31,18 @@ public class AthleteActivityController {
     private final SportService sportService;
     private final WeatherReportService weatherReportService;
     private final AthleteService athleteService;
+    private final BadgeService badgeService;
 
     public AthleteActivityController(ActivityService activityService,
                                      SportService sportService,
                                      WeatherReportService weatherReportService,
-                                     AthleteService athleteService) {
+                                     AthleteService athleteService,
+                                     BadgeService badgeService) {
         this.activityService = activityService;
         this.sportService = sportService;
         this.weatherReportService = weatherReportService;
         this.athleteService = athleteService;
+        this.badgeService = badgeService;
     }
 
     @GetMapping
@@ -132,6 +136,12 @@ public class AthleteActivityController {
                 weatherReportService.refreshWeatherReport(savedActivity);
             } catch (RuntimeException ignored) {
                 // Best effort: weather should not block activity creation.
+            }
+
+            try {
+                badgeService.checkAndAwardBadges(savedActivity);
+            } catch (RuntimeException ignored) {
+                // Best effort: badge check should not block activity creation.
             }
 
             redirectAttributes.addAttribute(isNewActivity(activity) ? "created" : "updated", true);

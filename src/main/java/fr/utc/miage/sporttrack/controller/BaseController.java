@@ -5,6 +5,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
 import fr.utc.miage.sporttrack.entity.user.User;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AdminService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.UserService;
@@ -20,10 +21,12 @@ public class BaseController {
 
     private final AthleteService athleteService;
     private final AdminService adminService;
+    private final BadgeService badgeService;
 
-    public BaseController(AthleteService athleteService, AdminService adminService) {
+    public BaseController(AthleteService athleteService, AdminService adminService, BadgeService badgeService) {
         this.athleteService = athleteService;
         this.adminService = adminService;
+        this.badgeService = badgeService;
     }
 
     @GetMapping("/")
@@ -35,6 +38,7 @@ public class BaseController {
                 model.addAttribute("athlete", currentAthlete);
                 model.addAttribute("genders", Gender.values());
                 model.addAttribute("practiceLevels", PracticeLevel.values());
+                model.addAttribute("earnedBadges", badgeService.getEarnedBadges(currentAthlete.getId()));
             } catch (Exception e) {
                 try {
                     Admin currentAdmin = adminService.findByEmail(email);

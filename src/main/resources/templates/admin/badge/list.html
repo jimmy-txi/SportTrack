@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Badges - Administration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a th:href="@{/admin}" class="btn btn-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left"></i> Retour au panneau
+                </a>
+                <h1><i class="bi bi-award"></i> Gestion des Badges</h1>
+                <p class="text-muted">Créer et gérer les badges disponibles pour les athlètes.</p>
+            </div>
+            <a th:href="@{/admin/badges/create}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nouveau Badge
+            </a>
+        </div>
+
+        <!-- Success messages -->
+        <div th:if="${param.saved}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> Badge sauvegardé avec succès !
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${param.deleted}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> Badge supprimé avec succès.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i> <span th:text="${param.error}">Erreur</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Badge list -->
+        <div class="card shadow">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Icône</th>
+                                <th>Label</th>
+                                <th>Sport</th>
+                                <th>Métrique</th>
+                                <th>Seuil</th>
+                                <th>Athlètes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="badge : ${badges}">
+                                <td>
+                                    <i th:class="'bi ' + ${badge.icon} + ' display-6'" style="color: #e6a817;"></i>
+                                </td>
+                                <td>
+                                    <strong th:text="${badge.label}">Label</strong>
+                                    <br>
+                                    <small class="text-muted" th:text="${badge.description}">Description</small>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-info" th:text="${badge.sport?.name}">Sport</span>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-secondary" th:text="${badge.metric}">METRIC</span>
+                                </td>
+                                <td th:text="${badge.threshold}">0</td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-primary" th:text="${badge.earnedBy != null ? badge.earnedBy.size() : 0}">0</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a th:href="@{/admin/badges/edit/{id}(id=${badge.id})}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form th:action="@{/admin/badges/delete/{id}(id=${badge.id})}" method="post"
+                                              onsubmit="return confirm('Supprimer ce badge ?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${badges.isEmpty()}">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-award display-4"></i>
+                                    <p>Aucun badge créé pour le moment.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
