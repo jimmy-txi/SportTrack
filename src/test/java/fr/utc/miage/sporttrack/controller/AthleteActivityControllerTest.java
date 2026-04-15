@@ -41,6 +41,9 @@ class AthleteActivityControllerTest {
     private AthleteService athleteService;
 
     @Mock
+    private fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -62,6 +65,7 @@ class AthleteActivityControllerTest {
         when(athleteService.getCurrentAthlete("athlete@mail.com")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(activities);
         when(weatherReportService.findByActivityId(1)).thenReturn(Optional.empty());
+        when(commentService.getCommentsForActivity(1)).thenReturn(new ArrayList<>());
 
         String view = controller.listMyActivities(model, authentication);
 
@@ -101,6 +105,7 @@ class AthleteActivityControllerTest {
         when(athleteService.getCurrentAthlete("athlete@mail.com")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(activities);
         when(weatherReportService.findByActivityId(12)).thenReturn(Optional.of(weatherReport));
+        when(commentService.getCommentsForActivity(12)).thenReturn(new ArrayList<>());
 
         String view = controller.listMyActivities(model, authentication);
 

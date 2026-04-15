@@ -32,17 +32,20 @@ public class AthleteActivityController {
     private final WeatherReportService weatherReportService;
     private final AthleteService athleteService;
     private final BadgeService badgeService;
+    private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
     public AthleteActivityController(ActivityService activityService,
                                      SportService sportService,
                                      WeatherReportService weatherReportService,
                                      AthleteService athleteService,
-                                     BadgeService badgeService) {
+                                     BadgeService badgeService,
+                                     fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.activityService = activityService;
         this.sportService = sportService;
         this.weatherReportService = weatherReportService;
         this.athleteService = athleteService;
         this.badgeService = badgeService;
+        this.commentService = commentService;
     }
 
     @GetMapping
@@ -53,9 +56,14 @@ public class AthleteActivityController {
         }
 
         List<Activity> activities = activityService.findAllByAthlete(athlete);
-        activities.forEach(activity -> activity.setWeatherReport(
-                weatherReportService.findByActivityId(activity.getId()).orElse(null)
-        ));
+        activities.forEach(activity -> {
+            activity.setWeatherReport(
+                    weatherReportService.findByActivityId(activity.getId()).orElse(null)
+            );
+            activity.setComments(
+                    commentService.getCommentsForActivity(activity.getId())
+            );
+        });
 
         model.addAttribute("athlete", athlete);
         model.addAttribute("activities", activities);
