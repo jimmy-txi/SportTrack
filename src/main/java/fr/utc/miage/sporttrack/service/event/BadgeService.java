@@ -147,12 +147,14 @@ public class BadgeService {
                 case MEAN_VELOCITY:
                     // duration in minutes, distance in km -> km/h
                     if (a.getDistance() != null && a.getDuration() > 0) {
-                        total += a.getDistance() / (a.getDuration() / 60.0);
+                        double velocity = a.getDistance() / (a.getDuration() / 60.0);
+                        total = velocity > total ? velocity : total;
                     }
                     break;
                 case REPS_PER_MINUTE:
                     if (a.getRepetition() != null && a.getDuration() > 0) {
-                        total += a.getRepetition() / (a.getDuration() / 60.0);
+                        double rpm = a.getRepetition() / (a.getDuration() / 60.0);
+                        total = rpm > total ? rpm : total;
                     }
                     break;
             }

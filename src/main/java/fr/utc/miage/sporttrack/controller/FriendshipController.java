@@ -25,6 +25,7 @@ import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
@@ -44,14 +45,16 @@ public class FriendshipController {
     private final AthleteService athleteService;
     private final ActivityService activityService;
     private final WeatherReportService weatherReportService;
+    private final BadgeService badgeService;
 
-    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
         this.athleteService = athleteService;
         this.activityService = activityService;
         this.weatherReportService = weatherReportService;
+        this.badgeService = badgeService;
     }
 
     /**
@@ -134,6 +137,7 @@ public class FriendshipController {
         model.addAttribute("relationshipStatus", relationshipStatus.name());
         model.addAttribute("friendship", friendshipOpt.orElse(null));
         model.addAttribute("activities", loadVisibleActivities(target, relationshipStatus));
+        model.addAttribute("profileBadges", badgeService.getEarnedBadges(target.getId()));
 
         return "athlete/friend/profile";
     }
