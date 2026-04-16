@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Croissance Semaine par Semaine</title>
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-light">
+    <div th:insert="~{fragments/header :: header}"></div>
+    <div class="container mt-5">
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
+            <div>
+                <h1 class="h3 mb-1">Croissance Semaine par Semaine</h1>
+                <p class="text-muted mb-0">Suivez votre progression hebdomadaire et vos tendances.</p>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-body">
+                <form th:action="@{/growth}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="sportId" class="form-label small text-uppercase text-muted">Sport</label>
+                        <select id="sportId" name="sportId" class="form-select">
+                            <option th:value="0" th:selected="${selectedSport == null}">Tous les sports</option>
+                            <option th:each="sport : ${sports}"
+                            th:value="${sport.id}"
+                            th:text="${sport.name}"
+                            th:selected="${selectedSportId == sport.id}">Sport</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-grid">
+                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- KPI Section -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="small text-uppercase text-muted mb-2">Semaines consécutives actives</div>
+                        <div class="display-6 fw-bold" th:text="${consecutiveActiveWeeks}">0</div>
+                        <div class="text-muted">Avec au moins 1 activité</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="small text-uppercase text-muted mb-2">Heures ce mois</div>
+                        <div class="display-6 fw-bold" th:text="${#numbers.formatDecimal(hoursCurrentMonth, 1, 1)} + ' h'">0 h</div>
+                        <div class="text-muted">Mois actuel</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="small text-uppercase text-muted mb-2">Heures mois dernier</div>
+                        <div class="display-6 fw-bold" th:text="${#numbers.formatDecimal(hoursPreviousMonth, 1, 1)} + ' h'">0 h</div>
+                        <div class="text-muted">Mois précédent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Comparison Charts -->
+        <div class="row g-4 mb-4">
+            <!-- Duration Chart -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 small fw-bold">
+                            <i class="bi bi-hourglass-split"></i> Durée hebdomadaire
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="durationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Count Chart -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 small fw-bold">
+                            <i class="bi bi-graph-up"></i> Nombre d'activités
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="activityCountChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distance Chart (shown only for distance sports) -->
+            <div class="col-lg-6" th:if="${hasDistance}">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 small fw-bold">
+                            <i class="bi bi-rulers"></i> Distance hebdomadaire
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="distanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repetition Chart (shown only for repetition sports) -->
+            <div class="col-lg-6" th:if="${hasRepetition}">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 small fw-bold">
+                            <i class="bi bi-repeat"></i> Répétitions hebdomadaires
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="repetitionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Data Table -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">Résumé hebdomadaire</h5>
+            </div>
+            <div class="card-body p-0">
+                <div th:if="${#lists.isEmpty(weeklyData)}" class="p-4 text-center text-muted">
+                    Aucune donnée disponible pour les semaines.
+                </div>
+                <div th:if="${!#lists.isEmpty(weeklyData)}" class="table-responsive">
+                    <table class="table table-borderless mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Semaine</th>
+                                <th class="text-center">Activités</th>
+                                <th class="text-center">Durée (h)</th>
+                                <th class="text-center" th:if="${hasDistance}">Distance (km)</th>
+                                <th class="text-center" th:if="${hasRepetition}">Répétitions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="week : ${weeklyData}">
+                                <td>
+                                    <strong th:text="${'Sem. ' + week.weekNumber}">Sem. 1</strong><br>
+                                    <small class="text-muted" th:text="${week.startDate} + ' - ' + ${week.endDate}">01/01 - 07/01</small>
+                                </td>
+                                <td class="text-center" th:text="${week.activityCount}">0</td>
+                                <td class="text-center" th:text="${#numbers.formatDecimal(week.totalDuration, 1, 1)}">0.0</td>
+                                <td class="text-center" th:if="${hasDistance}" th:text="${#numbers.formatDecimal(week.totalDistance, 1, 1)}">0.0</td>
+                                <td class="text-center" th:if="${hasRepetition}" th:text="${week.totalRepetition}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        var weekLabels = [[${weekLabels}]];
+        var weekDurations = [[${weekDurations}]];
+        var weekActivityCounts = [[${weekActivityCounts}]];
+        var weekDistances = [[${weekDistances}]];
+        var weekRepetitions = [[${weekRepetitions}]];
+        var hasDistance = [[${hasDistance}]];
+        var hasRepetition = [[${hasRepetition}]];
+
+        // Duration Chart
+        new Chart(document.getElementById('durationChart'), {
+            type: 'line',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Durée (heures)',
+                    data: weekDurations,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 6,
+                    pointBorderWidth: 2,
+                    pointBorderColor: '#fff',
+                    pointBackgroundColor: '#0d6efd',
+                    pointHoverRadius: 8,
+                    segment: { borderDash: [] }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { padding: 20, font: { size: 12 } } },
+                    filler: { propagate: true }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { padding: 10 }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Activity Count Chart
+        new Chart(document.getElementById('activityCountChart'), {
+            type: 'bar',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Nombre d\'activités',
+                    data: weekActivityCounts,
+                    backgroundColor: 'rgba(25, 135, 84, 0.8)',
+                    borderColor: '#198754',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    hoverBackgroundColor: '#198754'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { padding: 20, font: { size: 12 } } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { stepSize: 1, padding: 10 }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Distance Chart (if applicable)
+        if (hasDistance) {
+            new Chart(document.getElementById('distanceChart'), {
+                type: 'line',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: 'Distance (km)',
+                        data: weekDistances,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 6,
+                        pointBorderWidth: 2,
+                        pointBorderColor: '#fff',
+                        pointBackgroundColor: '#dc3545',
+                        pointHoverRadius: 8,
+                        segment: { borderDash: [] }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { padding: 20, font: { size: 12 } } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { padding: 10 }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Repetition Chart (if applicable)
+        if (hasRepetition) {
+            new Chart(document.getElementById('repetitionChart'), {
+                type: 'bar',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: 'Répétitions',
+                        data: weekRepetitions,
+                        backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                        borderColor: '#ffc107',
+                        borderWidth: 2,
+                        borderRadius: 4,
+                        hoverBackgroundColor: '#ffc107'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { padding: 20, font: { size: 12 } } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { stepSize: 1, padding: 10 }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
+</body>
+</html>

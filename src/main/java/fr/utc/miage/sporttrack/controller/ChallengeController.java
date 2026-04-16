@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import fr.utc.miage.sporttrack.dto.ChallengeFormDTO;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.enumeration.Metric;
 import fr.utc.miage.sporttrack.entity.event.Challenge;
@@ -53,7 +54,7 @@ public class ChallengeController {
             return "redirect:/login";
         }
         model.addAttribute("athlete", athlete);
-        model.addAttribute("challenge", new Challenge());
+        model.addAttribute("challenge", new ChallengeFormDTO());
         model.addAttribute("allMetrics", Metric.values());
         model.addAttribute("sports", sportService.findAllActive());
         return "challenge/challenge_form";
@@ -61,9 +62,9 @@ public class ChallengeController {
     
     @PostMapping("/challenges")
     public String createChallenge(
-        @ModelAttribute Challenge challenge, 
-        @RequestParam(required = false) Integer sportId, 
-        HttpSession session, 
+        @ModelAttribute ChallengeFormDTO challengeDto,
+        @RequestParam(required = false) Integer sportId,
+        HttpSession session,
         Model model) {
             Athlete athlete = getAuthenticatedAthlete(session);
             LocalDate now = LocalDate.now();
@@ -88,7 +89,7 @@ public class ChallengeController {
                 return "challenge/challenge_form";
             }
 
-            if (challenge.getStartDate().isAfter(challenge.getEndDate()) || challenge.getStartDate().isBefore(now) || challenge.getEndDate().isBefore(now)) {
+            if (challengeDto.getStartDate().isAfter(challengeDto.getEndDate()) || challengeDto.getStartDate().isBefore(now) || challengeDto.getEndDate().isBefore(now)) {
                 model.addAttribute("athlete", athlete);
                 model.addAttribute("error", "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
                 model.addAttribute("allMetrics", Metric.values());
@@ -96,11 +97,18 @@ public class ChallengeController {
                 return "challenge/challenge_form";
             }
 
+            Challenge challenge = new Challenge(
+                challengeDto.getName(),
+                challengeDto.getDescription(),
+                challengeDto.getStartDate(),
+                challengeDto.getEndDate(),
+                challengeDto.getMetric()
+            );
             challenge.setOrganizer(athlete);
             challenge.setSport(sportOpt.get());
             Challenge savedChallenge = challengeRepository.save(challenge);
             challengeRankingService.recomputeRanking(savedChallenge);
-            
+
             return "redirect:/challenges";
         }
         

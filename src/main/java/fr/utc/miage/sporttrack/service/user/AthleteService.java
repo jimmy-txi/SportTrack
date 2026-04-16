@@ -1,15 +1,13 @@
 package fr.utc.miage.sporttrack.service.user;
 
-import fr.utc.miage.sporttrack.entity.user.Athlete;
-import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
-
-import java.util.List;
-
 import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
+import fr.utc.miage.sporttrack.dto.AthleteRegisterFormDTO;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AthleteService {
@@ -22,11 +20,21 @@ public class AthleteService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void createProfile(Athlete athlete) {
-        if (athleteRepository.existsByEmail(athlete.getEmail())) {
+    /**
+     * Creates a new athlete profile from a registration form DTO.
+     * Maps the DTO fields to a new Athlete entity before persisting.
+     *
+     * @param dto the registration form data
+     * @throws IllegalArgumentException if the email is already in use
+     */
+    public void createProfile(AthleteRegisterFormDTO dto) {
+        if (athleteRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Email is already used");
         }
-        String encodedPassword = passwordEncoder.encode(athlete.getPassword());
+        Athlete athlete = new Athlete();
+        athlete.setEmail(dto.getEmail());
+        athlete.setUsername(dto.getUsername());
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
         athlete.setPassword(encodedPassword);
         athleteRepository.save(athlete);
     }

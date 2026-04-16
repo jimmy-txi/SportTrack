@@ -1,6 +1,6 @@
 package fr.utc.miage.sporttrack.controller;
 
-import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.dto.AthleteRegisterFormDTO;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,17 +34,17 @@ class AuthControllerTest {
     @Test
     void testShowRegistrationForm() {
         String viewName = controller.showRegistrationForm(model);
-        
+
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("athlete"), any(Athlete.class));
+        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
     }
 
     @Test
     void testRegisterUserPasswordMismatch() {
-        Athlete athlete = new Athlete();
-        athlete.setPassword("1234");
+        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
+        dto.setPassword("1234");
 
-        String viewName = controller.registerUser(athlete, "wrongPassword", model);
+        String viewName = controller.registerUser(dto, "wrongPassword", model);
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
@@ -53,23 +53,23 @@ class AuthControllerTest {
 
     @Test
     void testRegisterUserSuccess() {
-        Athlete athlete = new Athlete();
-        athlete.setPassword("1234");
+        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
+        dto.setPassword("1234");
 
-        String viewName = controller.registerUser(athlete, "1234", model);
+        String viewName = controller.registerUser(dto, "1234", model);
 
         assertEquals("redirect:/login?registered", viewName);
-        verify(athleteService).createProfile(athlete);
+        verify(athleteService).createProfile(dto);
     }
 
     @Test
     void testRegisterUserEmailAlreadyUsed() {
-        Athlete athlete = new Athlete();
-        athlete.setPassword("1234");
-        
-        doThrow(new IllegalArgumentException("Email is already used")).when(athleteService).createProfile(athlete);
+        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
+        dto.setPassword("1234");
 
-        String viewName = controller.registerUser(athlete, "1234", model);
+        doThrow(new IllegalArgumentException("Email is already used")).when(athleteService).createProfile(dto);
+
+        String viewName = controller.registerUser(dto, "1234", model);
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Email is already used");
