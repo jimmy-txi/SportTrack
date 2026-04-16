@@ -319,4 +319,18 @@ class SportServiceTest {
         sport.setType(type);
         return sport;
     }
+
+    @Test
+    void shouldReturnSafeSportName() {
+        Sport sportWithName = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        assertEquals(SPORT_NAME, sportService.safeSportName(sportWithName));
+
+        Sport sportWithNullName = createSport(SPORT_ID, null, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        assertEquals("Autre", sportService.safeSportName(sportWithNullName));
+
+        Sport sportWithEmptyName = createSport(SPORT_ID, "", SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        assertEquals("Autre", sportService.safeSportName(sportWithEmptyName));
+
+        assertEquals("Autre", sportService.safeSportName(null));
+    }
 }

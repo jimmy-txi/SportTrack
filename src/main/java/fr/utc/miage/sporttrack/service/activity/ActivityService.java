@@ -221,7 +221,7 @@ public class ActivityService {
         challengeRankingService.recomputeRankingsForActivity(athleteId, sportId, activityDate);
     }
 
-    private Sport checkSport(int sportId) {
+    Sport checkSport(int sportId) {
         if (sportId <= 0) {
             throw new IllegalArgumentException("Sport is required");
         }
@@ -229,7 +229,7 @@ public class ActivityService {
                 .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + sportId));
     }
 
-    private void checkMetricBySportType(SportType sportType, double duration, int repetition, double distance) {
+    void checkMetricBySportType(SportType sportType, double duration, int repetition, double distance) {
         if (sportType == null) {
             throw new IllegalArgumentException("Sport type is required");
         }
@@ -246,7 +246,7 @@ public class ActivityService {
         }
     }
 
-    private void checkDateA(LocalDate dateA) {
+    void checkDateA(LocalDate dateA) {
         if (dateA == null) {
             throw new IllegalArgumentException("Activity date is required");
         }
@@ -255,21 +255,41 @@ public class ActivityService {
         }
     }
 
-    private void checkLocationCity(String locationCity) {
+    void checkLocationCity(String locationCity) {
         if (locationCity == null || locationCity.isBlank()) {
             throw new IllegalArgumentException("Location city cannot be null or empty");
         }
     }
 
-    private void checkTitle(String title) {
+    void checkTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Activity title cannot be null or empty");
         }
     }
 
-    private void checkStartTime(java.time.LocalTime startTime) {
+    void checkStartTime(java.time.LocalTime startTime) {
         if (startTime == null) {
             throw new IllegalArgumentException("Activity start time is required");
         }
+    }
+
+    public boolean filterBySport(Activity activity, Sport selectedSport) {
+        if (selectedSport == null) {
+            return true;
+        }
+        return activity != null && activity.getSportAndType() != null && activity.getSportAndType().getId() == selectedSport.getId();
+    }
+
+    public boolean filterByDate(Activity activity, LocalDate startDate, LocalDate endDate) {
+        if (activity == null || activity.getDateA() == null) {
+            return false;
+        }
+        if (startDate != null && activity.getDateA().isBefore(startDate)) {
+            return false;
+        }
+        if (endDate != null && activity.getDateA().isAfter(endDate)) {
+            return false;
+        }
+        return true;
     }
 }
