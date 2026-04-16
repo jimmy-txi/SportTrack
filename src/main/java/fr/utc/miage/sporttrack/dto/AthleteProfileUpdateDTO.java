@@ -2,6 +2,7 @@ package fr.utc.miage.sporttrack.dto;
 
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 //for security >.< 
 public class AthleteProfileUpdateDTO {
@@ -55,15 +56,15 @@ public class AthleteProfileUpdateDTO {
 
     // --- Setters ---
     public void setUsername(String username) {
-        this.username = username;
+        this.username = TextNormalizer.trimNullable(username);
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        this.firstName = TextNormalizer.trimNullable(firstName);
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        this.lastName = TextNormalizer.trimNullable(lastName);
     }
 
     public void setGender(Gender gender) {
@@ -87,6 +88,6 @@ public class AthleteProfileUpdateDTO {
     }
 
     public void setBio(String bio) {
-        this.bio = bio;
+        this.bio = TextNormalizer.trimNullable(bio);
     }
 }

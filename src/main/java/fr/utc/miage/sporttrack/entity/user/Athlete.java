@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 @Entity
 @Table(name = "athletes")
@@ -84,6 +85,6 @@ public class Athlete extends User implements Serializable {
     }
 
     public void setBio(String bio) {
-        this.bio = bio;
+        this.bio = TextNormalizer.trimNullable(bio);
     }
 }
