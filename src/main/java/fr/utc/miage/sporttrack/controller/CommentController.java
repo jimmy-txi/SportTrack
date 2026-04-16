@@ -6,7 +6,6 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.CommentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -20,14 +19,19 @@ import java.util.Optional;
 @RequestMapping("/comments")
 public class CommentController {
 
-    @Autowired
-    private CommentService commentService;
+    CommentService commentService;
+    ActivityService activityService;
+    AthleteService athleteService;
 
-    @Autowired
-    private ActivityService activityService;
 
-    @Autowired
-    private AthleteService athleteService;
+    public CommentController(CommentService commentService, ActivityService activityService, AthleteService athleteService) {
+        this.commentService = commentService;
+        this.activityService = activityService;
+        this.athleteService = athleteService;
+    }
+
+
+
 
     @PostMapping("/add")
     public String addComment(
