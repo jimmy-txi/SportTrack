@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AuthController {
 
     private final AthleteService athleteService;
+    private final String REGISTER = "register";
 
     public AuthController(AthleteService athleteService) {
         this.athleteService = athleteService;
@@ -28,7 +29,7 @@ public class AuthController {
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
         model.addAttribute("athlete", new AthleteRegisterFormDTO());
-        return "register";
+        return REGISTER;
     }
 
     @PostMapping("/register")
@@ -37,7 +38,7 @@ public class AuthController {
                                Model model) {
         if (!athleteDto.getPassword().equals(confirmPassword)) {
             model.addAttribute("error", "Passwords do not match");
-            return "register";
+            return REGISTER;
         }
 
         try {
@@ -45,7 +46,7 @@ public class AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            return "register";
+            return REGISTER;
         }
     }
 }

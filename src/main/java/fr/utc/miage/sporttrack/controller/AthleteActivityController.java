@@ -33,6 +33,8 @@ public class AthleteActivityController {
     private final AthleteService athleteService;
     private final BadgeService badgeService;
     private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
+    private static final String ERROR_ATTRIBUTE = "error";
+    private static final String ATHLETE_ATTRIBUTE = "athlete";
 
     public AthleteActivityController(ActivityService activityService,
                                      SportService sportService,
@@ -65,7 +67,7 @@ public class AthleteActivityController {
             );
         });
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTRIBUTE, athlete);
         model.addAttribute("activities", activities);
         return "athlete/activity/list";
     }
@@ -77,7 +79,7 @@ public class AthleteActivityController {
             return REDIRECT_LOGIN;
         }
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTRIBUTE, athlete);
         model.addAttribute("activity", new ActivityFormDTO());
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
@@ -93,11 +95,11 @@ public class AthleteActivityController {
         Activity activity = activityService.findByIdForAthlete(id, athlete)
                 .orElse(null);
         if (activity == null) {
-            redirectAttributes.addAttribute("error", "Activite introuvable");
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, "Activite introuvable");
             return REDIRECT_ATHLETE_ACTIVITIES;
         }
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTRIBUTE, athlete);
         model.addAttribute("activity", toFormDTO(activity));
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
@@ -158,7 +160,7 @@ public class AthleteActivityController {
             redirectAttributes.addAttribute(isNewActivity(activity) ? "created" : "updated", true);
             return REDIRECT_ATHLETE_ACTIVITIES;
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
             if (!isNewActivity(activity) && activity.getId() != null) {
                 return "redirect:/athlete/activities/edit/" + activity.getId();
             }
@@ -177,7 +179,7 @@ public class AthleteActivityController {
             activityService.deleteByIdForAthlete(athlete, id);
             redirectAttributes.addAttribute("deleted", true);
         } catch (IllegalArgumentException exception) {
-            redirectAttributes.addAttribute("error", exception.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, exception.getMessage());
         }
         return REDIRECT_ATHLETE_ACTIVITIES;
     }
