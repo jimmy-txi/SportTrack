@@ -28,6 +28,7 @@ public class WeatherReport {
     private Activity activity;
 
     public WeatherReport() {
+        // Default constructor for JPA
     }
 
     public int getId() {

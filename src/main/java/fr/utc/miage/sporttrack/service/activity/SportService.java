@@ -13,6 +13,7 @@ import java.util.Optional;
 public class SportService {
 
     private final SportRepository repository;
+    private final String SPORT_NOT_FOUND = "Sport not found with id: ";
 
     public SportService(SportRepository repository) {
         this.repository = repository;
@@ -49,7 +50,7 @@ public class SportService {
         checkCaloriesPerHour(caloriesPerHour);
 
         Sport sport = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setName(name);
         sport.setDescription(description);
@@ -60,14 +61,14 @@ public class SportService {
     }
 
     public void disableSport(int id) {
-        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setActive(false);
         repository.save(sport);
     }
 
     public void enableSport(int id) {
-        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setActive(true);
         repository.save(sport);
