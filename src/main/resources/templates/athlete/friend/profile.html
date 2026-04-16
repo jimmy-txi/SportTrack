@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
 <head>
@@ -21,7 +21,7 @@
                     <i class="bi bi-arrow-left"></i> Retour aux amis
                 </a>
                 <a th:href="@{/friends/activities}" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-activity"></i> ActivitÃ©s de mes amis
+                    <i class="bi bi-activity"></i> Activités de mes amis
                 </a>
             </div>
 
@@ -42,7 +42,7 @@
                 <div class="card-header bg-primary text-white text-center py-4">
                     <img th:src="${profileAthlete.profilePhotoUrl}" alt="Photo de profil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                     <h3 class="mt-2 mb-0" th:text="${profileAthlete.username}">Username</h3>
-                    <small th:text="${profileAthlete.firstName + ' ' + profileAthlete.lastName}">Nom PrÃ©nom</small>
+                    <small th:text="${profileAthlete.firstName + ' ' + profileAthlete.lastName}">Nom Prénom</small>
                 </div>
                 <div class="card-body">
                     <table class="table table-borderless mb-0">
@@ -56,7 +56,7 @@
                             <td th:text="${profileAthlete.gender.displayValue}">Genre</td>
                         </tr>
                         <tr th:if="${profileAthlete.age != null}">
-                            <th class="text-end ps-3"><i class="bi bi-calendar me-1"></i> Ã‚ge</th>
+                            <th class="text-end ps-3"><i class="bi bi-calendar me-1"></i> Âge</th>
                             <td th:text="${profileAthlete.age} + ' ans'">25 ans</td>
                         </tr>
                         <tr th:if="${profileAthlete.height != null}">
@@ -113,7 +113,7 @@
                     <!-- NONE: No relationship -->
                     <div th:if="${relationshipStatus == 'NONE'}">
                         <i class="bi bi-person-x display-4 text-secondary"></i>
-                        <p class="text-muted mt-2 mb-3">Vous n'Ãªtes pas encore amis.</p>
+                        <p class="text-muted mt-2 mb-3">Vous n'êtes pas encore amis.</p>
                         <div class="d-flex justify-content-center gap-2">
                             <form th:action="@{/friends/send}" method="post">
                                 <input type="hidden" name="recipientId" th:value="${profileAthlete.id}"/>
@@ -133,8 +133,8 @@
                     <!-- REQUEST_SENT: Current user sent a pending request -->
                     <div th:if="${relationshipStatus == 'REQUEST_SENT'}">
                         <i class="bi bi-hourglass-split display-4 text-warning"></i>
-                        <p class="text-warning mt-2 mb-1 fw-semibold">Demande envoyÃ©e</p>
-                        <p class="text-muted small mb-3">Votre demande d'ami est en attente de rÃ©ponse.</p>
+                        <p class="text-warning mt-2 mb-1 fw-semibold">Demande envoyée</p>
+                        <p class="text-muted small mb-3">Votre demande d'ami est en attente de réponse.</p>
                         <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
                             <button type="submit" class="btn btn-outline-danger btn-sm"
                                     onclick="return confirm('Bloquer cet utilisateur ?')">
@@ -146,8 +146,8 @@
                     <!-- REQUEST_RECEIVED: Current user received a pending request -->
                     <div th:if="${relationshipStatus == 'REQUEST_RECEIVED'}">
                         <i class="bi bi-inbox display-4 text-info"></i>
-                        <p class="text-info mt-2 mb-1 fw-semibold">Demande reÃ§ue</p>
-                        <p class="text-muted small mb-3">Cet utilisateur souhaite Ãªtre votre ami.</p>
+                        <p class="text-info mt-2 mb-1 fw-semibold">Demande reçue</p>
+                        <p class="text-muted small mb-3">Cet utilisateur souhaite être votre ami.</p>
                         <div class="d-flex justify-content-center gap-2" th:if="${friendship != null}">
                             <form th:action="@{/friends/accept/{id}(id=${friendship.id})}" method="post">
                                 <button type="submit" class="btn btn-primary btn-sm">
@@ -165,7 +165,7 @@
                     <!-- FRIENDS: Already friends -->
                     <div th:if="${relationshipStatus == 'FRIENDS'}">
                         <i class="bi bi-heart-fill display-4 text-success"></i>
-                        <p class="text-success mt-2 mb-3 fw-semibold">Vous Ãªtes amis âœ…</p>
+                        <p class="text-success mt-2 mb-3 fw-semibold">Vous êtes amis ✅</p>
                         <div class="d-flex justify-content-center gap-2">
                             <a th:href="@{/messages(friendId=${profileAthlete.id})}" class="btn btn-primary">
                                 <i class="bi bi-chat-dots"></i> Envoyer un message
@@ -176,7 +176,7 @@
                             </button>
                             <form th:action="@{/friends/block/{id}(id=${profileAthlete.id})}" method="post">
                                 <button type="submit" class="btn btn-outline-danger btn-sm"
-                                        onclick="return confirm('Bloquer cet utilisateur ? Cela supprimera votre amitiÃ©.')">
+                                        onclick="return confirm('Bloquer cet utilisateur ? Cela supprimera votre amitié.')">
                                     <i class="bi bi-slash-circle"></i> Bloquer
                                 </button>
                             </form>
@@ -186,7 +186,7 @@
                     <!-- REJECTED: Request was rejected -->
                     <div th:if="${relationshipStatus == 'REJECTED'}">
                         <i class="bi bi-x-circle display-4 text-secondary"></i>
-                        <p class="text-secondary mt-2 mb-3 fw-semibold">Demande refusÃ©e</p>
+                        <p class="text-secondary mt-2 mb-3 fw-semibold">Demande refusée</p>
                         <div class="d-flex justify-content-center gap-2">
                             <form th:action="@{/friends/send}" method="post">
                                 <input type="hidden" name="recipientId" th:value="${profileAthlete.id}"/>
@@ -206,12 +206,12 @@
                     <!-- BLOCKED_BY_ME: Current user blocked the target -->
                     <div th:if="${relationshipStatus == 'BLOCKED_BY_ME'}">
                         <i class="bi bi-slash-circle-fill display-4 text-danger"></i>
-                        <p class="text-danger mt-2 mb-1 fw-semibold">Utilisateur bloquÃ©</p>
-                        <p class="text-muted small mb-3">Vous avez bloquÃ© cet utilisateur. Il ne peut pas vous envoyer de demande d'ami.</p>
+                        <p class="text-danger mt-2 mb-1 fw-semibold">Utilisateur bloqué</p>
+                        <p class="text-muted small mb-3">Vous avez bloqué cet utilisateur. Il ne peut pas vous envoyer de demande d'ami.</p>
                         <form th:action="@{/friends/unblock/{id}(id=${profileAthlete.id})}" method="post">
                             <button type="submit" class="btn btn-outline-success btn-sm"
-                                    onclick="return confirm('DÃ©bloquer cet utilisateur ?')">
-                                <i class="bi bi-unlock"></i> DÃ©bloquer
+                                    onclick="return confirm('Débloquer cet utilisateur ?')">
+                                <i class="bi bi-unlock"></i> Débloquer
                             </button>
                         </form>
                     </div>
@@ -227,7 +227,7 @@
                     <div th:if="${relationshipStatus == 'MUTUALLY_BLOCKED'}">
                         <i class="bi bi-shield-fill-exclamation display-4 text-danger"></i>
                         <p class="text-danger mt-2 mb-1 fw-semibold">Bloquage mutuel</p>
-                        <p class="text-muted small mb-0">Vous et cet utilisateur vous Ãªtes mutuellement bloquÃ©s.</p>
+                        <p class="text-muted small mb-0">Vous et cet utilisateur vous êtes mutuellement bloqués.</p>
                     </div>
 
                 </div>
@@ -237,15 +237,15 @@
             <div class="card shadow-sm mt-4" th:if="${relationshipStatus == 'FRIENDS' or relationshipStatus == 'SELF'}">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
-                        <h5 class="mb-0"><i class="bi bi-activity me-1"></i> ActivitÃ©s</h5>
-                        <small class="text-muted" th:text="${relationshipStatus == 'SELF' ? 'Vos derniÃ¨res activitÃ©s' : 'Les derniÃ¨res activitÃ©s de cet ami'}">ActivitÃ©s</small>
+                        <h5 class="mb-0"><i class="bi bi-activity me-1"></i> Activités</h5>
+                        <small class="text-muted" th:text="${relationshipStatus == 'SELF' ? 'Vos dernières activités' : 'Les dernières activités de cet ami'}">Activités</small>
                     </div>
                     <span class="badge rounded-pill text-bg-primary" th:text="${#lists.size(activities)}">0</span>
                 </div>
                 <div class="card-body">
                     <div th:if="${#lists.isEmpty(activities)}" class="text-center py-4 text-muted">
                         <i class="bi bi-inbox display-5"></i>
-                        <p class="mb-0 mt-2">Aucune activitÃ© Ã  afficher.</p>
+                        <p class="mb-0 mt-2">Aucune activité à afficher.</p>
                     </div>
 
                     <div th:if="${!#lists.isEmpty(activities)}" class="row g-3">
@@ -267,7 +267,7 @@
                                     <p class="card-text mb-3" th:if="${activity.description != null}" th:text="${activity.description}"></p>
                                     
                                     <div class="d-flex flex-wrap gap-4 mb-3 small">
-                                        <div><i class="bi bi-stopwatch text-secondary"></i> <strong>DurÃ©e:</strong> <span th:text="${activity.duration} + ' h'"></span></div>
+                                        <div><i class="bi bi-stopwatch text-secondary"></i> <strong>Durée:</strong> <span th:text="${activity.duration} + ' h'"></span></div>
                                         <div><i class="bi bi-lightning text-warning"></i> <strong>Calories:</strong> <span th:text="${#numbers.formatDecimal(activity.caloriesBurned, 1, 1)} + ' kcal'"></span></div>
                                     </div>
                                     
@@ -298,7 +298,7 @@
                                                 </div>
                                             </div>
                                             <div th:if="${#lists.isEmpty(activity.comments)}" class="text-muted small fst-italic mb-2">
-                                                Soyez le premier Ã  rÃ©agir !
+                                                Soyez le premier à réagir !
                                             </div>
                                             
                                             <!-- interaction form -->
@@ -357,7 +357,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                ÃŠtes-vous sÃ»r de vouloir supprimer
+                Êtes-vous sûr de vouloir supprimer
                 <strong th:text="${profileAthlete.username}"></strong> de vos amis ?
             </div>
             <div class="modal-footer">

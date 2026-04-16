@@ -2,7 +2,7 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-    <footer th:fragment="footer" class="bg-body-tertiary border-top mt-5 pt-4 pb-3">
+    <footer th:fragment="footer" class="bg-body-tertiary border-top mt-3 pt-3 pb-2">
         <style>
             .st-footer-title {
                 color: var(--bs-emphasis-color);
@@ -33,9 +33,9 @@
             }
         </style>
         <div class="container">
-            <div class="row g-4">
+            <div class="row g-3">
                 <div class="col-12 col-md-4">
-                    <h5 class="mb-3 st-footer-title">SportTrack</h5>
+                    <h5 class="mb-2 st-footer-title">SportTrack</h5>
                     <p class="st-footer-muted mb-2">
                         Suivez vos performances, gardez le cap sur vos objectifs et restez connecté a votre communaute sportive.
                     </p>
@@ -43,38 +43,38 @@
                 </div>
 
                 <div class="col-6 col-md-2">
-                    <h6 class="text-uppercase mb-3 st-footer-title">Decouvrir</h6>
+                    <h6 class="text-uppercase mb-2 st-footer-title">Decouvrir</h6>
                     <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/}">Accueil</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/dashboard}">Tableau de bord</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/challenges/list}">Challenges</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/}">Accueil</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/dashboard}">Tableau de bord</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/challenges/list}">Challenges</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3" sec:authorize="isAuthenticated() and hasRole('USER')">
-                    <h6 class="text-uppercase mb-3 st-footer-title">Mon espace</h6>
+                    <h6 class="text-uppercase mb-2 st-footer-title">Mon espace</h6>
                     <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/athlete/activities}">Mes activites</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/objectives}">Mes objectifs</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/friends}">Mes amis</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/messages}">Messagerie</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/athlete/activities}">Mes activites</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/objectives}">Mes objectifs</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/friends}">Mes amis</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/messages}">Messagerie</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3" sec:authorize="isAuthenticated() and hasRole('ADMIN')">
-                    <h6 class="text-uppercase mb-3 st-footer-title">Administration</h6>
+                    <h6 class="text-uppercase mb-2 st-footer-title">Administration</h6>
                     <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/admin}">Dashboard admin</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/admin/sports}">Sports</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/admin/activities}">Activites</a></li>
-                        <li class="mb-2"><a class="st-footer-link" th:href="@{/admin/badges}">Badges</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/admin}">Dashboard admin</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/admin/sports}">Sports</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/admin/activities}">Activites</a></li>
+                        <li class="mb-1"><a class="st-footer-link" th:href="@{/admin/badges}">Badges</a></li>
                     </ul>
                 </div>
             </div>
 
-            <hr class="st-footer-divider my-4">
+            <hr class="st-footer-divider my-3">
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 small">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-1 small">
                 <span class="st-footer-muted">© SportTrack 2026. Tous droits reserves.</span>
                 <div class="d-flex gap-3">
                     <a class="st-footer-link" th:href="@{/}">Support</a>

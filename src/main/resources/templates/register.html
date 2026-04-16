@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Inscription</title>
@@ -11,7 +11,7 @@
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header text-center bg-primary text-white">
-                    <h4>Inscription AthlÃ¨te</h4>
+                    <h4>Inscription Athlète</h4>
                 </div>
                 <div class="card-body">
                     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
@@ -35,7 +35,7 @@
                         <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
                     </form>
                     <div class="text-center mt-3">
-                        <a th:href="@{/login}">Vous avez dÃ©jÃ  un compte ? Se connecter</a>
+                        <a th:href="@{/login}">Vous avez déjà un compte ? Se connecter</a>
                     </div>
                 </div>
             </div>

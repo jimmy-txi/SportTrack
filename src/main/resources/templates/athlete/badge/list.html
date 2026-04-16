@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,7 @@
         <!-- Header -->
         <div class="mb-4">
             <h1><i class="bi bi-award"></i> Mes Badges</h1>
-            <p class="text-muted">Consultez les badges que vous avez obtenus et ceux encore Ã  dÃ©bloquer.</p>
+            <p class="text-muted">Consultez les badges que vous avez obtenus et ceux encore à débloquer.</p>
         </div>
 
         <!-- Earned Badges -->
@@ -38,11 +38,11 @@
         </div>
         <div th:if="${earned == null or earned.isEmpty()}" class="alert alert-light text-center mb-5">
             <i class="bi bi-emoji-neutral display-4"></i>
-            <p>Vous n'avez pas encore obtenu de badge. Continuez vos activitÃ©s !</p>
+            <p>Vous n'avez pas encore obtenu de badge. Continuez vos activités !</p>
         </div>
 
         <!-- Unearned Badges -->
-        <h4 class="mb-3"><i class="bi bi-lock text-secondary"></i> Badges Ã  dÃ©bloquer</h4>
+        <h4 class="mb-3"><i class="bi bi-lock text-secondary"></i> Badges à débloquer</h4>
         <div th:if="${unearned != null and !unearned.isEmpty()}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
             <div th:each="badge : ${unearned}" class="col">
                 <div class="card shadow-sm h-100 border-secondary opacity-75">
@@ -63,7 +63,7 @@
         </div>
         <div th:if="${unearned == null or unearned.isEmpty()}" class="alert alert-light text-center mb-5">
             <i class="bi bi-trophy display-4"></i>
-            <p>FÃ©licitations ! Vous avez obtenu tous les badges disponibles !</p>
+            <p>Félicitations ! Vous avez obtenu tous les badges disponibles !</p>
         </div>
     </div>
 

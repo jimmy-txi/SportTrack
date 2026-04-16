@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
 xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -18,7 +18,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
         </div>
         
         <div th:if="${#lists.isEmpty(challenges)}" class="alert alert-info text-center shadow-sm">
-            <i class="bi bi-info-circle me-2"></i> Vous n'avez pas encore de challenges. Cliquez sur "Nouveau Challenge" pour en crÃ©er un !
+            <i class="bi bi-info-circle me-2"></i> Vous n'avez pas encore de challenges. Cliquez sur "Nouveau Challenge" pour en créer un !
         </div>
         
         <div th:if="${!#lists.isEmpty(challenges)}" class="row row-cols-1 row-cols-md-2 g-4">
@@ -36,7 +36,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
                         <div class="mt-3">
                             <small class="text-dark fw-semibold">
                                 <i class="bi bi-bar-chart me-1"></i> Type du challenge : 
-                                <span class="text-muted" th:text="${challenge.metric.displayValue}">MÃ©trique</span>
+                                <span class="text-muted" th:text="${challenge.metric.displayValue}">Métrique</span>
                             </small>
                         </div>
                         
@@ -55,7 +55,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
                                 <small class="text-dark fw-semibold">
                                     <i class="bi bi-list-ol me-1"></i> Classement
                                 </small>
-                                <span class="badge text-bg-light border" th:text="${ranking != null ? ranking.size() : 0} + ' participant(s) classÃ©(s)'">0 participant(s) classÃ©(s)</span>
+                                <span class="badge text-bg-light border" th:text="${ranking != null ? ranking.size() : 0} + ' participant(s) classé(s)'">0 participant(s) classé(s)</span>
                             </div>
 
                             <div th:if="${ranking == null || #lists.isEmpty(ranking)}" class="alert alert-light border small text-muted mb-0">
@@ -76,7 +76,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
                             <span th:text="${challenge.participants.size()} + ' participant(s)'"></span>
                             <span th:if="${challenge.organizer != null}" class="ms-3 text-muted small">
                                 <i class="bi bi-person me-1"></i>
-                                <span th:text="|OrganisÃ© par ${challenge.organizer?.username}|">OrganisÃ© par ...</span>
+                                <span th:text="|Organisé par ${challenge.organizer?.username}|">Organisé par ...</span>
                             </span>
                         </small>
                     </div>
@@ -87,7 +87,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     
     <div class="text-center mt-5 mb-5">
         <a th:href="@{/}" class="btn btn-link text-decoration-none text-secondary">
-            <i class="bi bi-house"></i> Retour Ã  l'accueil
+            <i class="bi bi-house"></i> Retour à l'accueil
         </a>
     </div>
     

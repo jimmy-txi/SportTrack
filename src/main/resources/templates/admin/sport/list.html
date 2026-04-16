@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -26,11 +26,11 @@
 
         <!-- Success/Error Messages -->
         <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> Sport crÃ©Ã© avec succÃ¨s.
+            <i class="bi bi-check-circle"></i> Sport créé avec succès.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <div th:if="${param.updated}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> Sport mis Ã  jour avec succÃ¨s.
+            <i class="bi bi-check-circle"></i> Sport mis à jour avec succès.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -43,7 +43,7 @@
             <div class="card-body">
                 <div th:if="${sports.isEmpty()}" class="text-center text-muted py-5">
                     <i class="bi bi-inbox fs-1"></i>
-                    <p class="mt-3">Aucun sport disponible. <a th:href="@{/admin/sports/create}">CrÃ©er un sport</a></p>
+                    <p class="mt-3">Aucun sport disponible. <a th:href="@{/admin/sports/create}">Créer un sport</a></p>
                 </div>
 
                 <div th:if="${!sports.isEmpty()}" class="table-responsive">
@@ -75,8 +75,8 @@
                                     </a>
                                     <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#disableModal"
                                             th:if="${sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
-                                            onclick="setDisableData(this)" title="DÃ©sactiver">
-                                        <i class="bi bi-cross"></i> DÃ©sactiver
+                                            onclick="setDisableData(this)" title="Désactiver">
+                                        <i class="bi bi-cross"></i> Désactiver
                                     </button>
                                     <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#enableModal"
                                             th:if="${!sport.active}" th:data-id="${sport.id}" th:data-name="${sport.name}"
@@ -97,17 +97,17 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="disableModalLabel">Confirmer la dÃ©sactivation</h5>
+                    <h5 class="modal-title" id="disableModalLabel">Confirmer la désactivation</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    ÃŠtes-vous sÃ»r de vouloir dÃ©sactiver le sport <strong id="disableModalSportName"></strong> ?
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="disableModalSportName"></strong> ?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <form id="disableForm" method="post" class="d-inline">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-                        <button type="submit" class="btn btn-danger">DÃ©sactiver</button>
+                        <button type="submit" class="btn btn-danger">Désactiver</button>
                     </form>
                 </div>
             </div>
@@ -119,11 +119,11 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="enableModalLabel">Confirmer la dÃ©sactivation</h5>
+                    <h5 class="modal-title" id="enableModalLabel">Confirmer la désactivation</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    ÃŠtes-vous sÃ»r de vouloir dÃ©sactiver le sport <strong id="enableModalSportName"></strong> ?
+                    Êtes-vous sûr de vouloir désactiver le sport <strong id="enableModalSportName"></strong> ?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>

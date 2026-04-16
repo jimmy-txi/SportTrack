@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -57,7 +57,7 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body text-start">
-                                        ÃŠtes-vous sÃ»r de vouloir supprimer l'objectif : <br>
+                                        Êtes-vous sûr de vouloir supprimer l'objectif : <br>
                                         <strong th:text="${objective.name}"></strong> ?
                                     </div>
                                     <div class="modal-footer">
@@ -72,7 +72,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(objectives)}">
-                    <td colspan="3" class="text-center text-muted italic">Aucun objectif dÃ©fini.</td>
+                    <td colspan="3" class="text-center text-muted italic">Aucun objectif défini.</td>
                 </tr>
                 </tbody>
             </table>
@@ -80,7 +80,7 @@
         
         <div class="card-footer text-center py-3">
             <a th:href="@{/}" class="btn btn-link text-decoration-none text-secondary">
-                <i class="bi bi-arrow-left"></i> Retour Ã  l'accueil
+                <i class="bi bi-arrow-left"></i> Retour à l'accueil
             </a>
         </div>
     </div>

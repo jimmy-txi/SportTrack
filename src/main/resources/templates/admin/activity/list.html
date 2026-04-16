@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -52,11 +52,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Titre</th>
-                                <th>AthlÃ¨te</th>
+                                <th>Athlète</th>
                                 <th>Date</th>
-                                <th>DÃ©but</th>
+                                <th>Début</th>
                                 <th>Ville</th>
-                                <th>MÃ©tÃ©o</th>
+                                <th>Météo</th>
                                 <th>Duree (h)</th>
                                 <th>Calories depensees</th>
                                 <th>Distance (km)</th>
@@ -73,7 +73,7 @@
                                 <td th:text="${activity.createdByDisplayName}">Inconnu</td>
                                 <td th:text="${activity.dateA}">2026-01-01</td>
                                 <td th:text="${activity.startTime}">08:00</td>
-                                <td th:text="${activity.locationCity}">CompiÃ¨gne</td>
+                                <td th:text="${activity.locationCity}">Compiègne</td>
                                 <td>
                                     <div th:if="${activity.weatherReport != null}" class="d-flex align-items-center gap-2">
                                         <i th:class="'bi ' + ${activity.weatherReport.weatherIconClass} + ' fs-4'"></i>

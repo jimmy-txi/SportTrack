@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Connexion</title>
@@ -11,17 +11,17 @@
         <div class="col-md-5">
             <div class="card shadow">
                 <div class="card-header text-center bg-primary text-white">
-                    <h4>Connexion Ã  SportTrack</h4>
+                    <h4>Connexion à SportTrack</h4>
                 </div>
                 <div class="card-body">
                     <div th:if="${param.error}" class="alert alert-danger">
                         Email ou mot de passe invalide.
                     </div>
                     <div th:if="${param.logout}" class="alert alert-success">
-                        Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s.
+                        Vous avez été déconnecté avec succès.
                     </div>
                     <div th:if="${param.registered}" class="alert alert-success">
-                        Inscription rÃ©ussie ! Veuillez vous connecter.
+                        Inscription réussie ! Veuillez vous connecter.
                     </div>
                     <form th:action="@{/login}" method="post">
                         <div class="mb-3">

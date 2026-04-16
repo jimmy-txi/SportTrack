@@ -1,12 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des athlÃ¨tes</title>
+    <title>Liste des athlètes</title>
 
-    <!-- Bootswatch (Bootstrap + thÃ¨me) -->
+    <!-- Bootswatch (Bootstrap + thème) -->
     <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
@@ -19,8 +19,8 @@
     <main class="container py-5">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
             <div>
-                <h1 class="h3 mb-1">AthlÃ¨tes</h1>
-                <p class="text-body-secondary mb-0">Liste des sportifs enregistrÃ©s dans SportTrack.</p>
+                <h1 class="h3 mb-1">Athlètes</h1>
+                <p class="text-body-secondary mb-0">Liste des sportifs enregistrés dans SportTrack.</p>
             </div>
         </div>
 
@@ -41,7 +41,7 @@
                         <a th:if="${query != null and !#strings.isEmpty(query)}"
                            th:href="@{/athlete/list}"
                            class="btn btn-outline-secondary w-100">
-                            RÃ©initialiser
+                            Réinitialiser
                         </a>
                     </div>
                 </form>
@@ -69,13 +69,13 @@
                                         </span>
                                     </span>
                                     <span th:if="${athleteBadges[athlete.id] == null or athleteBadges[athlete.id].isEmpty()}"
-                                          class="text-muted small">â€”</span>
+                                          class="text-muted small">—</span>
                                 </td>
                             </tr>
 
                             <tr th:if="${#lists.isEmpty(athletes)}">
                                 <td colspan="3" class="text-center text-body-secondary py-4">
-                                    Aucun athlÃ¨te trouvÃ©.
+                                    Aucun athlète trouvé.
                                 </td>
                             </tr>
                         </tbody>

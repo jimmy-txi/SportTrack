@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrÃ©er un Badge</title>
+    <title>Créer un Badge</title>
     <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -39,11 +39,11 @@
         <!-- Header -->
         <div class="mb-4">
             <a th:href="@{/admin/badges}" class="btn btn-secondary btn-sm mb-3">
-                <i class="bi bi-arrow-left"></i> Retour Ã  la liste
+                <i class="bi bi-arrow-left"></i> Retour à la liste
             </a>
             <h1>
                 <i class="bi bi-award"></i>
-                <span th:if="${badge.id == null}">CrÃ©er un nouveau badge</span>
+                <span th:if="${badge.id == null}">Créer un nouveau badge</span>
                 <span th:if="${badge.id != null}">Modifier le badge</span>
             </h1>
         </div>
@@ -73,7 +73,7 @@
                                 </label>
                                 <input type="text" class="form-control" id="label" th:field="*{label}"
                                     placeholder="ex: Courreur 50km" required>
-                                <div class="form-text">Le nom affichÃ© du badge</div>
+                                <div class="form-text">Le nom affiché du badge</div>
                             </div>
 
                             <!-- Description -->
@@ -82,50 +82,50 @@
                                     <i class="bi bi-chat-left-text"></i> Description / Condition *
                                 </label>
                                 <textarea class="form-control" id="description" th:field="*{description}"
-                                    placeholder="ex: Cumulez 50 km de course Ã  pied" rows="3" required></textarea>
-                                <div class="form-text">Description affichÃ©e aux athlÃ¨tes (condition d'obtention)</div>
+                                    placeholder="ex: Cumulez 50 km de course à pied" rows="3" required></textarea>
+                                <div class="form-text">Description affichée aux athlètes (condition d'obtention)</div>
                             </div>
 
                             <!-- Sport -->
                             <div class="mb-3">
                                 <label for="sportId" class="form-label">
-                                    <i class="bi bi-trophy"></i> Sport associÃ© *
+                                    <i class="bi bi-trophy"></i> Sport associé *
                                 </label>
                                 <select class="form-select" id="sportId" th:field="*{sportId}" required>
-                                    <option value="">SÃ©lectionner un sport</option>
+                                    <option value="">Sélectionner un sport</option>
                                     <option th:each="sport : ${sports}" th:value="${sport.id}" th:text="${sport.name}">
                                     </option>
                                 </select>
-                                <div class="form-text">Le sport concernÃ© par ce badge</div>
+                                <div class="form-text">Le sport concerné par ce badge</div>
                             </div>
 
                             <!-- Metric -->
                             <div class="mb-3">
                                 <label for="metric" class="form-label">
-                                    <i class="bi bi-speedometer"></i> MÃ©trique *
+                                    <i class="bi bi-speedometer"></i> Métrique *
                                 </label>
                                 <select class="form-select" id="metric" th:field="*{metric}" required>
-                                    <option value="">SÃ©lectionner une mÃ©trique</option>
+                                    <option value="">Sélectionner une métrique</option>
                                     <option th:each="m : ${metrics}" th:value="${m}" th:text="${m}"></option>
                                 </select>
-                                <div class="form-text">La valeur cumulative Ã  vÃ©rifier (distance, durÃ©e, rÃ©pÃ©titions...)
+                                <div class="form-text">La valeur cumulative à vérifier (distance, durée, répétitions...)
                                 </div>
                             </div>
 
                             <!-- Threshold -->
                             <div class="mb-3">
                                 <label for="threshold" class="form-label">
-                                    <i class="bi bi-bullseye"></i> Seuil cumulÃ© *
+                                    <i class="bi bi-bullseye"></i> Seuil cumulé *
                                 </label>
                                 <input type="number" class="form-control" id="threshold" th:field="*{threshold}"
                                     placeholder="ex: 50" min="0.1" step="0.1" required>
-                                <div class="form-text">La valeur totale cumulÃ©e Ã  atteindre (ex: 50 pour 50 km)</div>
+                                <div class="form-text">La valeur totale cumulée à atteindre (ex: 50 pour 50 km)</div>
                             </div>
 
                             <!-- Icon Selection -->
                             <div class="mb-4">
                                 <label class="form-label">
-                                    <i class="bi bi-icons"></i> IcÃ´ne du badge *
+                                    <i class="bi bi-icons"></i> Icône du badge *
                                 </label>
                                 <input type="hidden" id="iconHidden" th:field="*{icon}" />
                                 <div class="row g-2" id="iconGrid">
@@ -138,12 +138,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-text">Choisissez une icÃ´ne pour ce badge</div>
+                                <div class="form-text">Choisissez une icône pour ce badge</div>
                             </div>
 
                             <!-- Preview -->
                             <div class="mb-4">
-                                <label class="form-label text-muted">AperÃ§u du badge :</label>
+                                <label class="form-label text-muted">Aperçu du badge :</label>
                                 <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded">
                                     <i id="previewIcon" class="bi bi-award display-4" style="color: #e6a817;"></i>
                                     <div>
@@ -158,8 +158,8 @@
                             <div class="d-flex gap-2 mt-4">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-check"></i>
-                                    <span th:if="${badge.id == null}">CrÃ©er le badge</span>
-                                    <span th:if="${badge.id != null}">Mettre Ã  jour</span>
+                                    <span th:if="${badge.id == null}">Créer le badge</span>
+                                    <span th:if="${badge.id != null}">Mettre à jour</span>
                                 </button>
                                 <a th:href="@{/admin/badges}" class="btn btn-secondary">
                                     <i class="bi bi-x"></i> Annuler
@@ -209,7 +209,7 @@
                         if (!iconVal) {
                             event.preventDefault();
                             event.stopPropagation();
-                            alert('Veuillez sÃ©lectionner une icÃ´ne pour le badge.');
+                            alert('Veuillez sélectionner une icône pour le badge.');
                             return;
                         }
                         if (!form.checkValidity()) {
