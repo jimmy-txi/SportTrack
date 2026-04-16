@@ -18,20 +18,41 @@ import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.service.event.BadgeService;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Spring MVC controller for athlete badge views.
+ *
+ * <p>Provides endpoints for viewing the current athlete's earned and unearned badges,
+ * as well as viewing badges of other athletes.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/badges")
 public class BadgeController {
 
+    /** Service for badge queries. */
     private final BadgeService badgeService;
+
+    /** Repository for athlete lookups. */
     private final AthleteRepository athleteRepository;
 
+    /**
+     * Constructs a {@code BadgeController} with the required dependencies.
+     *
+     * @param badgeService       the badge service
+     * @param athleteRepository  the athlete repository
+     */
     public BadgeController(BadgeService badgeService, AthleteRepository athleteRepository) {
         this.badgeService = badgeService;
         this.athleteRepository = athleteRepository;
     }
 
     /**
-     * Show all badges for the authenticated athlete (earned + unearned).
+     * Displays all badges for the authenticated athlete, split into earned and unearned.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "athlete/badge/list", or a redirect to login
      */
     @GetMapping
     public String listMyBadges(HttpSession session, Model model) {
@@ -49,7 +70,12 @@ public class BadgeController {
     }
 
     /**
-     * Show badges for a specific athlete (visible when viewing another user's profile).
+     * Displays the earned badges of a specific athlete.
+     *
+     * @param id      the identifier of the target athlete
+     * @param session the HTTP session for current user resolution
+     * @param model   the Spring MVC model
+     * @return the view name "athlete/badge/list", or a redirect on failure
      */
     @GetMapping("/athlete/{id}")
     public String listAthleteBadges(@PathVariable int id, HttpSession session, Model model) {
@@ -69,6 +95,12 @@ public class BadgeController {
         return "athlete/badge/list";
     }
 
+    /**
+     * Resolves the currently authenticated athlete from the session or security context.
+     *
+     * @param session the HTTP session
+     * @return the authenticated athlete, or {@code null} if not available
+     */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
         Athlete athlete = (Athlete) session.getAttribute("athlete");
         if (athlete != null) {

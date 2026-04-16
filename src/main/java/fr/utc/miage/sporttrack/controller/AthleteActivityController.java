@@ -20,20 +20,53 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+/**
+ * Spring MVC controller for athlete activity management.
+ *
+ * <p>Provides endpoints for listing, creating, editing, and deleting
+ * the authenticated athlete's own activities, including automatic weather
+ * report fetching and badge award checks.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/athlete/activities")
 public class AthleteActivityController {
 
+    /** Redirect constant for the login page. */
     private static final String REDIRECT_LOGIN = "redirect:/login";
+
+    /** Redirect constant for the athlete activities list. */
     private static final String REDIRECT_ATHLETE_ACTIVITIES = "redirect:/athlete/activities";
 
+    /** Service for activity CRUD operations. */
     private final ActivityService activityService;
+
+    /** Service for sport lookups. */
     private final SportService sportService;
+
+    /** Service for weather report retrieval. */
     private final WeatherReportService weatherReportService;
+
+    /** Service for athlete authentication resolution. */
     private final AthleteService athleteService;
+
+    /** Service for badge award checks. */
     private final BadgeService badgeService;
+
+    /** Service for comment retrieval on activities. */
     private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
+    /**
+     * Constructs an {@code AthleteActivityController} with the required services.
+     *
+     * @param activityService    the activity service
+     * @param sportService       the sport service
+     * @param weatherReportService the weather report service
+     * @param athleteService     the athlete service
+     * @param badgeService       the badge service
+     * @param commentService     the comment service
+     */
     public AthleteActivityController(ActivityService activityService,
                                      SportService sportService,
                                      WeatherReportService weatherReportService,
@@ -48,6 +81,13 @@ public class AthleteActivityController {
         this.commentService = commentService;
     }
 
+    /**
+     * Lists all activities of the authenticated athlete with weather and comment data.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "athlete/activity/list", or a redirect to login
+     */
     @GetMapping
     public String listMyActivities(Model model, Authentication auth) {
         Athlete athlete = getCurrentAthlete(auth);
@@ -70,6 +110,13 @@ public class AthleteActivityController {
         return "athlete/activity/list";
     }
 
+    /**
+     * Displays the form for creating a new activity.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "athlete/activity/create", or a redirect to login
+     */
     @GetMapping("/create")
     public String showCreateForm(Model model, Authentication auth) {
         Athlete athlete = getCurrentAthlete(auth);
@@ -83,6 +130,15 @@ public class AthleteActivityController {
         return "athlete/activity/create";
     }
 
+    /**
+     * Displays the form for editing an existing activity owned by the current athlete.
+     *
+     * @param id                  the activity identifier
+     * @param model               the Spring MVC model
+     * @param redirectAttributes  flash attributes for error messaging
+     * @param auth                the current security authentication
+     * @return the view name "athlete/activity/create", or a redirect on failure
+     */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable int id, Model model, RedirectAttributes redirectAttributes, Authentication auth) {
         Athlete athlete = getCurrentAthlete(auth);
@@ -103,6 +159,15 @@ public class AthleteActivityController {
         return "athlete/activity/create";
     }
 
+    /**
+     * Creates or updates an activity from the submitted form data.
+     * After saving, triggers weather report refresh and badge award checks.
+     *
+     * @param activity           the form DTO containing the activity data
+     * @param redirectAttributes flash attributes for success/error messaging
+     * @param auth               the current security authentication
+     * @return a redirect to the activity list, create, or edit page
+     */
     @PostMapping("/save")
     public String saveActivity(@ModelAttribute("activity") ActivityFormDTO activity,
                                RedirectAttributes redirectAttributes,
@@ -166,6 +231,14 @@ public class AthleteActivityController {
         }
     }
 
+    /**
+     * Deletes an activity owned by the authenticated athlete.
+     *
+     * @param id                  the activity identifier to delete
+     * @param redirectAttributes  flash attributes for success/error messaging
+     * @param auth                the current security authentication
+     * @return a redirect to the activity list
+     */
     @PostMapping("/delete/{id}")
     public String deleteActivity(@PathVariable int id, RedirectAttributes redirectAttributes, Authentication auth) {
         Athlete athlete = getCurrentAthlete(auth);
@@ -182,10 +255,22 @@ public class AthleteActivityController {
         return REDIRECT_ATHLETE_ACTIVITIES;
     }
 
+    /**
+     * Determines whether the given DTO represents a new (unsaved) activity.
+     *
+     * @param activity the form DTO to check
+     * @return {@code true} if the activity has no identifier
+     */
     private boolean isNewActivity(ActivityFormDTO activity) {
         return activity.getId() == null || activity.getId() == 0;
     }
 
+    /**
+     * Converts an {@link Activity} entity to an {@link ActivityFormDTO} for form binding.
+     *
+     * @param activity the entity to convert
+     * @return the populated DTO
+     */
     private ActivityFormDTO toFormDTO(Activity activity) {
         ActivityFormDTO dto = new ActivityFormDTO();
         dto.setId(activity.getId());
@@ -201,6 +286,12 @@ public class AthleteActivityController {
         return dto;
     }
 
+    /**
+     * Resolves the currently authenticated athlete from the security context.
+     *
+     * @param auth the current security authentication
+     * @return the authenticated athlete, or {@code null} if not available
+     */
     private Athlete getCurrentAthlete(Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
             return null;

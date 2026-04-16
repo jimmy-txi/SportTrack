@@ -31,23 +31,53 @@ import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * Controller for friendship-related pages and actions.
- * <p>
- * Manages friend listing, sending/accepting/rejecting friend requests,
- * removing friends, blocking/unblocking users, and viewing friend profiles.
+ * Spring MVC controller for friendship-related pages and actions.
+ *
+ * <p>Manages friend listing, sending/accepting/rejecting friend requests,
+ * removing friends, blocking/unblocking users, and viewing friend profiles
+ * with their activities.</p>
+ *
+ * @author SportTrack Team
  */
 @Controller
 public class FriendshipController {
 
+    /** Service for friendship operations. */
     private final FriendshipService friendshipService;
+
+    /** Repository for direct friendship queries. */
     private final FriendshipRepository friendshipRepository;
+
+    /** Repository for athlete lookups. */
     private final AthleteRepository athleteRepository;
+
+    /** Service for athlete authentication resolution. */
     private final AthleteService athleteService;
+
+    /** Service for activity queries. */
     private final ActivityService activityService;
+
+    /** Service for weather report retrieval. */
     private final WeatherReportService weatherReportService;
+
+    /** Service for badge lookups. */
     private final BadgeService badgeService;
+
+    /** Service for comment retrieval on activities. */
     private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
+    /**
+     * Constructs a {@code FriendshipController} with the required dependencies.
+     *
+     * @param friendshipService  the friendship service
+     * @param friendshipRepository the friendship repository
+     * @param athleteRepository  the athlete repository
+     * @param athleteService     the athlete service
+     * @param activityService    the activity service
+     * @param weatherReportService the weather report service
+     * @param badgeService       the badge service
+     * @param commentService     the comment service
+     */
     public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService, fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
@@ -312,6 +342,14 @@ public class FriendshipController {
         return athlete;
     }
 
+    /**
+     * Loads activities visible to the current user based on relationship status.
+     * Only friends and the user themselves can see activities.
+     *
+     * @param target             the athlete whose activities are being loaded
+     * @param relationshipStatus the current relationship between the viewer and the target
+     * @return a list of visible activities, or an empty list if not permitted
+     */
     private List<Activity> loadVisibleActivities(Athlete target, RelationshipStatusDTO relationshipStatus) {
         if (relationshipStatus != RelationshipStatusDTO.FRIENDS
                 && relationshipStatus != RelationshipStatusDTO.SELF) {
@@ -321,6 +359,12 @@ public class FriendshipController {
         return loadActivitiesForAthletes(List.of(target.getId()));
     }
 
+    /**
+     * Loads activities for the specified athlete identifiers, enriched with weather and comment data.
+     *
+     * @param athleteIds the list of athlete identifiers whose activities should be loaded
+     * @return a list of enriched activities
+     */
     private List<Activity> loadActivitiesForAthletes(List<Integer> athleteIds) {
         List<Activity> activities = activityService.findAllByAthleteIds(athleteIds);
         activities.forEach(activity -> {

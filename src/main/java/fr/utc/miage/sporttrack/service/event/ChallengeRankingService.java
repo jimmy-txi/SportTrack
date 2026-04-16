@@ -17,17 +17,43 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.event.ChallengeRepository;
 
+/**
+ * Service layer component responsible for computing and persisting
+ * {@link ChallengeRanking} entries for {@link Challenge} entities.
+ *
+ * <p>Rankings are recalculated whenever an activity is created, updated, or deleted
+ * that impacts an active challenge. Scores are computed based on the challenge's
+ * chosen {@link fr.utc.miage.sporttrack.entity.enumeration.Metric}.</p>
+ *
+ * @author SportTrack Team
+ */
 @Service
 public class ChallengeRankingService {
 
+    /** The repository for challenge data access. */
     private final ChallengeRepository challengeRepository;
+
+    /** The repository for activity data access. */
     private final ActivityRepository activityRepository;
 
+    /**
+     * Constructs a new {@code ChallengeRankingService} with the required repositories.
+     *
+     * @param challengeRepository the challenge repository
+     * @param activityRepository  the activity repository
+     */
     public ChallengeRankingService(ChallengeRepository challengeRepository, ActivityRepository activityRepository) {
         this.challengeRepository = challengeRepository;
         this.activityRepository = activityRepository;
     }
 
+    /**
+     * Recomputes rankings for all challenges impacted by a new or modified activity.
+     *
+     * @param athleteId    the identifier of the athlete whose activity changed
+     * @param sportId      the identifier of the sport associated with the activity
+     * @param activityDate the date of the activity
+     */
     @Transactional
     public void recomputeRankingsForActivity(Integer athleteId, Integer sportId, LocalDate activityDate) {
         if (athleteId == null || sportId == null || activityDate == null) {
@@ -40,6 +66,11 @@ public class ChallengeRankingService {
         }
     }
 
+    /**
+     * Recomputes the ranking for a single challenge identified by its identifier.
+     *
+     * @param challengeId the unique identifier of the challenge
+     */
     @Transactional
     public void recomputeRankingByChallengeId(Integer challengeId) {
         if (challengeId == null) {
@@ -48,6 +79,11 @@ public class ChallengeRankingService {
         challengeRepository.findById(challengeId).ifPresent(this::recomputeRanking);
     }
 
+    /**
+     * Recomputes and persists the full ranking for the given challenge.
+     *
+     * @param challenge the challenge whose rankings should be recomputed
+     */
     public void recomputeRanking(Challenge challenge) {
         if (challenge == null || challenge.getId() <= 0) {
             return;
@@ -58,6 +94,13 @@ public class ChallengeRankingService {
         challengeRepository.save(challenge);
     }
 
+    /**
+     * Builds a sorted list of ranking entries for the given challenge
+     * by aggregating participant activity data.
+     *
+     * @param challenge the challenge for which to build rankings
+     * @return a sorted list of {@link ChallengeRanking} entries
+     */
     private List<ChallengeRanking> buildRanking(Challenge challenge) {
         if (challenge.getParticipants() == null || challenge.getParticipants().isEmpty()) {
             return List.of();
@@ -108,6 +151,15 @@ public class ChallengeRankingService {
         return rankingEntries;
     }
 
+    /**
+     * Computes a participant's score for a challenge based on the specified metric
+     * and the given list of activities.
+     *
+     * @param metric        the metric to use for scoring
+     * @param participantId the identifier of the participant
+     * @param activities    the list of challenge-relevant activities
+     * @return the computed score as a double
+     */
     private double computeScoreByMetric(Metric metric, Integer participantId, List<Activity> activities) {
         List<Activity> participantActivities = activities.stream()
                 .filter(activity -> activity.getCreatedBy() != null && participantId.equals(activity.getCreatedBy().getId()))

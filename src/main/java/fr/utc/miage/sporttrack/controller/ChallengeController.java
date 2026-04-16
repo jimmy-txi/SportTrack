@@ -26,19 +26,41 @@ import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Spring MVC controller for challenge management and participation.
+ *
+ * <p>Provides endpoints for creating, listing, and joining challenges,
+ * as well as viewing all available challenges.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 public class ChallengeController {
-    
+
+    /** Repository for sport lookups. */
     private final SportRepository sportRepository;
-    
+
+    /** Repository for athlete authentication resolution. */
     private final AthleteRepository athleteRepository;
-    
+
+    /** Repository for challenge persistence. */
     private final ChallengeRepository challengeRepository;
 
+    /** Service for sport lookups. */
     private final SportService sportService;
 
+    /** Service for challenge ranking recomputation. */
     private final ChallengeRankingService challengeRankingService;
-    
+
+    /**
+     * Constructs a {@code ChallengeController} with the required dependencies.
+     *
+     * @param sportRepository          the sport repository
+     * @param athleteRepository        the athlete repository
+     * @param challengeRepository      the challenge repository
+     * @param sportService             the sport service
+     * @param challengeRankingService  the challenge ranking service
+     */
     public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository, SportService sportService, ChallengeRankingService challengeRankingService) {
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;
@@ -47,6 +69,13 @@ public class ChallengeController {
         this.challengeRankingService = challengeRankingService;
     }
     
+    /**
+     * Displays the form for creating a new challenge.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenge_form", or a redirect to login
+     */
     @GetMapping("/challenges/new")
     public String showCreateChallengeForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
@@ -60,6 +89,15 @@ public class ChallengeController {
         return "challenge/challenge_form";
     }
     
+    /**
+     * Creates a new challenge from the submitted form data and initialises its ranking.
+     *
+     * @param challengeDto the form DTO containing challenge data
+     * @param sportId      the identifier of the selected sport
+     * @param session      the HTTP session for athlete resolution
+     * @param model        the Spring MVC model for error rendering
+     * @return a redirect to the challenge list, or the form view on error
+     */
     @PostMapping("/challenges")
     public String createChallenge(
         @ModelAttribute ChallengeFormDTO challengeDto,
@@ -113,6 +151,13 @@ public class ChallengeController {
         }
         
         
+    /**
+     * Lists all challenges organised by or participated in by the authenticated athlete.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenge_list", or a redirect to login
+     */
         @GetMapping("/challenges")
         public String listChallenges(HttpSession session, Model model) {
             Athlete athlete = getAuthenticatedAthlete(session);
@@ -125,6 +170,12 @@ public class ChallengeController {
             return "challenge/challenge_list";
         }
         
+    /**
+     * Resolves the currently authenticated athlete from the session or security context.
+     *
+     * @param session the HTTP session
+     * @return the authenticated athlete, or {@code null} if not available
+     */
         private Athlete getAuthenticatedAthlete(HttpSession session) {
             Athlete athlete = (Athlete) session.getAttribute("athlete");
             if (athlete != null) {
@@ -145,6 +196,13 @@ public class ChallengeController {
             return athlete;
         }
 
+    /**
+     * Adds the authenticated athlete as a participant to the specified challenge.
+     *
+    * @param id      the challenge identifier
+     * @param session the HTTP session for athlete resolution
+     * @return a redirect to the challenge list
+     */
         @GetMapping("/challenges/participate")
         public String participateInChallenge(@RequestParam int id, HttpSession session) {
             Athlete athlete = getAuthenticatedAthlete(session);
@@ -164,6 +222,13 @@ public class ChallengeController {
             return "redirect:/challenges";
         }
 
+    /**
+     * Lists all challenges in the system, available for browsing and participation.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenges", or a redirect to login
+     */
         @GetMapping("/challenges/list")
         public String listAllChallenges(HttpSession session, Model model) {
             Athlete athlete = getAuthenticatedAthlete(session);
