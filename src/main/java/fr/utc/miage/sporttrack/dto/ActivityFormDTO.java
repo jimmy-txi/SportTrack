@@ -3,6 +3,8 @@ package fr.utc.miage.sporttrack.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import fr.utc.miage.sporttrack.util.TextNormalizer;
+
 /**
  * Data Transfer Object (DTO) used for activity creation and update form binding
  * within the SportTrack application.
@@ -14,7 +16,7 @@ import java.time.LocalTime;
  *
  * @author SportTrack Team
  */
-public class ActivityFormDTO {
+public class ActivityFormDTO extends AbstractIdFormDTO {
 
     /** The unique identifier of the activity; {@code null} for a new activity, positive for an update. */
     private Integer id;
@@ -97,7 +99,7 @@ public class ActivityFormDTO {
      * @param title the title to assign
      */
     public void setTitle(String title) {
-        this.title = title;
+        this.title = TextNormalizer.trimNullable(title);
     }
 
     /**
@@ -115,7 +117,7 @@ public class ActivityFormDTO {
      * @param description the description to assign
      */
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     /**
@@ -205,7 +207,7 @@ public class ActivityFormDTO {
      * @param locationCity the location city name to assign
      */
     public void setLocationCity(String locationCity) {
-        this.locationCity = locationCity;
+        this.locationCity = TextNormalizer.trimNullable(locationCity);
     }
 
     /**

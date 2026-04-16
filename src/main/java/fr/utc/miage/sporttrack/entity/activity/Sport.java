@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.entity.activity;
 
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,7 +43,9 @@ public class Sport {
     /**
      * No-argument constructor required by JPA.
      */
-    public Sport() {}
+    public Sport() {
+        // Required by JPA
+    }
 
     /**
      * Sets the unique identifier of this sport.
@@ -59,7 +62,7 @@ public class Sport {
      * @param name the sport name to assign
      */
     public void setName(String name) {
-        this.name = name;
+        this.name = TextNormalizer.trimNullable(name);
     }
 
     /**
@@ -68,7 +71,7 @@ public class Sport {
      * @param description the description to assign
      */
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     /**

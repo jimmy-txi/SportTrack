@@ -1,5 +1,7 @@
 package fr.utc.miage.sporttrack.dto;
 
+import fr.utc.miage.sporttrack.util.TextNormalizer;
+
 /**
  * Data Transfer Object (DTO) representing weather (meteorological) data
  * retrieved from an external weather API within the SportTrack application.
@@ -45,7 +47,7 @@ public class MeteoDTO {
      * @param city the city name to assign
      */
     public void setCity(String city) {
-        this.city = city;
+        this.city = TextNormalizer.trimNullable(city);
     }
 
     /**
@@ -63,7 +65,7 @@ public class MeteoDTO {
      * @param country the country code or name to assign
      */
     public void setCountry(String country) {
-        this.country = country;
+        this.country = TextNormalizer.trimNullable(country);
     }
 
     /**
@@ -135,6 +137,6 @@ public class MeteoDTO {
      * @param message the result message to assign
      */
     public void setMessage(String message) {
-        this.message = message;
+        this.message = TextNormalizer.trimNullable(message);
     }
 }

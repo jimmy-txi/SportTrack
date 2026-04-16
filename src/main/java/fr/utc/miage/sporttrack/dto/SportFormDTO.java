@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.dto;
 
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 /**
  * Data Transfer Object (DTO) used for sport creation and update form binding
@@ -13,7 +14,7 @@ import fr.utc.miage.sporttrack.entity.enumeration.SportType;
  *
  * @author SportTrack Team
  */
-public class SportFormDTO {
+public class SportFormDTO extends AbstractIdFormDTO {
 
     /** The unique identifier of the sport; {@code 0} for creation, positive for update. */
     private int id;
@@ -80,21 +81,12 @@ public class SportFormDTO {
     // --- Setters ---
 
     /**
-     * Sets the unique identifier of the sport.
-     *
-     * @param id the sport identifier to assign; {@code 0} for creation
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    /**
      * Sets the display name of the sport.
      *
      * @param name the sport name to assign
      */
     public void setName(String name) {
-        this.name = name;
+        this.name = TextNormalizer.trimNullable(name);
     }
 
     /**
@@ -103,7 +95,7 @@ public class SportFormDTO {
      * @param description the description to assign
      */
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     /**

@@ -1,5 +1,13 @@
 package fr.utc.miage.sporttrack.entity.activity;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.utc.miage.sporttrack.entity.enumeration.SportType;
+import fr.utc.miage.sporttrack.entity.user.communication.Comment;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +34,8 @@ import java.time.LocalTime;
  */
 @Entity
 public class Activity {
+
+    private static final String UNKNOWN_LABEL = "Inconnu";
 
     /** The unique database-generated identifier for this activity. */
     @Id
@@ -76,7 +86,7 @@ public class Activity {
 
     /** Transient list of comments associated with this activity, populated at runtime. */
     @Transient
-    private java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> comments = new java.util.ArrayList<>();
+    private List<Comment> comments = new ArrayList<>();
 
     /**
      * No-argument constructor required by JPA.
@@ -136,7 +146,7 @@ public class Activity {
      * @param title the title to assign
      */
     public void setTitle(String title) {
-        this.title = title;
+        this.title = TextNormalizer.trimNullable(title);
     }
 
     /**
@@ -154,7 +164,7 @@ public class Activity {
      * @param description the textual description to assign
      */
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     /**
@@ -244,7 +254,7 @@ public class Activity {
      * @param locationCity the location city name to assign
      */
     public void setLocationCity(String locationCity) {
-        this.locationCity = locationCity;
+        this.locationCity = TextNormalizer.trimNullable(locationCity);
     }
 
     /**
@@ -273,11 +283,11 @@ public class Activity {
      */
     public String getCreatedByDisplayName() {
         if (createdBy == null) {
-            return "Inconnu";
+            return UNKNOWN_LABEL;
         }
 
-        String firstName = createdBy.getFirstName() != null ? createdBy.getFirstName().trim() : "";
-        String lastName = createdBy.getLastName() != null ? createdBy.getLastName().trim() : "";
+        String firstName = normalizeAthletePart(createdBy.getFirstName());
+        String lastName = normalizeAthletePart(createdBy.getLastName());
         String fullName = (firstName + " " + lastName).trim();
 
         if (!fullName.isEmpty()) {
@@ -288,7 +298,7 @@ public class Activity {
             return createdBy.getUsername();
         }
 
-        return createdBy.getEmail() != null ? createdBy.getEmail() : "Inconnu";
+        return createdBy.getEmail() != null ? createdBy.getEmail() : UNKNOWN_LABEL;
     }
 
     /**
@@ -307,7 +317,7 @@ public class Activity {
      */
     public void setSportAndType(Sport sport) {
         this.sportAndType = sport;
-        this.sportId = (sport != null ? sport.getId() : null);
+        this.sportId = sport != null ? sport.getId() : null;
     }
 
     /**
@@ -317,10 +327,7 @@ public class Activity {
      * @return the sport identifier, or {@code null} if no sport is associated
      */
     public Integer getSportId() {
-        if (sportId != null) {
-            return sportId;
-        }
-        return sportAndType != null ? sportAndType.getId() : null;
+        return sportId != null ? sportId : (sportAndType != null ? sportAndType.getId() : null);
     }
 
     /**
@@ -331,13 +338,7 @@ public class Activity {
      */
     public void setSportId(Integer sportId) {
         this.sportId = sportId;
-        if (sportId == null || sportId <= 0) {
-            this.sportAndType = null;
-            return;
-        }
-        Sport sport = new Sport();
-        sport.setId(sportId);
-        this.sportAndType = sport;
+        this.sportAndType = toSportReference(sportId);
     }
 
     /**
@@ -346,8 +347,7 @@ public class Activity {
      * @return {@code true} if the sport type is repetition-based, {@code false} otherwise
      */
     public boolean hasRepetitions() {
-        return sportAndType != null && sportAndType.getType() != null
-                && sportAndType.getType().name().equals("REPETITION");
+        return hasSportType(SportType.REPETITION);
     }
 
     /**
@@ -356,8 +356,7 @@ public class Activity {
      * @return {@code true} if the sport type is distance-based, {@code false} otherwise
      */
     public boolean hasDistance() {
-        return sportAndType != null && sportAndType.getType() != null
-                && sportAndType.getType().name().equals("DISTANCE");
+        return hasSportType(SportType.DISTANCE);
     }
 
     /**
@@ -392,21 +391,28 @@ public class Activity {
         return duration * sportAndType.getCaloriesPerHour();
     }
 
-    /**
-     * Returns the transient list of comments attached to this activity.
-     *
-     * @return the list of {@link fr.utc.miage.sporttrack.entity.user.communication.Comment}
-     */
-    public java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
-    /**
-     * Sets the transient list of comments attached to this activity.
-     *
-     * @param comments the list of comments to assign
-     */
-    public void setComments(java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> comments) {
+    public void setComments(List<Comment> comments) {
         this.comments = comments;
+    }
+
+    private boolean hasSportType(SportType expectedType) {
+        return sportAndType != null && sportAndType.getType() == expectedType;
+    }
+
+    private Sport toSportReference(Integer sportId) {
+        if (sportId == null || sportId <= 0) {
+            return null;
+        }
+        Sport sport = new Sport();
+        sport.setId(sportId);
+        return sport;
+    }
+
+    private String normalizeAthletePart(String value) {
+        return value != null ? value.trim() : "";
     }
 }

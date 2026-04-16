@@ -2,6 +2,7 @@ package fr.utc.miage.sporttrack.dto;
 
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 /**
  * Data Transfer Object (DTO) used for athlete profile update form binding
@@ -134,7 +135,7 @@ public class AthleteProfileUpdateDTO {
      * @param username the username to assign
      */
     public void setUsername(String username) {
-        this.username = username;
+        this.username = TextNormalizer.trimNullable(username);
     }
 
     /**
@@ -143,7 +144,7 @@ public class AthleteProfileUpdateDTO {
      * @param firstName the first name to assign
      */
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        this.firstName = TextNormalizer.trimNullable(firstName);
     }
 
     /**
@@ -152,7 +153,7 @@ public class AthleteProfileUpdateDTO {
      * @param lastName the last name to assign
      */
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        this.lastName = TextNormalizer.trimNullable(lastName);
     }
 
     /**
@@ -206,6 +207,6 @@ public class AthleteProfileUpdateDTO {
      * @param bio the biography text to assign
      */
     public void setBio(String bio) {
-        this.bio = bio;
+        this.bio = TextNormalizer.trimNullable(bio);
     }
 }

@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 /**
  * JPA entity representing an athlete user within the SportTrack application.
@@ -160,6 +161,6 @@ public class Athlete extends User implements Serializable {
      * @param bio the biography text to assign
      */
     public void setBio(String bio) {
-        this.bio = bio;
+        this.bio = TextNormalizer.trimNullable(bio);
     }
 }
