@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Modifier une Activité</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <title>Modifier une ActivitÃ©</title>
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
@@ -12,13 +12,13 @@
         <!-- Header -->
         <div class="mb-4">
             <a th:href="@{/admin}" class="btn btn-secondary btn-sm mb-3">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+                <i class="bi bi-arrow-left"></i> Retour Ã  la liste
             </a>
             <h1>
                 <i class="bi bi-pencil-square"></i>
-                Modifier l'activité
+                Modifier l'activitÃ©
             </h1>
-            <p class="text-muted mb-0">Création réservée aux athlètes.</p>
+            <p class="text-muted mb-0">CrÃ©ation rÃ©servÃ©e aux athlÃ¨tes.</p>
         </div>
 
         <!-- Error Messages -->
@@ -53,9 +53,9 @@
                                     class="form-control"
                                     id="title"
                                     th:field="*{title}"
-                                    placeholder="ex: Séance de fractionné"
+                                    placeholder="ex: SÃ©ance de fractionnÃ©"
                                     required>
-                                <div class="form-text">Nom court de l'activité</div>
+                                <div class="form-text">Nom court de l'activitÃ©</div>
                             </div>
 
                             <!-- Description -->
@@ -68,8 +68,8 @@
                                     id="description"
                                     th:field="*{description}"
                                     rows="3"
-                                    placeholder="Détails complémentaires sur l'activité"></textarea>
-                                <div class="form-text">Description optionnelle de l'activité</div>
+                                    placeholder="DÃ©tails complÃ©mentaires sur l'activitÃ©"></textarea>
+                                <div class="form-text">Description optionnelle de l'activitÃ©</div>
                             </div>
 
                             <!-- Sport -->
@@ -98,7 +98,7 @@
                             <!-- Activity Date -->
                             <div class="mb-3">
                                 <label for="dateA" class="form-label">
-                                    <i class="bi bi-calendar-event"></i> Date de l'activité *
+                                    <i class="bi bi-calendar-event"></i> Date de l'activitÃ© *
                                 </label>
                                 <input
                                     type="date"
@@ -107,13 +107,13 @@
                                     th:field="*{dateA}"
                                     max=""
                                     required>
-                                <div class="form-text">Date à laquelle l'activité a été réalisée</div>
+                                <div class="form-text">Date Ã  laquelle l'activitÃ© a Ã©tÃ© rÃ©alisÃ©e</div>
                             </div>
 
                             <!-- Start Time -->
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">
-                                    <i class="bi bi-clock"></i> Heure de début *
+                                    <i class="bi bi-clock"></i> Heure de dÃ©but *
                                 </label>
                                 <input
                                     type="time"
@@ -121,7 +121,7 @@
                                     id="startTime"
                                     th:field="*{startTime}"
                                     required>
-                                <div class="form-text">Heure précise du début de l'activité</div>
+                                <div class="form-text">Heure prÃ©cise du dÃ©but de l'activitÃ©</div>
                             </div>
 
                             <!-- Activity Location -->
@@ -134,16 +134,16 @@
                                     class="form-control"
                                     id="locationCity"
                                     th:field="*{locationCity}"
-                                    placeholder="ex: Compiègne"
+                                    placeholder="ex: CompiÃ¨gne"
                                     required>
-                                <div class="form-text">Lieu principal de la séance</div>
+                                <div class="form-text">Lieu principal de la sÃ©ance</div>
                                 <div id="cityValidation" class="form-text"></div>
                             </div>
 
                             <!-- Duration -->
                             <div class="mb-3" id="durationGroup">
                                 <label for="duration" class="form-label">
-                                    <i class="bi bi-stopwatch"></i> Durée (heures) *
+                                    <i class="bi bi-stopwatch"></i> DurÃ©e (heures) *
                                 </label>
                                 <input
                                     type="number"
@@ -154,13 +154,13 @@
                                     min="0.1"
                                     step="0.1"
                                     required>
-                                <div class="form-text">La durée est obligatoire pour toute activité</div>
+                                <div class="form-text">La durÃ©e est obligatoire pour toute activitÃ©</div>
                             </div>
 
                             <div class="mb-3" id="caloriesInfo">
                                 <div class="alert alert-info mb-0 py-2 px-3">
                                     <div><strong>Calories par heure :</strong> <span id="caloriesPerHourValue">-</span></div>
-                                    <div><strong>Calories brûlées estimées :</strong> <span id="caloriesBurnedValue">-</span></div>
+                                    <div><strong>Calories brÃ»lÃ©es estimÃ©es :</strong> <span id="caloriesBurnedValue">-</span></div>
                                 </div>
                             </div>
 
@@ -177,13 +177,13 @@
                                     placeholder="ex: 10"
                                     min="0.1"
                                     step="0.1">
-                                <div class="form-text">Renseigner si l'activité est mesurée en distance</div>
+                                <div class="form-text">Renseigner si l'activitÃ© est mesurÃ©e en distance</div>
                             </div>
 
                             <!-- Repetition -->
                             <div class="mb-3" id="repetitionGroup">
                                 <label for="repetition" class="form-label">
-                                    <i class="bi bi-arrow-repeat"></i> Répétitions
+                                    <i class="bi bi-arrow-repeat"></i> RÃ©pÃ©titions
                                 </label>
                                 <input
                                     type="number"
@@ -193,14 +193,14 @@
                                     placeholder="ex: 12"
                                     min="1"
                                     step="1">
-                                <div class="form-text">Renseigner si l'activité est mesurée en répétitions</div>
+                                <div class="form-text">Renseigner si l'activitÃ© est mesurÃ©e en rÃ©pÃ©titions</div>
                             </div>
 
                             <!-- Buttons -->
                             <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check"></i>
-                                Mettre à jour
+                                Mettre Ã  jour
                             </button>
                                 <a th:href="@{/admin}" class="btn btn-secondary">
                                     <i class="bi bi-x"></i> Annuler
@@ -213,7 +213,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
     <script>
         // Form validation
         (function() {

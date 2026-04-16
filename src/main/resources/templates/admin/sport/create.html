@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Créer un Sport</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <title>CrÃ©er un Sport</title>
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
@@ -12,11 +12,11 @@
         <!-- Header -->
         <div class="mb-4">
             <a th:href="@{/admin/sports}" class="btn btn-secondary btn-sm mb-3">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+                <i class="bi bi-arrow-left"></i> Retour Ã  la liste
             </a>
             <h1>
                 <i class="bi bi-plus-circle"></i>
-                <span th:if="${sport.id == null}">Créer un nouveau sport</span>
+                <span th:if="${sport.id == null}">CrÃ©er un nouveau sport</span>
                 <span th:if="${sport.id != null}">Modifier le sport</span>
             </h1>
         </div>
@@ -53,7 +53,7 @@
                                     class="form-control"
                                     id="name"
                                     th:field="*{name}"
-                                    placeholder="ex: Course à pied"
+                                    placeholder="ex: Course Ã  pied"
                                     required>
                                 <div class="form-text">Le nom du sport</div>
                             </div>
@@ -68,12 +68,12 @@
                                     id="type"
                                     th:field="*{type}"
                                     required>
-                                    <option value="">Sélectionner un type</option>
-                                    <option value="DURATION">Durée</option>
-                                    <option value="REPETITION">Répétition</option>
+                                    <option value="">SÃ©lectionner un type</option>
+                                    <option value="DURATION">DurÃ©e</option>
+                                    <option value="REPETITION">RÃ©pÃ©tition</option>
                                     <option value="DISTANCE">Distance</option>
                                 </select>
-                                <div class="form-text">Comment ce sport est mesuré</div>
+                                <div class="form-text">Comment ce sport est mesurÃ©</div>
                             </div>
 
                             <!-- Calories Per Hour -->
@@ -90,7 +90,7 @@
                                     min="1"
                                     step="0.1"
                                     required>
-                                <div class="form-text">Nombre moyen de calories brûlées par heure</div>
+                                <div class="form-text">Nombre moyen de calories brÃ»lÃ©es par heure</div>
                             </div>
 
                             <!-- Description -->
@@ -111,8 +111,8 @@
                             <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check"></i>
-                                <span th:if="${sport.id == 0}">Créer le sport</span>
-                                <span th:if="${sport.id != 0}">Mettre à jour</span>
+                                <span th:if="${sport.id == 0}">CrÃ©er le sport</span>
+                                <span th:if="${sport.id != 0}">Mettre Ã  jour</span>
                             </button>
                                 <a th:href="@{/admin/sports}" class="btn btn-secondary">
                                     <i class="bi bi-x"></i> Annuler
@@ -125,7 +125,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
     <script>
         // Form validation
         (function() {

@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Amis - SportTrack</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 
@@ -17,14 +17,14 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="mb-1"><i class="bi bi-people-fill me-2"></i>Gestion des amis</h2>
-                <p class="text-body-secondary mb-0">Gérez vos amis et vos demandes d'amitié.</p>
+                <p class="text-body-secondary mb-0">GÃ©rez vos amis et vos demandes d'amitiÃ©.</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a th:href="@{/messages}" class="btn btn-outline-success">
                     <i class="bi bi-chat-dots"></i> Messagerie
                 </a>
                 <a th:href="@{/friends/activities}" class="btn btn-outline-primary">
-                    <i class="bi bi-activity"></i> Activités des amis
+                    <i class="bi bi-activity"></i> ActivitÃ©s des amis
                 </a>
                 <a th:href="@{/}" class="btn btn-outline-secondary">
                     <i class="bi bi-house"></i> Accueil
@@ -56,14 +56,14 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#tab-requests"
                         type="button" role="tab" aria-controls="tab-requests" aria-selected="false">
-                    <i class="bi bi-inbox me-1"></i> Demandes reçues
+                    <i class="bi bi-inbox me-1"></i> Demandes reÃ§ues
                     <span class="badge bg-warning text-dark ms-1 tab-badge" th:text="${#lists.size(requests)}">0</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#tab-sent"
                         type="button" role="tab" aria-controls="tab-sent" aria-selected="false">
-                    <i class="bi bi-send me-1"></i> Envoyées
+                    <i class="bi bi-send me-1"></i> EnvoyÃ©es
                     <span class="badge bg-info ms-1 tab-badge" th:text="${#lists.size(sentRequests)}">0</span>
                 </button>
             </li>
@@ -110,7 +110,7 @@
                                     </span>
                                 </p>
                                 <p class="text-muted small mb-0"
-                                   th:text="${friend.firstName + ' ' + friend.lastName}">Nom Prénom</p>
+                                   th:text="${friend.firstName + ' ' + friend.lastName}">Nom PrÃ©nom</p>
                             </div>
                             <div class="card-footer bg-transparent border-top-0 text-center pb-3">
                                 <button type="button" class="btn btn-outline-danger btn-sm"
@@ -131,7 +131,7 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        Êtes-vous sûr de vouloir supprimer
+                                        ÃŠtes-vous sÃ»r de vouloir supprimer
                                         <strong th:text="${friend.username}"></strong> de vos amis ?
                                     </div>
                                     <div class="modal-footer">
@@ -147,7 +147,7 @@
                 </div>
             </div>
 
-            <!-- ==================== Tab 2: Demandes reçues ==================== -->
+            <!-- ==================== Tab 2: Demandes reÃ§ues ==================== -->
             <div class="tab-pane fade" id="tab-requests" role="tabpanel" aria-labelledby="requests-tab">
                 <div th:if="${#lists.isEmpty(requests)}" class="text-center py-5">
                     <i class="bi bi-inbox display-1 text-muted"></i>
@@ -189,11 +189,11 @@
                 </div>
             </div>
 
-            <!-- ==================== Tab 3: Demandes envoyées ==================== -->
+            <!-- ==================== Tab 3: Demandes envoyÃ©es ==================== -->
             <div class="tab-pane fade" id="tab-sent" role="tabpanel" aria-labelledby="sent-tab">
                 <div th:if="${#lists.isEmpty(sentRequests)}" class="text-center py-5">
                     <i class="bi bi-send display-1 text-muted"></i>
-                    <p class="text-muted mt-3 fs-5">Aucune demande envoyée en attente.</p>
+                    <p class="text-muted mt-3 fs-5">Aucune demande envoyÃ©e en attente.</p>
                 </div>
 
                 <div th:if="${!#lists.isEmpty(sentRequests)}" class="row g-3">
@@ -208,7 +208,7 @@
                                     <br>
                                     <small class="text-muted">
                                         <i class="bi bi-clock"></i>
-                                        Envoyée le <span th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                        EnvoyÃ©e le <span th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
                                     </small>
                                 </div>
                                 <span class="badge bg-warning text-dark ms-auto">
@@ -236,7 +236,7 @@
                         <a th:if="${query != null and !#strings.isEmpty(query)}"
                            th:href="@{/friends(tab='add')}"
                            class="btn btn-outline-secondary w-100">
-                            Réinitialiser
+                            RÃ©initialiser
                         </a>
                     </div>
                 </form>
@@ -245,10 +245,10 @@
                 <div th:if="${#lists.isEmpty(athletes)}" class="text-center py-4">
                     <i class="bi bi-search display-4 text-muted"></i>
                     <p class="text-muted mt-3" th:if="${query != null and !#strings.isEmpty(query)}">
-                        Aucun athlète trouvé pour "<strong th:text="${query}"></strong>".
+                        Aucun athlÃ¨te trouvÃ© pour "<strong th:text="${query}"></strong>".
                     </p>
                     <p class="text-muted mt-3" th:if="${query == null or #strings.isEmpty(query)}">
-                        Recherchez un athlète pour envoyer une demande d'ami.
+                        Recherchez un athlÃ¨te pour envoyer une demande d'ami.
                     </p>
                 </div>
 
@@ -283,14 +283,14 @@
 
                                     <!-- REQUEST_SENT: pending, show disabled -->
                                     <span th:if="${rs != null and rs.name() == 'REQUEST_SENT'}" class="badge bg-warning text-dark">
-                                        <i class="bi bi-hourglass-split"></i> Demande envoyée
+                                        <i class="bi bi-hourglass-split"></i> Demande envoyÃ©e
                                     </span>
 
                                     <!-- REQUEST_RECEIVED: link to requests tab -->
                                     <a th:if="${rs != null and rs.name() == 'REQUEST_RECEIVED'}"
                                        href="javascript:void(0)" onclick="switchTab('requests')"
                                        class="btn btn-outline-success btn-sm">
-                                        <i class="bi bi-inbox"></i> Vous a envoyé une demande
+                                        <i class="bi bi-inbox"></i> Vous a envoyÃ© une demande
                                     </a>
 
                                     <!-- FRIENDS: show friendship badge -->
@@ -318,7 +318,7 @@
                 <div th:if="${#lists.isEmpty(blockedUsers)}" class="text-center py-5">
                     <i class="bi bi-shield-check display-1 text-muted"></i>
                     <p class="text-muted mt-3 fs-5">Votre liste noire est vide.</p>
-                    <p class="text-muted small">Bloquez un utilisateur pour l'empêcher de vous envoyer des demandes d'ami.</p>
+                    <p class="text-muted small">Bloquez un utilisateur pour l'empÃªcher de vous envoyer des demandes d'ami.</p>
                 </div>
 
                 <div th:if="${!#lists.isEmpty(blockedUsers)}" class="row g-3">
@@ -332,7 +332,7 @@
                                               th:text="${blocked.recipient.username}">Username</span>
                                         <br>
                                         <small class="text-muted">
-                                            <i class="bi bi-slash-circle"></i> Bloqué le
+                                            <i class="bi bi-slash-circle"></i> BloquÃ© le
                                             <span th:text="${#temporals.format(blocked.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
                                         </small>
                                     </div>
@@ -341,8 +341,8 @@
                                     <!-- Unblock button -->
                                     <form th:action="@{/friends/unblock/{id}(id=${blocked.recipient.id})}" method="post">
                                         <button type="submit" class="btn btn-outline-success btn-sm"
-                                                onclick="return confirm('Débloquer cet utilisateur ?')">
-                                            <i class="bi bi-unlock"></i> Débloquer
+                                                onclick="return confirm('DÃ©bloquer cet utilisateur ?')">
+                                            <i class="bi bi-unlock"></i> DÃ©bloquer
                                         </button>
                                     </form>
                                 </div>
@@ -355,7 +355,8 @@
         </div><!-- /tab-content -->
     </div><!-- /container -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
     <script>
         // Activate the correct tab based on the 'tab' URL parameter
         (function() {

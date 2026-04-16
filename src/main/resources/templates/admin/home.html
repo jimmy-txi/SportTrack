@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Panneau d'Administration - SportTrack</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
@@ -33,9 +33,9 @@
                                 <i class="bi bi-trophy"></i>
                             </div>
                             <h5 class="card-title">Sports</h5>
-                            <p class="card-text text-muted">Gérer les types de sports disponibles</p>
+                            <p class="card-text text-muted">GÃ©rer les types de sports disponibles</p>
                             <a th:href="@{/admin/sports}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-arrow-right"></i> Accéder
+                                <i class="bi bi-arrow-right"></i> AccÃ©der
                             </a>
                         </div>
                     </div>
@@ -47,10 +47,10 @@
                             <div class="admin-card-icon">
                                 <i class="bi bi-activity"></i>
                             </div>
-                            <h5 class="card-title">Activités</h5>
-                            <p class="card-text text-muted">Gérer les activités des utilisateurs</p>
+                            <h5 class="card-title">ActivitÃ©s</h5>
+                            <p class="card-text text-muted">GÃ©rer les activitÃ©s des utilisateurs</p>
                             <a th:href="@{/admin/activities}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-arrow-right"></i> Accéder
+                                <i class="bi bi-arrow-right"></i> AccÃ©der
                             </a>
                         </div>
                     </div>
@@ -63,9 +63,9 @@
                                 <i class="bi bi-award"></i>
                             </div>
                             <h5 class="card-title">Badges</h5>
-                            <p class="card-text text-muted">Gérer les badges et récompenses</p>
+                            <p class="card-text text-muted">GÃ©rer les badges et rÃ©compenses</p>
                             <a th:href="@{/admin/badges}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-arrow-right"></i> Accéder
+                                <i class="bi bi-arrow-right"></i> AccÃ©der
                             </a>
                         </div>
                     </div>
@@ -74,6 +74,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
 </body>
 </html>

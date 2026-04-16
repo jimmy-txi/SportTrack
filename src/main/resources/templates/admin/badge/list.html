@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Badges - Administration</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
@@ -14,7 +14,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1><i class="bi bi-award"></i> Gestion des Badges</h1>
-                <p class="text-muted">Créer et gérer les badges disponibles pour les athlètes.</p>
+                <p class="text-muted">CrÃ©er et gÃ©rer les badges disponibles pour les athlÃ¨tes.</p>
             </div>
             <a th:href="@{/admin/badges/create}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Nouveau Badge
@@ -23,11 +23,11 @@
 
         <!-- Success messages -->
         <div th:if="${param.saved}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> Badge sauvegardé avec succès !
+            <i class="bi bi-check-circle"></i> Badge sauvegardÃ© avec succÃ¨s !
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div th:if="${param.deleted}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> Badge supprimé avec succès.
+            <i class="bi bi-check-circle"></i> Badge supprimÃ© avec succÃ¨s.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -42,12 +42,12 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Icône</th>
+                                <th>IcÃ´ne</th>
                                 <th>Label</th>
                                 <th>Sport</th>
-                                <th>Métrique</th>
+                                <th>MÃ©trique</th>
                                 <th>Seuil</th>
-                                <th>Athlètes</th>
+                                <th>AthlÃ¨tes</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -88,7 +88,7 @@
                             <tr th:if="${badges.isEmpty()}">
                                 <td colspan="7" class="text-center text-muted py-4">
                                     <i class="bi bi-award display-4"></i>
-                                    <p>Aucun badge créé pour le moment.</p>
+                                    <p>Aucun badge crÃ©Ã© pour le moment.</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -98,6 +98,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
 </body>
 </html>

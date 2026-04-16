@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <th:block th:fragment="headAssets">
+        <link id="st-theme-link" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/cosmo/bootstrap.min.css">
+        <script>
+            (function() {
+                var defaultTheme = "cosmo";
+                var storedTheme = defaultTheme;
+                try {
+                    var value = localStorage.getItem("sporttrack-theme");
+                    if (value) {
+                        storedTheme = value;
+                    }
+                } catch (e) {
+                    storedTheme = defaultTheme;
+                }
+
+                window.__sporttrackTheme = storedTheme;
+
+                var themeLink = document.getElementById("st-theme-link");
+                if (themeLink) {
+                    themeLink.href = "https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/" + storedTheme + "/bootstrap.min.css";
+                }
+            })();
+        </script>
+    </th:block>
+
+    <th:block th:fragment="bodyScripts">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            (function() {
+                var BOOTSWATCH_THEMES = [
+                    "cerulean", "cosmo", "cyborg", "darkly", "flatly", "journal", "litera",
+                    "lumen", "lux", "materia", "minty", "morph", "pulse", "quartz",
+                    "sandstone", "simplex", "sketchy", "slate", "solar", "spacelab",
+                    "superhero", "united", "vapor", "yeti", "zephyr"
+                ];
+                var defaultTheme = "cosmo";
+
+                function normalizeTheme(theme) {
+                    if (!theme) {
+                        return defaultTheme;
+                    }
+                    var lower = String(theme).toLowerCase();
+                    return BOOTSWATCH_THEMES.indexOf(lower) >= 0 ? lower : defaultTheme;
+                }
+
+                function buildThemeUrl(theme) {
+                    return "https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/" + theme + "/bootstrap.min.css";
+                }
+
+                function applyTheme(theme) {
+                    var normalized = normalizeTheme(theme);
+                    var themeLink = document.getElementById("st-theme-link");
+                    if (themeLink) {
+                        themeLink.href = buildThemeUrl(normalized);
+                    }
+                    window.__sporttrackTheme = normalized;
+                    try {
+                        localStorage.setItem("sporttrack-theme", normalized);
+                    } catch (e) {
+                        // Ignore storage failures.
+                    }
+                    return normalized;
+                }
+
+                function initThemeSelect() {
+                    var select = document.getElementById("st-theme-select");
+                    if (!select) {
+                        return;
+                    }
+
+                    var initialTheme = normalizeTheme(window.__sporttrackTheme || defaultTheme);
+                    select.value = initialTheme;
+
+                    select.addEventListener("change", function() {
+                        var applied = applyTheme(select.value);
+                        select.value = applied;
+                    });
+                }
+
+                window.SportTrackTheme = {
+                    applyTheme: applyTheme,
+                    themes: BOOTSWATCH_THEMES.slice()
+                };
+
+                document.addEventListener("DOMContentLoaded", function() {
+                    applyTheme(window.__sporttrackTheme || defaultTheme);
+                    initThemeSelect();
+                });
+            })();
+        </script>
+    </th:block>
+</body>
+</html>

@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon profil - SportTrack</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <th:block th:replace="~{fragments/assets :: headAssets}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
@@ -24,11 +24,11 @@
 
             <div class="col-lg-8">
                 <div th:if="${param.updated}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-1"></i> Profil mis à jour avec succès.
+                    <i class="bi bi-check-circle me-1"></i> Profil mis Ã  jour avec succÃ¨s.
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-1"></i> Impossible de mettre à jour le profil.
+                    <i class="bi bi-exclamation-circle me-1"></i> Impossible de mettre Ã  jour le profil.
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 
@@ -40,7 +40,7 @@
                         <form th:action="@{/profile/update}" th:object="${athlete}" method="post">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="firstName" class="form-label">Prénom</label>
+                                    <label for="firstName" class="form-label">PrÃ©nom</label>
                                     <input id="firstName" type="text" th:field="*{firstName}" class="form-control">
                                 </div>
                                 <div class="col-md-6">
@@ -58,14 +58,14 @@
                                 <div class="col-md-6">
                                     <label for="gender" class="form-label">Genre</label>
                                     <select id="gender" th:field="*{gender}" class="form-select">
-                                        <option value="">Sélectionnez</option>
+                                        <option value="">SÃ©lectionnez</option>
                                         <option th:each="g : ${genders}" th:value="${g}" th:text="${g.displayValue}"></option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="practiceLevel" class="form-label">Niveau de pratique</label>
                                     <select id="practiceLevel" th:field="*{practiceLevel}" class="form-select">
-                                        <option value="">Sélectionnez</option>
+                                        <option value="">SÃ©lectionnez</option>
                                         <option th:each="pl : ${practiceLevels}" th:value="${pl}" th:text="${pl.displayValue}"></option>
                                     </select>
                                 </div>
@@ -97,6 +97,8 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:insert="~{fragments/footer :: footer}"></div>
+    <th:block th:replace="~{fragments/assets :: bodyScripts}"></th:block>
 </body>
 </html>
+
