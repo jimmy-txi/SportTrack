@@ -14,8 +14,12 @@ import java.util.List;
 @Service
 public class CommentService {
 
-    @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    public CommentService(CommentRepository commentRepository) {
+        this.commentRepository = commentRepository;
+    }
 
     public Comment addComment(Athlete author, Activity activity, String content, InteractionType type) {
         Comment comment = new Comment();

@@ -38,6 +38,7 @@ public class Comment {
     }
 
     public Comment() {
+        // normal if empty
     }
 
     public int getId() {
