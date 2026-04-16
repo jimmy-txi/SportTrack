@@ -17,16 +17,43 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+/**
+ * Spring MVC controller that handles the application's home page.
+ *
+ * <p>Renders the index view with athlete profile data, earned badges,
+ * and the latest activities from the authenticated athlete's friends.
+ * Unauthenticated or unrecognised users see the public landing page.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/")
 public class BaseController {
 
+    /** Service for athlete data access. */
     private final AthleteService athleteService;
+
+    /** Service for admin authentication checks. */
     private final AdminService adminService;
+
+    /** Service for badge queries. */
     private final BadgeService badgeService;
+
+    /** Service for friendship queries. */
     private final FriendshipService friendshipService;
+
+    /** Service for activity queries. */
     private final ActivityService activityService;
 
+    /**
+     * Constructs a {@code BaseController} with the required services.
+     *
+     * @param athleteService   the athlete service
+     * @param adminService     the admin service
+     * @param badgeService     the badge service
+     * @param friendshipService the friendship service
+     * @param activityService  the activity service
+     */
     public BaseController(AthleteService athleteService,
                           AdminService adminService, BadgeService badgeService,
                           FriendshipService friendshipService,
@@ -38,6 +65,15 @@ public class BaseController {
         this.activityService = activityService;
     }
 
+    /**
+     * Renders the home page. If the current user is an authenticated athlete,
+     * populates the model with profile data, badges, and friends' latest activities.
+     * If the user is an admin, redirects to the admin dashboard.
+     *
+     * @param model          the Spring MVC model for view rendering
+     * @param authentication the current security authentication, may be {@code null}
+     * @return the view name "index" or a redirect to "/admin"
+     */
     @GetMapping("/")
     public String home(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {

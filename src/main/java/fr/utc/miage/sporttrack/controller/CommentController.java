@@ -15,15 +15,34 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
+/**
+ * Spring MVC controller for adding comments (social interactions) to activities.
+ *
+ * <p>Handles the form submission for posting a comment on an activity,
+ * including like and cheer interactions.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/comments")
 public class CommentController {
 
+    /** The service for managing comments. */
     CommentService commentService;
+
+    /** The service for managing activities. */
     ActivityService activityService;
+    
+    /** The service for managing athletes. */
     AthleteService athleteService;
 
-
+    /**
+     * Constructs a new CommentController with the specified services.
+     *
+     * @param commentService  the service for managing comments
+     * @param activityService the service for managing activities
+     * @param athleteService  the service for managing athletes
+     */
     public CommentController(CommentService commentService, ActivityService activityService, AthleteService athleteService) {
         this.commentService = commentService;
         this.activityService = activityService;
@@ -31,8 +50,15 @@ public class CommentController {
     }
 
 
-
-
+    /**
+     * Adds a comment or interaction to the specified activity.
+     *
+     * @param activityId        the identifier of the target activity
+     * @param content           the textual content of the comment, may be {@code null}
+     * @param interactionTypeStr the string representation of the interaction type
+     * @param redirectUrl       the URL to redirect to after processing
+     * @return a redirect to the specified URL, or to login if unauthenticated
+     */
     @PostMapping("/add")
     public String addComment(
             @RequestParam("activityId") int activityId,
