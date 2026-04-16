@@ -65,10 +65,28 @@ public class AuthController {
      */
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("athlete") AthleteRegisterFormDTO athleteDto,
-                               @RequestParam("confirmPassword") String confirmPassword,
+                               @RequestParam(value = "email", required = false) String email,
+                               @RequestParam(value = "username", required = false) String username,
+                               @RequestParam(value = "password", required = false) String password,
+                               @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
                                Model model) {
-        if (!athleteDto.getPassword().equals(confirmPassword)) {
+        if (athleteDto == null) {
+            athleteDto = new AthleteRegisterFormDTO();
+        }
+
+        athleteDto.setEmail(email);
+        athleteDto.setUsername(username);
+        athleteDto.setPassword(password);
+
+        if (password == null || confirmPassword == null) {
             model.addAttribute("error", "Passwords do not match");
+            model.addAttribute("athlete", athleteDto);
+            return "register";
+        }
+
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("error", "Passwords do not match");
+            model.addAttribute("athlete", athleteDto);
             return "register";
         }
 
@@ -77,6 +95,7 @@ public class AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("athlete", athleteDto);
             return "register";
         }
     }
