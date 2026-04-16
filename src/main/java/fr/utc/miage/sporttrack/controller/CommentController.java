@@ -28,17 +28,19 @@ import java.util.Optional;
 @RequestMapping("/comments")
 public class CommentController {
 
-    /** Service for comment persistence. */
-    @Autowired
-    private CommentService commentService;
+    CommentService commentService;
+    ActivityService activityService;
+    AthleteService athleteService;
 
-    /** Service for activity lookups. */
-    @Autowired
-    private ActivityService activityService;
 
-    /** Service for athlete authentication resolution. */
-    @Autowired
-    private AthleteService athleteService;
+    public CommentController(CommentService commentService, ActivityService activityService, AthleteService athleteService) {
+        this.commentService = commentService;
+        this.activityService = activityService;
+        this.athleteService = athleteService;
+    }
+
+
+
 
     /**
      * Adds a comment or interaction to the specified activity.
