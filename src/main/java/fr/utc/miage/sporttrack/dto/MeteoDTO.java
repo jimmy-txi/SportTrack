@@ -1,5 +1,7 @@
 package fr.utc.miage.sporttrack.dto;
 
+import fr.utc.miage.sporttrack.util.TextNormalizer;
+
 public class MeteoDTO {
 
     private String city;
@@ -14,7 +16,7 @@ public class MeteoDTO {
     }
 
     public void setCity(String city) {
-        this.city = city;
+        this.city = TextNormalizer.trimNullable(city);
     }
 
     public String getCountry() {
@@ -22,7 +24,7 @@ public class MeteoDTO {
     }
 
     public void setCountry(String country) {
-        this.country = country;
+        this.country = TextNormalizer.trimNullable(country);
     }
 
     public Integer getWeatherCode() {
@@ -54,6 +56,6 @@ public class MeteoDTO {
     }
 
     public void setMessage(String message) {
-        this.message = message;
+        this.message = TextNormalizer.trimNullable(message);
     }
 }

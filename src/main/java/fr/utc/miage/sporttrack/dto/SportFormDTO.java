@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.dto;
 
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
 /**
  * DTO used for sport creation/update form binding.
@@ -8,19 +9,14 @@ import fr.utc.miage.sporttrack.entity.enumeration.SportType;
  * to prevent mass assignment vulnerabilities (SonarQube java:S4684).
  * id == 0 means creation; id > 0 means update.
  */
-public class SportFormDTO {
+public class SportFormDTO extends AbstractIdFormDTO {
 
-    private int id;
     private String name;
     private String description;
     private double caloriesPerHour;
     private SportType type;
 
     // --- Getters ---
-
-    public int getId() {
-        return id;
-    }
 
     public String getName() {
         return name;
@@ -40,16 +36,12 @@ public class SportFormDTO {
 
     // --- Setters ---
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
-        this.name = name;
+        this.name = TextNormalizer.trimNullable(name);
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     public void setCaloriesPerHour(double caloriesPerHour) {

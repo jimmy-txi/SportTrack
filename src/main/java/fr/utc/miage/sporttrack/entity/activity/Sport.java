@@ -1,6 +1,7 @@
 package fr.utc.miage.sporttrack.entity.activity;
 
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,18 +19,20 @@ public class Sport {
     private SportType type;
     private boolean active = true;
 
-    public Sport() {}
+    public Sport() {
+        // Required by JPA
+    }
 
     public void setId(int id) {
         this.id = id;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = TextNormalizer.trimNullable(name);
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     public void setCaloriesPerHour(double caloriesPerHour) {

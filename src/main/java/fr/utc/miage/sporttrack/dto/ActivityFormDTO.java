@@ -3,9 +3,10 @@ package fr.utc.miage.sporttrack.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class ActivityFormDTO {
+import fr.utc.miage.sporttrack.util.TextNormalizer;
 
-    private Integer id;
+public class ActivityFormDTO extends AbstractIdFormDTO {
+
     private double duration;
     private String title;
     private String description;
@@ -15,14 +16,6 @@ public class ActivityFormDTO {
     private LocalTime startTime;
     private String locationCity;
     private Integer sportId;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public double getDuration() {
         return duration;
@@ -37,7 +30,7 @@ public class ActivityFormDTO {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.title = TextNormalizer.trimNullable(title);
     }
 
     public String getDescription() {
@@ -45,7 +38,7 @@ public class ActivityFormDTO {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = TextNormalizer.trimNullable(description);
     }
 
     public Integer getRepetition() {
@@ -85,7 +78,7 @@ public class ActivityFormDTO {
     }
 
     public void setLocationCity(String locationCity) {
-        this.locationCity = locationCity;
+        this.locationCity = TextNormalizer.trimNullable(locationCity);
     }
 
     public Integer getSportId() {

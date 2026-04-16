@@ -75,6 +75,36 @@
                     </li>
                 </ul>
                 <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="st-theme-select" class="small text-light mb-0">Theme</label>
+                        <select id="st-theme-select" class="form-select form-select-sm" style="width: 160px;">
+                            <option value="lux">Lux</option>
+                            <option value="cerulean">Cerulean</option>
+                            <option value="cosmo">Cosmo</option>
+                            <option value="flatly">Flatly</option>
+                            <option value="journal">Journal</option>
+                            <option value="litera">Litera</option>
+                            <option value="lumen">Lumen</option>
+                            <option value="minty">Minty</option>
+                            <option value="pulse">Pulse</option>
+                            <option value="sandstone">Sandstone</option>
+                            <option value="simplex">Simplex</option>
+                            <option value="sketchy">Sketchy</option>
+                            <option value="solar">Solar</option>
+                            <option value="spacelab">Spacelab</option>
+                            <option value="united">United</option>
+                            <option value="yeti">Yeti</option>
+                            <option value="zephyr">Zephyr</option>
+                            <!-- <option value="slate">Slate</option> -->
+                            <!-- <option value="superhero">Superhero</option> -->
+                            <!-- <option value="materia">Materia</option> -->
+                            <!-- <option value="cyborg">Cyborg</option> -->
+                            <!-- <option value="darkly">Darkly</option> -->
+                            <!-- <option value="morph">Morph</option> -->
+                            <!-- <option value="quartz">Quartz</option> -->
+                            <!-- <option value="vapor">Vapor</option> -->
+                        </select>
+                    </div>
                     <div sec:authorize="!isAuthenticated()">
                         <a th:href="@{/login}" class="btn btn-light btn-sm">Se connecter</a>
                         <a th:href="@{/register}" class="btn btn-outline-light btn-sm">S'inscrire</a>
