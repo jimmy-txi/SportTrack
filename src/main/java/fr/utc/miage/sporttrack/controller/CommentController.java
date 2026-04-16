@@ -36,6 +36,10 @@ public class CommentController {
             @RequestParam("interactionType") String interactionTypeStr,
             @RequestParam(value = "redirectUrl", defaultValue = "/friends") String redirectUrl
     ) {
+        if (redirectUrl == null || !redirectUrl.startsWith("/") || redirectUrl.startsWith("//")) {
+            redirectUrl = "/friends";
+        }
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return "redirect:/login";
