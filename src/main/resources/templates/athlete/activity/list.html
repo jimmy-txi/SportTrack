@@ -159,5 +159,26 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-check').forEach(function(radio) {
+            radio.addEventListener('click', function(e) {
+                if (this.previousChecked) {
+                    this.checked = false;
+                    const form = this.closest('form');
+                    if (form) {
+                        const noneRadio = form.querySelector('input[type="radio"][value="NONE"]');
+                        if (noneRadio) noneRadio.checked = true;
+                    }
+                }
+                const name = this.name;
+                document.querySelectorAll('input[name="' + name + '"]').forEach(function(el) {
+                    el.previousChecked = el.checked;
+                });
+            });
+            radio.previousChecked = radio.checked;
+        });
+    });
+</script>
 </body>
 </html>
