@@ -31,19 +31,54 @@ import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.Comparator;
 
+/**
+ * Spring MVC controller for the athlete dashboard views.
+ *
+ * <p>Provides endpoints for the comparison dashboard (activity and objective
+ * statistics with sport/date filtering) and the growth dashboard (weekly
+ * trends, consecutive active weeks, and monthly KPIs).</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 public class DashboardController {
 
+    /** Attribute key for total duration in weekly aggregates. */
     public static final String TOTAL_DURATION = "totalDuration";
+
+    /** Attribute key for activity count in weekly aggregates. */
     public static final String ACTIVITY_COUNT = "activityCount";
+
+    /** Attribute key for total distance in weekly aggregates. */
     public static final String TOTAL_DISTANCE = "totalDistance";
+
+    /** Attribute key for total repetitions in weekly aggregates. */
     public static final String TOTAL_REPETITION = "totalRepetition";
+
+    /** Attribute key for the ISO week number in weekly aggregates. */
     public static final String WEEK_NUMBER = "weekNumber";
+    public static final String ATHLETE_ATTR = "athlete";
+
+    /** Service for activity queries and filtering. */
     private final ActivityService activityService;
+
+    /** Service for objective queries and completion checks. */
     private final ObjectiveService objectiveService;
+
+    /** Service for sport lookups. */
     private final SportService sportService;
+
+    /** Repository for athlete lookups during authentication resolution. */
     private final AthleteRepository athleteRepository;
 
+    /**
+     * Constructs a {@code DashboardController} with the required dependencies.
+     *
+     * @param activityService   the activity service
+     * @param objectiveService  the objective service
+     * @param sportService      the sport service
+     * @param athleteRepository the athlete repository
+     */
     public DashboardController(ActivityService activityService,
                                ObjectiveService objectiveService,
                                SportService sportService,
@@ -54,6 +89,17 @@ public class DashboardController {
         this.athleteRepository = athleteRepository;
     }
 
+    /**
+     * Renders the comparison dashboard with activity and objective statistics,
+     * optionally filtered by sport and date range.
+     *
+     * @param session   the HTTP session for athlete resolution
+     * @param model     the Spring MVC model
+     * @param sportId   optional sport identifier for filtering activities and objectives
+     * @param startDate optional inclusive start date for the filter range
+     * @param endDate   optional inclusive end date for the filter range
+     * @return the view name "dashboard/compare", or a redirect to login if unauthenticated
+     */
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model,
                                 @RequestParam(required = false) Integer sportId,
@@ -127,7 +173,7 @@ public class DashboardController {
         List<String> objectiveStatusLabels = List.of("Réalisés", "À réaliser");
         List<Integer> objectiveStatusCounts = List.of((int) objectivesCompleted, (int) objectivesRemaining);
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("activities", filteredActivities);
         model.addAttribute("recentActivities", filteredActivities.stream().limit(5).toList());
         model.addAttribute("objectives", objectives);
@@ -153,6 +199,15 @@ public class DashboardController {
         return "dashboard/compare";
     }
 
+    /**
+     * Renders the growth dashboard showing weekly activity trends,
+     * consecutive active weeks, and monthly hour KPIs.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @param sportId optional sport identifier for filtering
+     * @return the view name "dashboard/growth", or a redirect to login if unauthenticated
+     */
     @GetMapping("/growth")
     public String showGrowth(HttpSession session, Model model,
                             @RequestParam(required = false) Integer sportId) {
@@ -199,7 +254,7 @@ public class DashboardController {
                 .map(w -> (Integer) w.get(TOTAL_REPETITION))
                 .toList();
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("sports", sports);
         model.addAttribute("selectedSport", selectedSport);
         model.addAttribute("selectedSportId", selectedSport != null ? selectedSport.getId() : null);
@@ -218,6 +273,12 @@ public class DashboardController {
         return "dashboard/growth";
     }
 
+    /**
+     * Calculates the number of consecutive active weeks ending at the most recent activity.
+     *
+     * @param activities the list of activities to analyse
+     * @return the count of consecutive weeks with at least one activity
+     */
     private int calculateConsecutiveActiveWeeks(List<Activity> activities) {
         if (activities.isEmpty()) {
             return 0;
@@ -249,6 +310,13 @@ public class DashboardController {
         return consecutive;
     }
 
+    /**
+     * Sums the total duration (in hours) of all activities that fall within the given month.
+     *
+     * @param activities the list of activities to analyse
+     * @param month      the target month
+     * @return the total hours of activity in the given month
+     */
     private double calculateHoursForMonth(List<Activity> activities, YearMonth month) {
         return activities.stream()
                 .filter(activity -> YearMonth.from(activity.getDateA()).equals(month))
@@ -256,6 +324,14 @@ public class DashboardController {
                 .sum();
     }
 
+    /**
+     * Aggregates activity data into weekly buckets for chart rendering.
+     *
+     * @param activities    the list of activities to aggregate
+     * @param hasDistance   whether the selected sport uses distance metrics
+     * @param hasRepetition whether the selected sport uses repetition metrics
+     * @return a list of weekly maps containing duration, count, distance, and repetition totals
+     */
     private List<Map<String, Object>> buildWeeklyData(List<Activity> activities, boolean hasDistance, boolean hasRepetition) {
         WeekFields weekFields = WeekFields.ISO;
         Map<Integer, Map<String, Object>> weekDataMap = new HashMap<>();
@@ -296,8 +372,15 @@ public class DashboardController {
                 .toList();
     }
 
+    /**
+     * Resolves the currently authenticated athlete from the HTTP session
+     * or the Spring Security context, caching the result in the session.
+     *
+     * @param session the HTTP session
+     * @return the authenticated athlete, or {@code null} if not authenticated or not an athlete
+     */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
-        Athlete athlete = (Athlete) session.getAttribute("athlete");
+        Athlete athlete = (Athlete) session.getAttribute(ATHLETE_ATTR);
         if (athlete != null) {
             return athlete;
         }
@@ -309,7 +392,7 @@ public class DashboardController {
 
         return athleteRepository.findByEmail(authentication.getName())
                 .map(found -> {
-                    session.setAttribute("athlete", found);
+                    session.setAttribute(ATHLETE_ATTR, found);
                     return found;
                 })
                 .orElse(null);

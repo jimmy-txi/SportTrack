@@ -17,22 +17,48 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Service layer component responsible for managing {@link Friendship} relationships
+ * between athletes within the SportTrack application.
+ *
+ * <p>Provides business logic for sending, accepting, and rejecting friend requests,
+ * blocking and unblocking users, querying friends and blocked users, and determining
+ * the relationship status between two athletes.</p>
+ *
+ * @author SportTrack Team
+ */
 @Service
 public class FriendshipService {
 
+    /** Error message constant used when an athlete lookup fails. */
     private static final String ATHLETE_NOT_FOUND = "Athlete not found";
 
+    /** The repository for friendship data access. */
     private final FriendshipRepository friendshipRepository;
+
+    /** The repository for athlete data access. */
     private final AthleteRepository athleteRepository;
+
+    /** The notification service for friendship events (optional). */
     private final NotificationService notificationService;
 
     /**
-     * Initializes the FriendshipService with required repositories.
+     * Constructs a {@code FriendshipService} without notification support.
+     *
+     * @param friendshipRepository the friendship repository
+     * @param athleteRepository    the athlete repository
      */
     public FriendshipService(FriendshipRepository friendshipRepository, AthleteRepository athleteRepository) {
         this(friendshipRepository, athleteRepository, null);
     }
 
+    /**
+     * Constructs a {@code FriendshipService} with full notification support.
+     *
+     * @param friendshipRepository the friendship repository
+     * @param athleteRepository    the athlete repository
+     * @param notificationService  the notification service for friendship events
+     */
     @Autowired
     public FriendshipService(FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, NotificationService notificationService) {
         this.friendshipRepository = friendshipRepository;

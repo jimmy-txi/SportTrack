@@ -26,19 +26,48 @@ import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Spring MVC controller for challenge management and participation.
+ *
+ * <p>Provides endpoints for creating, listing, and joining challenges,
+ * as well as viewing all available challenges.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 public class ChallengeController {
-    
+
+    /** Repository for sport lookups. */
     private final SportRepository sportRepository;
-    
+
+    /** Repository for athlete authentication resolution. */
     private final AthleteRepository athleteRepository;
-    
+
+    /** Repository for challenge persistence. */
     private final ChallengeRepository challengeRepository;
 
+    /** Service for sport lookups. */
     private final SportService sportService;
 
+    /** Service for challenge ranking recomputation. */
     private final ChallengeRankingService challengeRankingService;
+
+    private final String REDIRECT_LOGIN = "redirect:/login";
+    private final String ATHLETE_ATTR = "athlete";
+    private final String ALL_METRICS_ATTR = "allMetrics";
+    private final String SPORTS_ATTR = "sports";
+    private final String CHALLENGE_FORM_VIEW = "challenge/challenge_form";
+    private final String ERROR_ATTR = "error";
     
+    /**
+     * Constructs a {@code ChallengeController} with the required dependencies.
+     *
+     * @param sportRepository          the sport repository
+     * @param athleteRepository        the athlete repository
+     * @param challengeRepository      the challenge repository
+     * @param sportService             the sport service
+     * @param challengeRankingService  the challenge ranking service
+     */
     public ChallengeController(SportRepository sportRepository, AthleteRepository athleteRepository, ChallengeRepository challengeRepository, SportService sportService, ChallengeRankingService challengeRankingService) {
         this.sportRepository = sportRepository;
         this.athleteRepository = athleteRepository;
@@ -47,19 +76,35 @@ public class ChallengeController {
         this.challengeRankingService = challengeRankingService;
     }
     
+    /**
+     * Displays the form for creating a new challenge.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenge_form", or a redirect to login
+     */
     @GetMapping("/challenges/new")
     public String showCreateChallengeForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
             return "redirect:/login";
         }
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("challenge", new ChallengeFormDTO());
-        model.addAttribute("allMetrics", Metric.values());
-        model.addAttribute("sports", sportService.findAllActive());
-        return "challenge/challenge_form";
+        model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+        model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
+        return CHALLENGE_FORM_VIEW;
     }
     
+    /**
+     * Creates a new challenge from the submitted form data and initialises its ranking.
+     *
+     * @param challengeDto the form DTO containing challenge data
+     * @param sportId      the identifier of the selected sport
+     * @param session      the HTTP session for athlete resolution
+     * @param model        the Spring MVC model for error rendering
+     * @return a redirect to the challenge list, or the form view on error
+     */
     @PostMapping("/challenges")
     public String createChallenge(
         @ModelAttribute ChallengeFormDTO challengeDto,
@@ -73,28 +118,28 @@ public class ChallengeController {
             }
 
             if (sportId == null || sportId <= 0) {
-                model.addAttribute("athlete", athlete);
-                model.addAttribute("error", "Veuillez sélectionner une discipline sportive valide.");
-                model.addAttribute("allMetrics", Metric.values());
-                model.addAttribute("sports", sportService.findAllActive());
-                return "challenge/challenge_form";
+                model.addAttribute(ATHLETE_ATTR, athlete);
+                model.addAttribute(ERROR_ATTR, "Veuillez sélectionner une discipline sportive valide.");
+                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
+                return CHALLENGE_FORM_VIEW;
             }
 
             Optional<Sport> sportOpt = sportRepository.findById(sportId);
             if (sportOpt.isEmpty()) {
-                model.addAttribute("athlete", athlete);
-                model.addAttribute("error", "La discipline sportive sélectionnée est introuvable.");
-                model.addAttribute("allMetrics", Metric.values());
-                model.addAttribute("sports", sportService.findAllActive());
-                return "challenge/challenge_form";
+                model.addAttribute(ATHLETE_ATTR, athlete);
+                model.addAttribute(ERROR_ATTR, "La discipline sportive sélectionnée est introuvable.");
+                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
+                return CHALLENGE_FORM_VIEW;
             }
 
             if (challengeDto.getStartDate().isAfter(challengeDto.getEndDate()) || challengeDto.getStartDate().isBefore(now) || challengeDto.getEndDate().isBefore(now)) {
-                model.addAttribute("athlete", athlete);
-                model.addAttribute("error", "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
-                model.addAttribute("allMetrics", Metric.values());
-                model.addAttribute("sports", sportService.findAllActive());
-                return "challenge/challenge_form";
+                model.addAttribute(ATHLETE_ATTR, athlete);
+                model.addAttribute(ERROR_ATTR, "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
+                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
+                return CHALLENGE_FORM_VIEW;
             }
 
             Challenge challenge = new Challenge(
@@ -113,6 +158,13 @@ public class ChallengeController {
         }
         
         
+    /**
+     * Lists all challenges organised by or participated in by the authenticated athlete.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenge_list", or a redirect to login
+     */
         @GetMapping("/challenges")
         public String listChallenges(HttpSession session, Model model) {
             Athlete athlete = getAuthenticatedAthlete(session);
@@ -120,11 +172,17 @@ public class ChallengeController {
                 return "redirect:/login";
             }
             List<Challenge> challenges = challengeRepository.findDistinctByOrganizer_IdOrParticipants_Id(athlete.getId(), athlete.getId());
-            model.addAttribute("athlete", athlete);
+            model.addAttribute(ATHLETE_ATTR, athlete);
             model.addAttribute("challenges", challenges);
             return "challenge/challenge_list";
         }
         
+    /**
+     * Resolves the currently authenticated athlete from the session or security context.
+     *
+     * @param session the HTTP session
+     * @return the authenticated athlete, or {@code null} if not available
+     */
         private Athlete getAuthenticatedAthlete(HttpSession session) {
             Athlete athlete = (Athlete) session.getAttribute("athlete");
             if (athlete != null) {
@@ -139,12 +197,19 @@ public class ChallengeController {
             Optional<Athlete> athleteOptional = athleteRepository.findByEmail(authentication.getName());
             if (athleteOptional.isPresent()) {
                 athlete = athleteOptional.get();
-                session.setAttribute("athlete", athlete);
+                session.setAttribute(ATHLETE_ATTR, athlete);
             }
             
             return athlete;
         }
 
+    /**
+     * Adds the authenticated athlete as a participant to the specified challenge.
+     *
+    * @param id      the challenge identifier
+     * @param session the HTTP session for athlete resolution
+     * @return a redirect to the challenge list
+     */
         @GetMapping("/challenges/participate")
         public String participateInChallenge(@RequestParam int id, HttpSession session) {
             Athlete athlete = getAuthenticatedAthlete(session);
@@ -164,6 +229,13 @@ public class ChallengeController {
             return "redirect:/challenges";
         }
 
+    /**
+     * Lists all challenges in the system, available for browsing and participation.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "challenge/challenges", or a redirect to login
+     */
         @GetMapping("/challenges/list")
         public String listAllChallenges(HttpSession session, Model model) {
             Athlete athlete = getAuthenticatedAthlete(session);
@@ -171,7 +243,7 @@ public class ChallengeController {
                 return "redirect:/login";
             }
             List<Challenge> challenges = challengeRepository.findAll();
-            model.addAttribute("athlete", athlete);
+            model.addAttribute(ATHLETE_ATTR, athlete);
             model.addAttribute("challenges", challenges);
             return "challenge/challenges";
     }
