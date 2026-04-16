@@ -13,12 +13,11 @@ public class AdminService {
     private static final String MAIL = "admin@mail.com";
     private static final String USERNAME = "admin";
 
-    @Value("${admin.default.password}")
-    private String defaultPassword;
-
     private final AdminRepository adminRepository;
 
-    public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+    public AdminService(AdminRepository adminRepository,
+                        PasswordEncoder passwordEncoder,
+                        @Value("${admin.default.password}") String defaultPassword) {
         this.adminRepository = adminRepository;
 
         if (adminRepository.count() == 0) {
