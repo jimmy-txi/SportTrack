@@ -16,9 +16,6 @@ import fr.utc.miage.sporttrack.util.TextNormalizer;
  */
 public class SportFormDTO extends AbstractIdFormDTO {
 
-    /** The unique identifier of the sport; {@code 0} for creation, positive for update. */
-    private int id;
-
     /** The display name of the sport (e.g., "Running", "Swimming"). */
     private String name;
 
@@ -32,15 +29,6 @@ public class SportFormDTO extends AbstractIdFormDTO {
     private SportType type;
 
     // --- Getters ---
-
-    /**
-     * Returns the unique identifier of the sport.
-     *
-     * @return the sport identifier; {@code 0} for a new sport
-     */
-    public int getId() {
-        return id;
-    }
 
     /**
      * Returns the display name of the sport.
