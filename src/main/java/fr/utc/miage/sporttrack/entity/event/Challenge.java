@@ -21,6 +21,7 @@ import jakarta.persistence.Enumerated;
 
 import java.util.ArrayList;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -60,6 +61,9 @@ public class Challenge {
     @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("rankPosition ASC")
     private List<ChallengeRanking> rankings = new ArrayList<>();
+
+    @Column(name = "ended_notified_at")
+    private LocalDateTime endedNotifiedAt;
 
     public Challenge() {}
 
@@ -139,6 +143,10 @@ public class Challenge {
         return rankings;
     }
 
+    public LocalDateTime getEndedNotifiedAt() {
+        return endedNotifiedAt;
+    }
+
     public void setRankings(List<ChallengeRanking> rankings) {
         this.rankings.clear();
         if (rankings == null) {
@@ -155,6 +163,10 @@ public class Challenge {
         }
         ranking.setChallenge(this);
         this.rankings.add(ranking);
+    }
+
+    public void setEndedNotifiedAt(LocalDateTime endedNotifiedAt) {
+        this.endedNotifiedAt = endedNotifiedAt;
     }
 
     public int getId() {

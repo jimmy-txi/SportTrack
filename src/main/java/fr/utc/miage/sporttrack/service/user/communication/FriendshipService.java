@@ -6,6 +6,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.entity.user.communication.Friendship;
 import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +20,24 @@ import java.util.Set;
 @Service
 public class FriendshipService {
 
+    private static final String ATHLETE_NOT_FOUND = "Athlete not found";
+
     private final FriendshipRepository friendshipRepository;
     private final AthleteRepository athleteRepository;
+    private final NotificationService notificationService;
 
     /**
      * Initializes the FriendshipService with required repositories.
      */
     public FriendshipService(FriendshipRepository friendshipRepository, AthleteRepository athleteRepository) {
+        this(friendshipRepository, athleteRepository, null);
+    }
+
+    @Autowired
+    public FriendshipService(FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, NotificationService notificationService) {
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
+        this.notificationService = notificationService;
     }
 
     // ========================= Friend Request =========================
@@ -59,15 +69,25 @@ public class FriendshipService {
 
         // Check if a relationship already exists between the two athletes
         friendshipRepository.findBetweenAthletes(initiator, recipient).ifPresentOrElse(
-                existing -> handleExistingFriendship(existing, initiator, recipient),
-                () -> friendshipRepository.save(new Friendship(initiator, recipient))
+                existing -> {
+                    Friendship saved = handleExistingFriendship(existing, initiator, recipient);
+                    if (notificationService != null) {
+                        notificationService.notifyFriendRequest(saved);
+                    }
+                },
+                () -> {
+                    Friendship saved = friendshipRepository.save(new Friendship(initiator, recipient));
+                    if (notificationService != null) {
+                        notificationService.notifyFriendRequest(saved);
+                    }
+                }
         );
     }
 
     /**
      * Processes an existing friendship record when a new request is made.
      */
-    private void handleExistingFriendship(Friendship existing, Athlete initiator, Athlete recipient) {
+    private Friendship handleExistingFriendship(Friendship existing, Athlete initiator, Athlete recipient) {
         switch (existing.getStatus()) {
             case PENDING -> throw new IllegalStateException("A friend request already exists and is pending");
             case ACCEPTED -> throw new IllegalStateException("You are already friends");
@@ -77,10 +97,11 @@ public class FriendshipService {
                 existing.setRecipient(recipient);
                 existing.setStatus(FriendshipStatus.PENDING);
                 existing.setCreatedAt(LocalDateTime.now());
-                friendshipRepository.save(existing);
+                return friendshipRepository.save(existing);
             }
             case BLOCKED -> throw new IllegalStateException("A block relationship exists between you and this user");
         }
+        return existing;
     }
 
     /**
@@ -99,7 +120,10 @@ public class FriendshipService {
         }
 
         friendship.setStatus(FriendshipStatus.ACCEPTED);
-        friendshipRepository.save(friendship);
+        Friendship saved = friendshipRepository.save(friendship);
+        if (notificationService != null) {
+            notificationService.notifyFriendRequestAccepted(saved);
+        }
     }
 
     /**
@@ -248,7 +272,7 @@ public class FriendshipService {
      * Returns all pending friend requests waiting for the athlete to accept.
      */
     public List<Friendship> getPendingRequestsForAthlete(Integer athleteId) {
-        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
+        Athlete athlete = findAthleteOrThrow(athleteId, ATHLETE_NOT_FOUND);
         return friendshipRepository.findByRecipientAndStatus(athlete, FriendshipStatus.PENDING);
     }
 
@@ -256,7 +280,7 @@ public class FriendshipService {
      * Returns all friend requests sent by the athlete that are still pending.
      */
     public List<Friendship> getSentPendingRequests(Integer athleteId) {
-        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
+        Athlete athlete = findAthleteOrThrow(athleteId, ATHLETE_NOT_FOUND);
         return friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.PENDING);
     }
 
@@ -264,7 +288,7 @@ public class FriendshipService {
      * Returns all users blocked by the given athlete.
      */
     public List<Friendship> getBlockedUsers(Integer athleteId) {
-        Athlete athlete = findAthleteOrThrow(athleteId, "Athlete not found");
+        Athlete athlete = findAthleteOrThrow(athleteId, ATHLETE_NOT_FOUND);
         return friendshipRepository.findByInitiatorAndStatus(athlete, FriendshipStatus.BLOCKED);
     }
 
