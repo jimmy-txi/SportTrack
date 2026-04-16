@@ -42,6 +42,9 @@ public class Activity {
     @Transient
     private Integer sportId;
 
+    @Transient
+    private java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> comments = new java.util.ArrayList<>();
+
     public Activity() {}
 
     public int getId() {
@@ -194,5 +197,13 @@ public class Activity {
             return 0d;
         }
         return duration * sportAndType.getCaloriesPerHour();
+    }
+
+    public java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(java.util.List<fr.utc.miage.sporttrack.entity.user.communication.Comment> comments) {
+        this.comments = comments;
     }
 }

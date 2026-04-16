@@ -75,6 +75,9 @@ class FriendshipControllerTest {
     private BadgeService badgeService;
 
     @Mock
+    private fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -405,6 +408,8 @@ class FriendshipControllerTest {
         secondActivity.setId(102);
 
         when(activityService.findAllByAthleteIds(List.of(2, 3))).thenReturn(List.of(firstActivity, secondActivity));
+        when(commentService.getCommentsForActivity(101)).thenReturn(Collections.emptyList());
+        when(commentService.getCommentsForActivity(102)).thenReturn(Collections.emptyList());
 
         String result = controller.friendsActivities(session, model);
 

@@ -54,7 +54,9 @@ public class Badge {
     )
     private List<Athlete> earnedBy;
 
-    public Badge() {}
+    public Badge() {
+        // normal if empty
+    }
 
     // --- Getters ---
 

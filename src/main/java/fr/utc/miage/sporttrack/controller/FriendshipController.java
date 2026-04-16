@@ -46,8 +46,9 @@ public class FriendshipController {
     private final ActivityService activityService;
     private final WeatherReportService weatherReportService;
     private final BadgeService badgeService;
+    private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
-    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService, fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
@@ -55,6 +56,7 @@ public class FriendshipController {
         this.activityService = activityService;
         this.weatherReportService = weatherReportService;
         this.badgeService = badgeService;
+        this.commentService = commentService;
     }
 
     /**
@@ -321,9 +323,14 @@ public class FriendshipController {
 
     private List<Activity> loadActivitiesForAthletes(List<Integer> athleteIds) {
         List<Activity> activities = activityService.findAllByAthleteIds(athleteIds);
-        activities.forEach(activity -> activity.setWeatherReport(
-                weatherReportService.findByActivityId(activity.getId()).orElse(null)
-        ));
+        activities.forEach(activity -> {
+            activity.setWeatherReport(
+                    weatherReportService.findByActivityId(activity.getId()).orElse(null)
+            );
+            activity.setComments(
+                    commentService.getCommentsForActivity(activity.getId())
+            );
+        });
         return activities;
     }
 }
