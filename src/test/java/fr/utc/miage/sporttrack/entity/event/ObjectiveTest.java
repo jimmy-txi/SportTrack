@@ -1,12 +1,11 @@
 package fr.utc.miage.sporttrack.entity.event;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
-import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
-import fr.utc.miage.sporttrack.service.event.ObjectiveService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,5 +62,25 @@ class ObjectiveTest {
         objective.setName(newName);
 
         assertEquals(newName, objective.getName());
+    }
+
+    @Test
+    void shouldStoreCompletionStatusAndDate() {
+        Objective objective = new Objective(NAME, DESCRIPTION);
+        LocalDateTime completedAt = LocalDateTime.of(2026, 4, 16, 12, 0);
+
+        objective.setCompleted(true);
+        objective.setCompletedAt(completedAt);
+
+        assertTrue(objective.isCompleted());
+        assertEquals(completedAt, objective.getCompletedAt());
+    }
+
+    @Test
+    void shouldKeepDefaultCompletionValuesOnCreation() {
+        Objective objective = new Objective(NAME, DESCRIPTION);
+
+        assertFalse(objective.isCompleted());
+        assertNull(objective.getCompletedAt());
     }
 }

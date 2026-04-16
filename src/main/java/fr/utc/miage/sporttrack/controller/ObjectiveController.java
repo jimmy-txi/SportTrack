@@ -156,7 +156,7 @@ public class ObjectiveController {
         Optional<Athlete> athleteOptional = athleteRepository.findByEmail(authentication.getName());
         if (athleteOptional.isPresent()) {
             athlete = athleteOptional.get();
-            session.setAttribute("athlete", athlete);
+            session.setAttribute(ATHLETE_ATTRIBUTE, athlete);
         }
 
         return athlete;
