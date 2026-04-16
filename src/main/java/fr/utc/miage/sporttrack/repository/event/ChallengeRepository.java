@@ -7,11 +7,15 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import fr.utc.miage.sporttrack.entity.event.Challenge;
 
+@Repository
 public interface ChallengeRepository extends JpaRepository<Challenge, Integer> {
     List<Challenge> findDistinctByOrganizer_IdOrParticipants_Id(int organizerId, int participantId);
+
+  List<Challenge> findByEndDateLessThanEqualAndEndedNotifiedAtIsNull(LocalDate currentDate);
 
     @Query("""
         SELECT DISTINCT c

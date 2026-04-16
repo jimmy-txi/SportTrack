@@ -3,6 +3,7 @@ package fr.utc.miage.sporttrack.service.event;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -10,8 +11,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +28,7 @@ import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.event.ObjectiveRepository;
+import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 class ObjectiveServiceTest {
@@ -36,6 +40,9 @@ class ObjectiveServiceTest {
     
     @Mock
     private ObjectiveRepository objectiveRepository;
+
+    @Mock
+    private NotificationService notificationService;
     
     @InjectMocks
     private ObjectiveService objectiveService;
@@ -62,7 +69,65 @@ class ObjectiveServiceTest {
         
         assertEquals(ATHLETE, objective.getUser());
         assertEquals(SPORT, objective.getSport());
+        assertFalse(objective.isCompleted());
+        assertEquals(null, objective.getCompletedAt());
         verify(objectiveRepository, times(1)).save(objective);
+    }
+
+    @Test
+    void markAsCompletedShouldThrowWhenAthleteIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> objectiveService.markAsCompleted(1, null));
+    }
+
+    @Test
+    void markAsCompletedShouldThrowWhenAthleteIdIsNull() {
+        Athlete athleteWithoutId = new Athlete();
+        athleteWithoutId.setUsername("u");
+        athleteWithoutId.setPassword("p");
+        athleteWithoutId.setEmail("u@mail.com");
+
+        assertThrows(IllegalArgumentException.class, () -> objectiveService.markAsCompleted(1, athleteWithoutId));
+    }
+
+    @Test
+    void markAsCompletedShouldThrowWhenObjectiveNotFound() {
+        Athlete athleteWithId = createAthleteWithId(101);
+        when(objectiveRepository.findByIdAndAthlete_Id(1, athleteWithId.getId())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> objectiveService.markAsCompleted(1, athleteWithId));
+    }
+
+    @Test
+    void markAsCompletedShouldUpdateObjectiveAndNotify() {
+        Athlete athleteWithId = createAthleteWithId(102);
+        Objective objective = new Objective(NAME, DESCRIPTION);
+        objective.setAthlete(athleteWithId);
+        objective.setSport(SPORT);
+        objective.setCompleted(false);
+
+        when(objectiveRepository.findByIdAndAthlete_Id(2, athleteWithId.getId())).thenReturn(Optional.of(objective));
+
+        Objective result = objectiveService.markAsCompleted(2, athleteWithId);
+
+        assertTrue(result.isCompleted());
+        assertNotNull(result.getCompletedAt());
+        verify(objectiveRepository).save(objective);
+        verify(notificationService).notifyObjectiveCompleted(athleteWithId, objective);
+    }
+
+    @Test
+    void markAsCompletedShouldNotSaveWhenAlreadyCompleted() {
+        Athlete athleteWithId = createAthleteWithId(103);
+        Objective objective = new Objective(NAME, DESCRIPTION);
+        objective.setCompleted(true);
+
+        when(objectiveRepository.findByIdAndAthlete_Id(3, athleteWithId.getId())).thenReturn(Optional.of(objective));
+
+        Objective result = objectiveService.markAsCompleted(3, athleteWithId);
+
+        assertTrue(result.isCompleted());
+        verify(objectiveRepository, never()).save(any());
+        verify(notificationService, never()).notifyObjectiveCompleted(any(), any());
     }
     
     @Test
@@ -108,7 +173,7 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenActivitiesIsNull() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(createSport(1, null));
         boolean result = objectiveService.isObjectiveCompleted(objective, null);
         assertEquals(false, result);
     }
@@ -116,7 +181,7 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenActivitiesIsEmpty() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(createSport(1, null));
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of());
         assertEquals(false, result);
     }
@@ -124,11 +189,10 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenNoMatchingActivity() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(createSport(1, null));
         
         Activity activity = new Activity();
-        Sport differentSport = new Sport();
-        differentSport.setId(999);
+        Sport differentSport = createSport(999, null);
         activity.setSportAndType(differentSport);
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -138,11 +202,10 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnTrueWhenSportTypeIsNull() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(createSport(1, null));
         
         Activity activity = new Activity();
-        SPORT.setType(null);
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(createSport(1, null));
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
         assertEquals(true, result);
@@ -151,11 +214,11 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnTrueWhenDistanceTypeAndValidDistance() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.DISTANCE);
+        Sport sport = createSport(1, SportType.DISTANCE);
+        objective.setSport(sport);
         
         Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(sport);
         activity.setDistance(5.0);
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -165,11 +228,11 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenDistanceTypeAndInvalidDistance() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.DISTANCE);
+        Sport sport = createSport(1, SportType.DISTANCE);
+        objective.setSport(sport);
         
         Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(sport);
         activity.setDistance(0.0);
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -179,11 +242,11 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnTrueWhenRepetitionTypeAndValidRepetition() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.REPETITION);
+        Sport sport = createSport(1, SportType.REPETITION);
+        objective.setSport(sport);
         
         Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(sport);
         activity.setRepetition(10);
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -193,11 +256,11 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenRepetitionTypeAndInvalidRepetition() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.REPETITION);
+        Sport sport = createSport(1, SportType.REPETITION);
+        objective.setSport(sport);
         
         Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(sport);
         activity.setRepetition(0);
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -206,13 +269,13 @@ class ObjectiveServiceTest {
     
     @Test
     void isObjectiveCompletedShouldReturnTrueWhenMatchingActivityExists() {
-        SPORT.setId(1);
+        Sport sport = createSport(1, SportType.DISTANCE);
         
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(sport);
         
         Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
+        activity.setSportAndType(sport);
         activity.setDistance(10.0); 
         
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
@@ -233,7 +296,7 @@ class ObjectiveServiceTest {
     @Test
     void isObjectiveCompletedShouldReturnFalseWhenActivitySportIsNull() {
         Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
+        objective.setSport(createSport(1, null));
         
         Activity activity = new Activity();
         activity.setSportAndType(null);
@@ -241,87 +304,26 @@ class ObjectiveServiceTest {
         boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
         assertEquals(false, result);
     }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnFalseWhenActivitySportIdDoesNotMatch() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        
-        Activity activity = new Activity();
-        Sport differentSport = new Sport();
-        differentSport.setId(999);
-        activity.setSportAndType(differentSport);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(false, result);
+
+    private Athlete createAthleteWithId(int id) {
+        Athlete athlete = new Athlete();
+        athlete.setUsername("athlete" + id);
+        athlete.setPassword("pwd");
+        athlete.setEmail("athlete" + id + "@mail.com");
+        try {
+            Field field = athlete.getClass().getSuperclass().getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(athlete, id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return athlete;
     }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnTrueWhenActivitySportTypeIsNull() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        
-        Activity activity = new Activity();
-        SPORT.setType(null);
-        activity.setSportAndType(SPORT);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(true, result);
-    }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnTrueWhenActivitySportTypeIsDistanceAndValidDistance() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.DISTANCE);
-        
-        Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
-        activity.setDistance(5.0);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(true, result);
-    }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnFalseWhenActivitySportTypeIsDistanceAndInvalidDistance() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.DISTANCE);
-        
-        Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
-        activity.setDistance(0.0);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(false, result);
-    }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnTrueWhenActivitySportTypeIsRepetitionAndValidRepetition() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.REPETITION);
-        
-        Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
-        activity.setRepetition(10);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(true, result);
-    }
-    
-    @Test
-    void isObjectiveCompletedShouldReturnFalseWhenActivitySportTypeIsRepetitionAndInvalidRepetition() {
-        Objective objective = new Objective(NAME, DESCRIPTION);
-        objective.setSport(SPORT);
-        SPORT.setType(SportType.REPETITION);
-        
-        Activity activity = new Activity();
-        activity.setSportAndType(SPORT);
-        activity.setRepetition(0);
-        
-        boolean result = objectiveService.isObjectiveCompleted(objective, List.of(activity));
-        assertEquals(false, result);
+
+    private Sport createSport(int id, SportType type) {
+        Sport sport = new Sport();
+        sport.setId(id);
+        sport.setType(type);
+        return sport;
     }
 }

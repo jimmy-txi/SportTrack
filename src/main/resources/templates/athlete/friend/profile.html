@@ -167,6 +167,9 @@
                         <i class="bi bi-heart-fill display-4 text-success"></i>
                         <p class="text-success mt-2 mb-3 fw-semibold">Vous êtes amis ✅</p>
                         <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{/messages(friendId=${profileAthlete.id})}" class="btn btn-primary">
+                                <i class="bi bi-chat-dots"></i> Envoyer un message
+                            </a>
                             <button type="button" class="btn btn-outline-danger"
                                     data-bs-toggle="modal" data-bs-target="#removeModal">
                                 <i class="bi bi-person-dash"></i> Supprimer cet ami

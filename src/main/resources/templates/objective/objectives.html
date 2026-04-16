@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
@@ -25,6 +25,7 @@
                 <tr>
                     <th>Nom</th>
                     <th>Description</th>
+                    <th class="text-center">Statut</th>
                     <th class="text-center">Actions</th>
                 </tr>
                 </thead>
@@ -33,6 +34,15 @@
                     <td class="fw-bold" th:text="${objective.name}">Nom</td>
                     <td th:text="${objective.description}">Description</td>
                     <td class="text-center">
+                        <span th:if="${objective.completed}" class="badge text-bg-success">Atteint</span>
+                        <span th:unless="${objective.completed}" class="badge text-bg-warning">En cours</span>
+                    </td>
+                    <td class="text-center">
+                        <form th:if="${!objective.completed}" th:action="@{/objectives/complete/{id}(id=${objective.id})}" method="post" class="d-inline me-1">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+                        </form>
                         <button type="button" class="btn btn-outline-danger btn-sm" 
                                 data-bs-toggle="modal" 
                                 th:data-bs-target="'#deleteModal' + ${objective.id}">
