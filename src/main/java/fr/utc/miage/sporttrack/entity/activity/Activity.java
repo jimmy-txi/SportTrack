@@ -18,9 +18,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 /**
  * JPA entity representing a sport activity recorded by an athlete within the
  * SportTrack application.
@@ -327,7 +324,13 @@ public class Activity {
      * @return the sport identifier, or {@code null} if no sport is associated
      */
     public Integer getSportId() {
-        return sportId != null ? sportId : (sportAndType != null ? sportAndType.getId() : null);
+        if (sportId != null) {
+            return sportId;
+        }
+        if (sportAndType != null) {
+            return sportAndType.getId();
+        }
+        return null;
     }
 
     /**
