@@ -22,7 +22,8 @@ public class AuthController {
 
     /** Service for athlete registration. */
     private final AthleteService athleteService;
-    private final String REGISTER = "register";
+    private static final String REGISTER = "register";
+    private static final String ERROR = "error";
 
     /**
      * Constructs an {@code AuthController} with the required service.
@@ -80,13 +81,13 @@ public class AuthController {
         athleteDto.setPassword(password);
 
         if (password == null || confirmPassword == null) {
-            model.addAttribute("error", "Passwords do not match");
+            model.addAttribute(ERROR, "Passwords do not match");
             model.addAttribute("athlete", athleteDto);
-            return "register";
+            return REGISTER;
         }
 
         if (!password.equals(confirmPassword)) {
-            model.addAttribute("error", "Passwords do not match");
+            model.addAttribute(ERROR, "Passwords do not match");
             return REGISTER;
         }
 
@@ -94,7 +95,7 @@ public class AuthController {
             athleteService.createProfile(athleteDto);
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute(ERROR, e.getMessage());
             return REGISTER;
         }
     }

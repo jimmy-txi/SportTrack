@@ -27,14 +27,17 @@ import java.util.Optional;
 @RequestMapping("/comments")
 public class CommentController {
 
+    /** Default redirect URL for comments. */
+    private static final String DEFAULT_REDIRECT = "/friends";
+
     /** The service for managing comments. */
-    CommentService commentService;
+    private final CommentService commentService;
 
     /** The service for managing activities. */
-    ActivityService activityService;
+    private final ActivityService activityService;
     
     /** The service for managing athletes. */
-    AthleteService athleteService;
+    private final AthleteService athleteService;
 
     /**
      * Constructs a new CommentController with the specified services.
@@ -64,15 +67,15 @@ public class CommentController {
             @RequestParam("activityId") int activityId,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam("interactionType") String interactionTypeStr,
-            @RequestParam(value = "redirectUrl", defaultValue = "/friends") String redirectUrl
+            @RequestParam(value = "redirectUrl", defaultValue = DEFAULT_REDIRECT) String redirectUrl
     ) {
         if (redirectUrl == null || !redirectUrl.startsWith("/") || redirectUrl.startsWith("//")) {
-            redirectUrl = "/friends";
+            redirectUrl = DEFAULT_REDIRECT;
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
+            return ControllerConstants.REDIRECT_LOGIN;
         }
 
         String email = auth.getName();
