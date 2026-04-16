@@ -1,5 +1,6 @@
 package fr.utc.miage.sporttrack.controller;
 
+import fr.utc.miage.sporttrack.dto.SportFormDTO;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.user.AdminService;
@@ -47,7 +48,7 @@ public class SportController {
             return "redirect:/login";
         }
 
-        model.addAttribute("sport", new Sport());
+        model.addAttribute("sport", new SportFormDTO());
         return "admin/sport/create";
     }
 
@@ -65,7 +66,14 @@ public class SportController {
             redirectAttributes.addAttribute("error", "Sport not found");
             return "redirect:/admin/sports";
         }
-        model.addAttribute("sport", sport.get());
+        Sport s = sport.get();
+        SportFormDTO dto = new SportFormDTO();
+        dto.setId(s.getId());
+        dto.setName(s.getName());
+        dto.setDescription(s.getDescription());
+        dto.setCaloriesPerHour(s.getCaloriesPerHour());
+        dto.setType(s.getType());
+        model.addAttribute("sport", dto);
         return "admin/sport/create";
     }
 
@@ -73,29 +81,29 @@ public class SportController {
      * Sauvegarde un nouveau sport ou met à jour un sport existant
      */
     @PostMapping("/save")
-    public String saveSport(@ModelAttribute Sport sport, RedirectAttributes redirectAttributes, Authentication auth) {
+    public String saveSport(@ModelAttribute SportFormDTO dto, RedirectAttributes redirectAttributes, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
             return "redirect:/login";
         }
 
         try {
-            if (sport.getId() == 0) {
+            if (dto.getId() == 0) {
                 // Création d'un nouveau sport
                 sportService.createSport(
-                        sport.getName(),
-                        sport.getDescription(),
-                        sport.getCaloriesPerHour(),
-                        sport.getType()
+                        dto.getName(),
+                        dto.getDescription(),
+                        dto.getCaloriesPerHour(),
+                        dto.getType()
                 );
                 redirectAttributes.addAttribute("created", true);
             } else {
                 // Mise à jour d'un sport existant
                 sportService.updateSport(
-                        sport.getId(),
-                        sport.getName(),
-                        sport.getDescription(),
-                        sport.getCaloriesPerHour(),
-                        sport.getType()
+                        dto.getId(),
+                        dto.getName(),
+                        dto.getDescription(),
+                        dto.getCaloriesPerHour(),
+                        dto.getType()
                 );
                 redirectAttributes.addAttribute("updated", true);
             }
