@@ -161,7 +161,7 @@ public class ActivityService {
         activityRepository.deleteById(id);
     }
 
-    private Sport checkSport(int sportId) {
+    Sport checkSport(int sportId) {
         if (sportId <= 0) {
             throw new IllegalArgumentException("Sport is required");
         }
@@ -169,7 +169,7 @@ public class ActivityService {
                 .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + sportId));
     }
 
-    private void checkMetricBySportType(SportType sportType, double duration, int repetition, double distance) {
+    void checkMetricBySportType(SportType sportType, double duration, int repetition, double distance) {
         if (sportType == null) {
             throw new IllegalArgumentException("Sport type is required");
         }
@@ -186,7 +186,7 @@ public class ActivityService {
         }
     }
 
-    private void checkDateA(LocalDate dateA) {
+    void checkDateA(LocalDate dateA) {
         if (dateA == null) {
             throw new IllegalArgumentException("Activity date is required");
         }
@@ -195,19 +195,19 @@ public class ActivityService {
         }
     }
 
-    private void checkLocationCity(String locationCity) {
+    void checkLocationCity(String locationCity) {
         if (locationCity == null || locationCity.isBlank()) {
             throw new IllegalArgumentException("Location city cannot be null or empty");
         }
     }
 
-    private void checkTitle(String title) {
+    void checkTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Activity title cannot be null or empty");
         }
     }
 
-    private void checkStartTime(java.time.LocalTime startTime) {
+    void checkStartTime(java.time.LocalTime startTime) {
         if (startTime == null) {
             throw new IllegalArgumentException("Activity start time is required");
         }
