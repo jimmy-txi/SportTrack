@@ -1,6 +1,5 @@
 package fr.utc.miage.sporttrack.controller;
 
-import fr.utc.miage.sporttrack.entity.user.Admin;
 import fr.utc.miage.sporttrack.service.user.AdminService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -43,10 +42,10 @@ public class AdminController {
     public String home(Model model, Authentication auth) {
 
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return ControllerConstants.REDIRECT_LOGIN;
         }
 
-        return "admin/home";
+        return ControllerConstants.ADMIN_HOME_VIEW;
     }
 
 }

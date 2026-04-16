@@ -23,6 +23,7 @@ public class SportService {
 
     /** The repository used for persisting and retrieving sport entities. */
     private final SportRepository repository;
+    private final String SPORT_NOT_FOUND = "Sport not found with id: ";
 
     /**
      * Constructs a new {@code SportService} with the given repository.
@@ -101,7 +102,7 @@ public class SportService {
         checkCaloriesPerHour(caloriesPerHour);
 
         Sport sport = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setName(name);
         sport.setDescription(description);
@@ -118,7 +119,7 @@ public class SportService {
      * @throws IllegalArgumentException if no sport is found with the given identifier
      */
     public void disableSport(int id) {
-        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setActive(false);
         repository.save(sport);
@@ -131,7 +132,7 @@ public class SportService {
      * @throws IllegalArgumentException if no sport is found with the given identifier
      */
     public void enableSport(int id) {
-        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + id));
+        Sport sport = repository.findById(id).orElseThrow(() -> new IllegalArgumentException(SPORT_NOT_FOUND + id));
 
         sport.setActive(true);
         repository.save(sport);

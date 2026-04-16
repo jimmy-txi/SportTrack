@@ -58,7 +58,7 @@ public class BadgeController {
     public String listMyBadges(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return ControllerConstants.REDIRECT_LOGIN;
         }
 
         List<Badge> earned = badgeService.getEarnedBadges(athlete.getId());
@@ -66,7 +66,7 @@ public class BadgeController {
 
         model.addAttribute("earned", earned);
         model.addAttribute("unearned", unearned);
-        return "athlete/badge/list";
+        return ControllerConstants.ATHLETE_BADGE_LIST_VIEW;
     }
 
     /**
@@ -81,18 +81,18 @@ public class BadgeController {
     public String listAthleteBadges(@PathVariable int id, HttpSession session, Model model) {
         Athlete currentUser = getAuthenticatedAthlete(session);
         if (currentUser == null) {
-            return "redirect:/login";
+            return ControllerConstants.REDIRECT_LOGIN;
         }
 
         Optional<Athlete> targetAthlete = athleteRepository.findById(id);
         if (targetAthlete.isEmpty()) {
-            return "redirect:/athlete/list";
+            return ControllerConstants.REDIRECT_ATHLETE_LIST;
         }
 
         List<Badge> earned = badgeService.getEarnedBadges(id);
         model.addAttribute("targetAthlete", targetAthlete.get());
         model.addAttribute("earned", earned);
-        return "athlete/badge/list";
+        return ControllerConstants.ATHLETE_BADGE_LIST_VIEW;
     }
 
     /**
@@ -102,7 +102,7 @@ public class BadgeController {
      * @return the authenticated athlete, or {@code null} if not available
      */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
-        Athlete athlete = (Athlete) session.getAttribute("athlete");
+        Athlete athlete = (Athlete) session.getAttribute(ControllerConstants.ATHLETE_ATTR);
         if (athlete != null) {
             return athlete;
         }
@@ -115,7 +115,7 @@ public class BadgeController {
         Optional<Athlete> athleteOptional = athleteRepository.findByEmail(authentication.getName());
         if (athleteOptional.isPresent()) {
             athlete = athleteOptional.get();
-            session.setAttribute("athlete", athlete);
+            session.setAttribute(ControllerConstants.ATHLETE_ATTR, athlete);
         }
 
         return athlete;

@@ -43,6 +43,9 @@ public class AdminBadgeController {
 
     /** Repository for direct sport lookups. */
     private final SportRepository sportRepository;
+    private static final String ERROR_ATTRIBUTE = "error";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_BADGES = "redirect:/admin/badges";
 
     /**
      * Constructs an {@code AdminBadgeController} with the required dependencies.
@@ -72,7 +75,7 @@ public class AdminBadgeController {
     @GetMapping
     public String listBadges(Model model, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         List<Badge> badges = badgeService.findAll();
@@ -90,7 +93,7 @@ public class AdminBadgeController {
     @GetMapping("/create")
     public String showCreateForm(Model model, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         model.addAttribute("badge", new BadgeFormDTO());
@@ -112,7 +115,7 @@ public class AdminBadgeController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable int id, Model model, RedirectAttributes redirectAttributes, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
@@ -131,8 +134,8 @@ public class AdminBadgeController {
             model.addAttribute("icons", PRESET_ICONS);
             return "admin/badge/create";
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
-            return "redirect:/admin/badges";
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
+            return REDIRECT_BADGES;
         }
     }
 
@@ -149,7 +152,7 @@ public class AdminBadgeController {
                             RedirectAttributes redirectAttributes,
                             Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
@@ -180,10 +183,10 @@ public class AdminBadgeController {
             badgeService.saveBadge(badge, sport);
             redirectAttributes.addAttribute("saved", true);
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
             return "redirect:/admin/badges/create";
         }
-        return "redirect:/admin/badges";
+        return REDIRECT_BADGES;
     }
 
     /**
@@ -197,16 +200,16 @@ public class AdminBadgeController {
     @PostMapping("/delete/{id}")
     public String deleteBadge(@PathVariable int id, RedirectAttributes redirectAttributes, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             badgeService.deleteById(id);
             redirectAttributes.addAttribute("deleted", true);
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
         }
-        return "redirect:/admin/badges";
+        return REDIRECT_BADGES;
     }
 
     /** Preset Bootstrap Icons available for badge icon selection. */

@@ -57,6 +57,7 @@ public class DashboardController {
 
     /** Attribute key for the ISO week number in weekly aggregates. */
     public static final String WEEK_NUMBER = "weekNumber";
+    public static final String ATHLETE_ATTR = "athlete";
 
     /** Service for activity queries and filtering. */
     private final ActivityService activityService;
@@ -172,7 +173,7 @@ public class DashboardController {
         List<String> objectiveStatusLabels = List.of("Réalisés", "À réaliser");
         List<Integer> objectiveStatusCounts = List.of((int) objectivesCompleted, (int) objectivesRemaining);
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("activities", filteredActivities);
         model.addAttribute("recentActivities", filteredActivities.stream().limit(5).toList());
         model.addAttribute("objectives", objectives);
@@ -253,7 +254,7 @@ public class DashboardController {
                 .map(w -> (Integer) w.get(TOTAL_REPETITION))
                 .toList();
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("sports", sports);
         model.addAttribute("selectedSport", selectedSport);
         model.addAttribute("selectedSportId", selectedSport != null ? selectedSport.getId() : null);
@@ -379,7 +380,7 @@ public class DashboardController {
      * @return the authenticated athlete, or {@code null} if not authenticated or not an athlete
      */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
-        Athlete athlete = (Athlete) session.getAttribute("athlete");
+        Athlete athlete = (Athlete) session.getAttribute(ATHLETE_ATTR);
         if (athlete != null) {
             return athlete;
         }
@@ -391,7 +392,7 @@ public class DashboardController {
 
         return athleteRepository.findByEmail(authentication.getName())
                 .map(found -> {
-                    session.setAttribute("athlete", found);
+                    session.setAttribute(ATHLETE_ATTR, found);
                     return found;
                 })
                 .orElse(null);

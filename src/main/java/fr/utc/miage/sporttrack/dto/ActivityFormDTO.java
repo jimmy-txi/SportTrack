@@ -53,6 +53,7 @@ public class ActivityFormDTO extends AbstractIdFormDTO {
      *
      * @return the activity identifier, or {@code null} for a new activity
      */
+    @Override
     public Integer getId() {
         return id;
     }
@@ -62,6 +63,7 @@ public class ActivityFormDTO extends AbstractIdFormDTO {
      *
      * @param id the activity identifier to assign
      */
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }

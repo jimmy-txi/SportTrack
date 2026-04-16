@@ -22,6 +22,45 @@ import jakarta.persistence.Column;
 @Entity
 public class WeatherReport {
 
+    /** WMO weather code for clear sky. */
+    private static final int WEATHER_CODE_CLEAR = 0;
+    
+    /** WMO weather code for mainly clear. */
+    private static final int WEATHER_CODE_MAINLY_CLEAR = 1;
+    
+    /** WMO weather code for partly cloudy. */
+    private static final int WEATHER_CODE_PARTLY_CLOUDY = 2;
+    
+    /** WMO weather code for overcast. */
+    private static final int WEATHER_CODE_OVERCAST = 3;
+    
+    /** WMO weather code for foggy. */
+    private static final int WEATHER_CODE_FOG = 45;
+    
+    /** WMO weather code for depositing rime fog. */
+    private static final int WEATHER_CODE_RIME_FOG = 48;
+    
+    /** Minimum WMO weather code for rain/snow (drizzle). */
+    private static final int WEATHER_CODE_RAIN_MIN = 51;
+    
+    /** Maximum WMO weather code for rain/snow (drizzle). */
+    private static final int WEATHER_CODE_RAIN_DRIZZLE_MAX = 67;
+    
+    /** Minimum WMO weather code for rain/snow (rain/snow). */
+    private static final int WEATHER_CODE_RAIN_SNOW_MIN = 71;
+    
+    /** Maximum WMO weather code for rain/snow (rain/snow). */
+    private static final int WEATHER_CODE_RAIN_SNOW_MAX = 77;
+    
+    /** Minimum WMO weather code for rain/snow (showers). */
+    private static final int WEATHER_CODE_SHOWERS_MIN = 80;
+    
+    /** Maximum WMO weather code for rain/snow (showers). */
+    private static final int WEATHER_CODE_SHOWERS_MAX = 99;
+    
+    /** Threshold for no precipitation. */
+    private static final double NO_PRECIPITATION_THRESHOLD = 0d;
+
     /** The unique database-generated identifier for this weather report. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +89,7 @@ public class WeatherReport {
      * No-argument constructor required by JPA.
      */
     public WeatherReport() {
+        // Default constructor for JPA
     }
 
     /**
@@ -168,10 +208,10 @@ public class WeatherReport {
      */
     public boolean isSunny() {
         if (weatherCode == null) {
-            return precipitationSum <= 0d;
+            return precipitationSum <= NO_PRECIPITATION_THRESHOLD;
         }
 
-        return weatherCode == 0 || weatherCode == 1 || weatherCode == 2;
+        return weatherCode == WEATHER_CODE_CLEAR || weatherCode == WEATHER_CODE_MAINLY_CLEAR || weatherCode == WEATHER_CODE_PARTLY_CLOUDY;
     }
 
     /**
@@ -182,12 +222,12 @@ public class WeatherReport {
      */
     public boolean isRainy() {
         if (weatherCode == null) {
-            return precipitationSum > 0d;
+            return precipitationSum > NO_PRECIPITATION_THRESHOLD;
         }
 
-        return (weatherCode >= 51 && weatherCode <= 67)
-                || (weatherCode >= 71 && weatherCode <= 77)
-                || (weatherCode >= 80 && weatherCode <= 99);
+        return (weatherCode >= WEATHER_CODE_RAIN_MIN && weatherCode <= WEATHER_CODE_RAIN_DRIZZLE_MAX)
+                || (weatherCode >= WEATHER_CODE_RAIN_SNOW_MIN && weatherCode <= WEATHER_CODE_RAIN_SNOW_MAX)
+                || (weatherCode >= WEATHER_CODE_SHOWERS_MIN && weatherCode <= WEATHER_CODE_SHOWERS_MAX);
     }
 
     /**
@@ -196,7 +236,7 @@ public class WeatherReport {
      * @return {@code true} if conditions are cloudy, {@code false} otherwise
      */
     public boolean isCloudyWeather() {
-        return weatherCode != null && (weatherCode == 3 || weatherCode == 45 || weatherCode == 48);
+        return weatherCode != null && (weatherCode == WEATHER_CODE_OVERCAST || weatherCode == WEATHER_CODE_FOG || weatherCode == WEATHER_CODE_RIME_FOG);
     }
 
     /**
