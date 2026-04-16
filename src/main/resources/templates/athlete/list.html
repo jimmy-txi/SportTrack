@@ -8,21 +8,20 @@
 
     <!-- Bootswatch (Bootstrap + thème) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <!-- Optionnel: styles projet -->
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
 <body>
+        <div th:insert="~{fragments/header :: header}"></div>
     <main class="container py-5">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
             <div>
                 <h1 class="h3 mb-1">Athlètes</h1>
                 <p class="text-body-secondary mb-0">Liste des sportifs enregistrés dans SportTrack.</p>
             </div>
-            <a th:href="@{/athlete/new}" class="btn btn-primary">
-                + Ajouter un athlète
-            </a>
         </div>
 
         <div class="card shadow-sm border-0">
@@ -51,8 +50,9 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">Username</th>
-                                <th scope="col">Niveau</th>
+                                <th scope="col">Nom d'utilisateur</th>
+                                <th scope="col">Niveau sportif</th>
+                                <th scope="col">Badges</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,6 +60,16 @@
                                 <td class="fw-semibold" th:text="${athlete.username}">John Doe</td>
                                 <td>
                                     <span class="badge rounded-pill text-bg-secondary" th:text="${athlete.practiceLevel}">Niveau 1</span>
+                                </td>
+                                <td>
+                                    <span th:if="${athleteBadges[athlete.id] != null and !athleteBadges[athlete.id].isEmpty()}">
+                                        <span th:each="badge : ${athleteBadges[athlete.id]}">
+                                            <i th:class="'bi ' + ${badge.icon}" style="color: #e6a817; font-size: 1.2rem;"
+                                               th:title="${badge.label}" data-bs-toggle="tooltip"></i>
+                                        </span>
+                                    </span>
+                                    <span th:if="${athleteBadges[athlete.id] == null or athleteBadges[athlete.id].isEmpty()}"
+                                          class="text-muted small">—</span>
                                 </td>
                             </tr>
 
@@ -74,6 +84,7 @@
             </div>
         </div>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

@@ -32,7 +32,7 @@ class UserControllerTest {
 
         String redirectUrl = controller.updateProfile(updatedAthlete, authentication);
 
-        assertEquals("redirect:/?updated=true", redirectUrl);
+        assertEquals("redirect:/profile?updated=true", redirectUrl);
         verify(athleteService).updateProfile("czy@test.com", updatedAthlete);
     }
 
@@ -54,6 +54,6 @@ class UserControllerTest {
 
         String redirectUrl = controller.updateProfile(updatedAthlete, authentication);
 
-        assertEquals("redirect:/?error=true", redirectUrl);
+        assertEquals("redirect:/profile?error=true", redirectUrl);
     }
 }

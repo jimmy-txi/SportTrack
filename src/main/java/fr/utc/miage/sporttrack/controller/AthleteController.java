@@ -1,8 +1,14 @@
 package fr.utc.miage.sporttrack.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,19 +20,40 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AthleteController {
 
     private final AthleteService athleteService;
+    private final BadgeService badgeService;
 
-    public AthleteController(AthleteService athleteService) {
+    public AthleteController(AthleteService athleteService, BadgeService badgeService) {
         this.athleteService = athleteService;
+        this.badgeService = badgeService;
     }
 
     @GetMapping("/list")
-    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model) {
+    public String listAthletes(@RequestParam(name = "q", required = false) String query, Model model, Authentication authentication) {
+        // Load current athlete for header
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            try {
+                Athlete currentAthlete = athleteService.getCurrentAthlete(authentication.getName());
+                model.addAttribute("athlete", currentAthlete);
+            } catch (Exception e) {
+                // User not found as athlete, continue without athlete data
+            }
+        }
+        List<Athlete> athletes;
         if (query != null && !query.isEmpty()) {
             model.addAttribute("query", query);
-            model.addAttribute("athletes", athleteService.searchAthletesByName(query));
+            athletes = athleteService.searchAthletesByName(query);
         } else {
-            model.addAttribute("athletes", athleteService.getAllAthletes());
-        }   
+            athletes = athleteService.getAllAthletes();
+        }
+        model.addAttribute("athletes", athletes);
+
+        // Build a map of athleteId -> recent badges (last 3) for display in the list
+        Map<Integer, List<?>> athleteBadges = new HashMap<>();
+        for (Athlete a : athletes) {
+            athleteBadges.put(a.getId(), badgeService.getRecentBadges(a.getId(), 3));
+        }
+        model.addAttribute("athleteBadges", athleteBadges);
+
         return "athlete/list";
     }
 

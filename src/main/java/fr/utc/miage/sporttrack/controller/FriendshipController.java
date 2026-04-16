@@ -25,6 +25,7 @@ import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
@@ -44,14 +45,18 @@ public class FriendshipController {
     private final AthleteService athleteService;
     private final ActivityService activityService;
     private final WeatherReportService weatherReportService;
+    private final BadgeService badgeService;
+    private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
-    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService, fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
         this.athleteRepository = athleteRepository;
         this.athleteService = athleteService;
         this.activityService = activityService;
         this.weatherReportService = weatherReportService;
+        this.badgeService = badgeService;
+        this.commentService = commentService;
     }
 
     /**
@@ -89,6 +94,7 @@ public class FriendshipController {
             relationshipStatuses.put(a.getId(), friendshipService.getRelationshipStatus(athlete.getId(), a.getId()));
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("friends", friends);
         model.addAttribute("requests", requests);
         model.addAttribute("sentRequests", sentRequests);
@@ -96,7 +102,6 @@ public class FriendshipController {
         model.addAttribute("blockedUsers", blockedUsers);
         model.addAttribute("relationshipStatuses", relationshipStatuses);
         model.addAttribute("activeTab", tab != null ? tab : "friends");
-        model.addAttribute("currentAthlete", athlete);
 
         return "athlete/friend/friends";
     }
@@ -129,11 +134,12 @@ public class FriendshipController {
         // Also get the raw friendship record for display
         Optional<Friendship> friendshipOpt = friendshipRepository.findBetweenAthletes(athlete, target);
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("profileAthlete", target);
         model.addAttribute("relationshipStatus", relationshipStatus.name());
         model.addAttribute("friendship", friendshipOpt.orElse(null));
-        model.addAttribute("currentAthlete", athlete);
         model.addAttribute("activities", loadVisibleActivities(target, relationshipStatus));
+        model.addAttribute("profileBadges", badgeService.getEarnedBadges(target.getId()));
 
         return "athlete/friend/profile";
     }
@@ -152,9 +158,9 @@ public class FriendshipController {
         List<Integer> friendIds = friends.stream().map(Athlete::getId).toList();
         List<Activity> activities = loadActivitiesForAthletes(friendIds);
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activities", activities);
         model.addAttribute("friends", friends);
-        model.addAttribute("currentAthlete", athlete);
 
         return "athlete/friend/activities";
     }
@@ -317,9 +323,14 @@ public class FriendshipController {
 
     private List<Activity> loadActivitiesForAthletes(List<Integer> athleteIds) {
         List<Activity> activities = activityService.findAllByAthleteIds(athleteIds);
-        activities.forEach(activity -> activity.setWeatherReport(
-                weatherReportService.findByActivityId(activity.getId()).orElse(null)
-        ));
+        activities.forEach(activity -> {
+            activity.setWeatherReport(
+                    weatherReportService.findByActivityId(activity.getId()).orElse(null)
+            );
+            activity.setComments(
+                    commentService.getCommentsForActivity(activity.getId())
+            );
+        });
         return activities;
     }
 }

@@ -1,7 +1,6 @@
 package fr.utc.miage.sporttrack.entity.event;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
-import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.Metric;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,12 +11,17 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 
+import java.util.ArrayList;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -53,6 +57,13 @@ public class Challenge {
         joinColumns = @JoinColumn(name = "challenge_id"),
         inverseJoinColumns = @JoinColumn(name = "athlete_id")
     )private List<Athlete> participants;
+
+    @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("rankPosition ASC")
+    private List<ChallengeRanking> rankings = new ArrayList<>();
+
+    @Column(name = "ended_notified_at")
+    private LocalDateTime endedNotifiedAt;
 
     public Challenge() {}
 
@@ -126,5 +137,39 @@ public class Challenge {
 
     public void setSport(Sport sport) {
         this.sport = sport;
+    }
+
+    public List<ChallengeRanking> getRankings() {
+        return rankings;
+    }
+
+    public LocalDateTime getEndedNotifiedAt() {
+        return endedNotifiedAt;
+    }
+
+    public void setRankings(List<ChallengeRanking> rankings) {
+        this.rankings.clear();
+        if (rankings == null) {
+            return;
+        }
+        for (ChallengeRanking ranking : rankings) {
+            addRanking(ranking);
+        }
+    }
+
+    public void addRanking(ChallengeRanking ranking) {
+        if (ranking == null) {
+            return;
+        }
+        ranking.setChallenge(this);
+        this.rankings.add(ranking);
+    }
+
+    public void setEndedNotifiedAt(LocalDateTime endedNotifiedAt) {
+        this.endedNotifiedAt = endedNotifiedAt;
+    }
+
+    public int getId() {
+        return id;
     }
 }

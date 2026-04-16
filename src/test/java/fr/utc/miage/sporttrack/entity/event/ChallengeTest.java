@@ -97,4 +97,11 @@ class ChallengeTest {
         assertTrue(participants.contains(participant1));
         assertTrue(participants.contains(participant2));
     }
+
+    @Test
+    void shouldGetId() {
+        Challenge challenge = new Challenge(NAME, DESCRIPTION, START_DATE, END_DATE, Metric.DURATION);
+        int id = challenge.getId();
+        assertEquals(0, id); 
+    }
 }

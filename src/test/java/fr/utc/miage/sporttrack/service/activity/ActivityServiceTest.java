@@ -2,11 +2,13 @@ package fr.utc.miage.sporttrack.service.activity;
 
 import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
+import fr.utc.miage.sporttrack.entity.event.Objective;
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.activity.WeatherReportRepository;
+import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +37,9 @@ class ActivityServiceTest {
     @Mock
     private WeatherReportRepository weatherReportRepository;
 
+    @Mock
+    private ChallengeRankingService challengeRankingService;
+
     @InjectMocks
     private ActivityService activityService;
 
@@ -42,11 +47,13 @@ class ActivityServiceTest {
     void shouldCreateActivitySuccessfullyForAthlete_Test34() {
         Athlete athlete = buildAthlete(10);
         Sport sport = buildSport(1, SportType.DISTANCE);
-        Activity saved = new Activity();
-        saved.setId(100);
 
         when(sportRepository.findById(1)).thenReturn(Optional.of(sport));
-        when(activityRepository.save(any(Activity.class))).thenReturn(saved);
+        when(activityRepository.save(any(Activity.class))).thenAnswer(invocation -> {
+            Activity persisted = invocation.getArgument(0);
+            persisted.setId(100);
+            return persisted;
+        });
 
         Activity result = activityService.createActivityForAthlete(
                 athlete,
@@ -71,6 +78,7 @@ class ActivityServiceTest {
         assertEquals("Compiegne", persisted.getLocationCity());
         assertEquals(athlete, persisted.getCreatedBy());
         assertEquals(sport.getId(), persisted.getSportAndType().getId());
+        verify(challengeRankingService).recomputeRankingsForActivity(10, 1, persisted.getDateA());
     }
 
     @Test
@@ -191,6 +199,9 @@ class ActivityServiceTest {
         Sport sport = buildSport(2, SportType.DISTANCE);
         Activity existing = new Activity();
         existing.setId(5);
+        existing.setCreatedBy(buildAthlete(7));
+        existing.setDateA(LocalDate.now().minusDays(4));
+        existing.setSportAndType(sport);
 
         when(sportRepository.findById(2)).thenReturn(Optional.of(sport));
         when(activityRepository.findById(5)).thenReturn(Optional.of(existing));
@@ -212,6 +223,7 @@ class ActivityServiceTest {
         assertEquals("Sortie longue", updated.getTitle());
         assertEquals("Lille", updated.getLocationCity());
         assertEquals(18.2, updated.getDistance());
+        verify(challengeRankingService, times(2)).recomputeRankingsForActivity(eq(7), eq(2), any(LocalDate.class));
     }
 
     @Test
@@ -234,17 +246,24 @@ class ActivityServiceTest {
 
     @Test
     void shouldDeleteActivitySuccessfully() {
-        when(activityRepository.existsById(10)).thenReturn(true);
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.now().minusDays(1));
+        activity.setCreatedBy(buildAthlete(55));
+        Sport sport = new Sport();
+        sport.setId(4);
+        activity.setSportAndType(sport);
+        when(activityRepository.findById(10)).thenReturn(Optional.of(activity));
 
         activityService.deleteById(10);
 
         verify(weatherReportRepository).deleteByActivity_Id(10);
         verify(activityRepository).deleteById(10);
+        verify(challengeRankingService).recomputeRankingsForActivity(55, 4, activity.getDateA());
     }
 
     @Test
     void shouldRejectDeleteWhenActivityUnknown() {
-        when(activityRepository.existsById(88)).thenReturn(false);
+        when(activityRepository.findById(88)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -256,18 +275,25 @@ class ActivityServiceTest {
     @Test
     void shouldDeleteActivityForAthleteSuccessfully() {
         Athlete athlete = buildAthlete(15);
-        when(activityRepository.existsByIdAndCreatedBy_Id(3, 15)).thenReturn(true);
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setDateA(LocalDate.now().minusDays(2));
+        Sport sport = new Sport();
+        sport.setId(6);
+        activity.setSportAndType(sport);
+        when(activityRepository.findByIdAndCreatedBy_Id(3, 15)).thenReturn(Optional.of(activity));
 
         activityService.deleteByIdForAthlete(athlete, 3);
 
         verify(weatherReportRepository).deleteByActivity_Id(3);
         verify(activityRepository).deleteById(3);
+        verify(challengeRankingService).recomputeRankingsForActivity(15, 6, activity.getDateA());
     }
 
     @Test
     void shouldRejectDeleteForAthleteWhenNotOwner() {
         Athlete athlete = buildAthlete(15);
-        when(activityRepository.existsByIdAndCreatedBy_Id(4, 15)).thenReturn(false);
+        when(activityRepository.findByIdAndCreatedBy_Id(4, 15)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -318,5 +344,195 @@ class ActivityServiceTest {
         sport.setCaloriesPerHour(500);
         sport.setType(type);
         return sport;
+    }
+
+    @Test
+    void shouldFilterByDate() {
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.of(2024, 1, 15));
+
+        assertTrue(activityService.filterByDate(activity, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31)));
+        assertFalse(activityService.filterByDate(activity, LocalDate.of(2024, 2, 1), LocalDate.of(2024, 2, 28)));
+    }
+
+    @Test
+    void shouldFilterBySport() {
+        Sport sport1 = new Sport();
+        sport1.setId(1);
+        Sport sport2 = new Sport();
+        sport2.setId(2);
+
+        Activity activity = new Activity();
+        activity.setSportAndType(sport1);
+
+        assertTrue(activityService.filterBySport(activity, sport1));
+        assertFalse(activityService.filterBySport(activity, sport2));
+    }
+
+    @Test
+    void shouldNotFilterWhenCriteriaMissing() {
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.of(2024, 1, 15));
+        Sport sport = new Sport();
+        sport.setId(1);
+        activity.setSportAndType(sport);
+
+        assertTrue(activityService.filterByDate(activity, null, null));
+        assertTrue(activityService.filterBySport(activity, null));
+    }
+
+    @Test
+    void checkDateAShouldThrowWhenMissing() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkDateA(null)
+        );
+        assertEquals("Activity date is required", ex.getMessage());
+    }
+
+    @Test
+    void checkDateAShouldNotThrowWhenPresent() {
+        assertDoesNotThrow(() -> activityService.checkDateA(LocalDate.now()));
+    }
+
+    @Test
+    void shouldThrowWhenSportIdFewerThanOne() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkSport(0)
+        );
+        assertEquals("Sport is required", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenSportNotFound() {
+        when(sportRepository.findById(99)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkSport(99)
+        );
+        assertEquals("Sport not found with id: 99", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenDurationInvalidForSportType() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkMetricBySportType(SportType.DISTANCE, -1, 0, 0)
+        );
+        assertEquals("Duration must be greater than zero", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenLocationCityMissing() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkLocationCity("  ")
+        );
+        assertEquals("Location city cannot be null or empty", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenStartTimeMissing() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.checkStartTime(null)
+        );
+        assertEquals("Activity start time is required", ex.getMessage());
+    }
+
+    @Test
+    void shouldNotThrowWhenStartTimePresent() {
+        assertDoesNotThrow(() -> activityService.checkStartTime(LocalTime.of(8, 0)));
+    }
+
+    @Test
+    void shouldNotThrowWhenLocationCityPresent() {
+        assertDoesNotThrow(() -> activityService.checkLocationCity("Paris"));
+    }
+
+    @Test
+    void shouldNotThrowWhenDurationValidForSportType() {
+        assertDoesNotThrow(() -> activityService.checkMetricBySportType(SportType.DISTANCE, 1.0, 0, 1));
+    }
+
+    @Test
+    void shouldNotThrowWhenRepetitionValidForSportType() {
+        assertDoesNotThrow(() -> activityService.checkMetricBySportType(SportType.REPETITION, 1.0, 10, 1));
+    }
+
+    @Test
+    void shouldReturnFalseWhenActivityNullForFilterByDate() {
+        assertFalse(activityService.filterByDate(null, LocalDate.now(), LocalDate.now()));
+    }
+
+    @Test
+    void shouldReturnFalseWhenActivityDateNullForFilterByDate() {
+        Activity activity = new Activity();
+        assertFalse(activityService.filterByDate(activity, LocalDate.now(), LocalDate.now()));
+    }
+
+    @Test
+    void shouldReturnFalseWhenActivityNullForFilterBySport() {
+        assertFalse(activityService.filterBySport(null, new Sport()));
+    }
+
+    @Test
+    void shouldReturnFalseWhenActivitySportNullForFilterBySport() {
+        Activity activity = new Activity();
+        assertFalse(activityService.filterBySport(activity, new Sport()));
+    }
+
+    @Test
+    void shouldReturnFalseWhenDatesInvalidForFilterByDate() {
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.of(2024, 1, 15));
+        assertFalse(activityService.filterByDate(activity, LocalDate.of(2024, 2, 1), LocalDate.of(2024, 2, 28)));
+    }
+
+    @Test
+    void shouldReturnFalseWhenSportDoesNotMatchForFilterBySport() {
+        Activity activity = new Activity();
+        Sport sport1 = new Sport();
+        sport1.setId(1);
+        activity.setSportAndType(sport1);
+        Sport sport2 = new Sport();
+        sport2.setId(2);
+        assertFalse(activityService.filterBySport(activity, sport2));
+    }
+
+    @Test
+    void shouldReturnTrueWhenSportMatchesForFilterBySport() {
+        Activity activity = new Activity();
+        Sport sport = new Sport();
+        sport.setId(1);
+        activity.setSportAndType(sport);
+        assertTrue(activityService.filterBySport(activity, sport));
+    }
+
+    @Test
+    void shouldThrowWhenAthleteIsNullForCreateActivity() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.createActivityForAthlete(
+                        null, 1.0, "Title", "Description", 0, 5.0,
+                        LocalDate.now(), LocalTime.of(8, 0), "City", 1
+                )
+        );
+        assertEquals("Athlete is required", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenAthleteIdIsNullForCreateActivity() {
+        Athlete athlete = new Athlete();
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> activityService.createActivityForAthlete(
+                        athlete, 1.0, "Title", "Description", 0, 5.0,
+                        LocalDate.now(), LocalTime.of(8, 0), "City", 1
+                )
+        );
+        assertEquals("Athlete is required", ex.getMessage());
     }
 }

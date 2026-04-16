@@ -1,7 +1,13 @@
 package fr.utc.miage.sporttrack.controller;
 
+import java.util.Collections;
+
 import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
+import fr.utc.miage.sporttrack.service.user.AdminService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
+import fr.utc.miage.sporttrack.service.activity.ActivityService;
+import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +28,18 @@ class BaseControllerTest {
     private AthleteService athleteService;
 
     @Mock
+    private AdminService adminService;
+
+    @Mock
+    private BadgeService badgeService;
+
+    @Mock
+    private FriendshipService friendshipService;
+
+    @Mock
+    private ActivityService activityService;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -38,6 +56,7 @@ class BaseControllerTest {
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getName()).thenReturn("czy@test.com");
         when(athleteService.getCurrentAthlete("czy@test.com")).thenReturn(athlete);
+        when(badgeService.getEarnedBadges(any())).thenReturn(Collections.emptyList());
 
         String viewName = controller.home(model, authentication);
 
@@ -45,6 +64,7 @@ class BaseControllerTest {
         verify(model).addAttribute("athlete", athlete);
         verify(model).addAttribute(eq("genders"), any());
         verify(model).addAttribute(eq("practiceLevels"), any());
+        verify(model).addAttribute(eq("earnedBadges"), any());
     }
 
     @Test
