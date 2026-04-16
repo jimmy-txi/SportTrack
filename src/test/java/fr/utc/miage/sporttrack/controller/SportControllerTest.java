@@ -3,6 +3,7 @@ package fr.utc.miage.sporttrack.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -18,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import fr.utc.miage.sporttrack.dto.SportFormDTO;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.enumeration.SportType;
 import fr.utc.miage.sporttrack.service.activity.SportService;
@@ -50,6 +52,10 @@ class SportControllerTest {
     @InjectMocks
     private SportController sportController;
 
+    // =====================================================================
+    // listSports
+    // =====================================================================
+
     /**
      * Test : listSports() affiche la liste de tous les sports
      */
@@ -71,6 +77,19 @@ class SportControllerTest {
     }
 
     /**
+     * Test : listSports() redirige si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginOnListSportsWhenNotAdmin() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+
+        String viewName = sportController.listSports(model, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verifyNoInteractions(sportService);
+    }
+
+    /**
      * Test : listSports() affiche une liste vide
      */
     @Test
@@ -86,6 +105,10 @@ class SportControllerTest {
         verify(model, times(1)).addAttribute("sports", List.of());
     }
 
+    // =====================================================================
+    // showCreateForm
+    // =====================================================================
+
     /**
      * Test : showCreateForm() affiche le formulaire de création
      */
@@ -97,8 +120,25 @@ class SportControllerTest {
 
         assertEquals("admin/sport/create", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
-        verify(model, times(1)).addAttribute(eq("sport"), any(Sport.class));
+        verify(model, times(1)).addAttribute(eq("sport"), any(SportFormDTO.class));
     }
+
+    /**
+     * Test : showCreateForm() redirige si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginOnShowCreateFormWhenNotAdmin() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+
+        String viewName = sportController.showCreateForm(model, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verifyNoInteractions(sportService);
+    }
+
+    // =====================================================================
+    // showEditForm
+    // =====================================================================
 
     /**
      * Test : showEditForm() affiche le formulaire d'édition d'un sport existant
@@ -114,7 +154,7 @@ class SportControllerTest {
         assertEquals("admin/sport/create", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
         verify(sportService, times(1)).findById(SPORT_ID);
-        verify(model, times(1)).addAttribute("sport", sport);
+        verify(model, times(1)).addAttribute(eq("sport"), any(SportFormDTO.class));
         verify(redirectAttributes, never()).addAttribute(anyString(), any());
     }
 
@@ -136,18 +176,35 @@ class SportControllerTest {
     }
 
     /**
+     * Test : showEditForm() redirige si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginOnShowEditFormWhenNotAdmin() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+
+        String viewName = sportController.showEditForm(SPORT_ID, model, redirectAttributes, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verifyNoInteractions(sportService);
+    }
+
+    // =====================================================================
+    // saveSport
+    // =====================================================================
+
+    /**
      * Test : saveSport() crée un nouveau sport avec succès
      */
     @Test
     void shouldCreateSportSuccessfully() {
         when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
-        Sport sport = createSport(0, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        SportFormDTO dto = createSportFormDTO(0, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
         Sport savedSport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
 
         when(sportService.createSport(SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE))
                 .thenReturn(savedSport);
 
-        String viewName = sportController.saveSport(sport, redirectAttributes, authentication);
+        String viewName = sportController.saveSport(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/sports", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
@@ -161,13 +218,13 @@ class SportControllerTest {
     @Test
     void shouldUpdateSportSuccessfully() {
         when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
-        Sport sport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        SportFormDTO dto = createSportFormDTO(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
         Sport updatedSport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
 
         when(sportService.updateSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE))
                 .thenReturn(updatedSport);
 
-        String viewName = sportController.saveSport(sport, redirectAttributes, authentication);
+        String viewName = sportController.saveSport(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/sports", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
@@ -181,12 +238,12 @@ class SportControllerTest {
     @Test
     void shouldHandleExceptionWhenCreatingSport() {
         when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
-        Sport sport = createSport(0, "", SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+        SportFormDTO dto = createSportFormDTO(0, "", SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
 
         when(sportService.createSport(eq(""), eq(SPORT_DESCRIPTION), eq(CALORIES_PER_HOUR), eq(SPORT_TYPE)))
                 .thenThrow(new IllegalArgumentException("Sport name cannot be null or empty"));
 
-        String viewName = sportController.saveSport(sport, redirectAttributes, authentication);
+        String viewName = sportController.saveSport(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/sports/create", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
@@ -199,17 +256,35 @@ class SportControllerTest {
     @Test
     void shouldHandleExceptionWhenUpdatingSport() {
         when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
-        Sport sport = createSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, -100, SPORT_TYPE);
+        SportFormDTO dto = createSportFormDTO(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, -100, SPORT_TYPE);
 
         when(sportService.updateSport(SPORT_ID, SPORT_NAME, SPORT_DESCRIPTION, -100, SPORT_TYPE))
                 .thenThrow(new IllegalArgumentException("Calories per hour must be greater than zero"));
 
-        String viewName = sportController.saveSport(sport, redirectAttributes, authentication);
+        String viewName = sportController.saveSport(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/sports/create", viewName);
         verify(adminService, times(1)).checkAdminLoggedIn(authentication);
         verify(redirectAttributes, times(1)).addAttribute("error", "Calories per hour must be greater than zero");
     }
+
+    /**
+     * Test : saveSport() redirige si non authentifié
+     */
+    @Test
+    void shouldRedirectToLoginOnSaveSportWhenNotAdmin() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(false);
+        SportFormDTO dto = createSportFormDTO(0, SPORT_NAME, SPORT_DESCRIPTION, CALORIES_PER_HOUR, SPORT_TYPE);
+
+        String viewName = sportController.saveSport(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/login", viewName);
+        verifyNoInteractions(sportService);
+    }
+
+    // =====================================================================
+    // enable / disable
+    // =====================================================================
 
     /**
      * Test : enable() active un sport avec succès
@@ -299,6 +374,10 @@ class SportControllerTest {
         verify(sportService, times(1)).disableSport(SPORT_ID);
     }
 
+    // =====================================================================
+    // Helpers
+    // =====================================================================
+
     /**
      * Méthode helper pour créer un sport de test
      */
@@ -310,5 +389,18 @@ class SportControllerTest {
         sport.setCaloriesPerHour(caloriesPerHour);
         sport.setType(type);
         return sport;
+    }
+
+    /**
+     * Méthode helper pour créer un SportFormDTO de test
+     */
+    private SportFormDTO createSportFormDTO(int id, String name, String description, double caloriesPerHour, SportType type) {
+        SportFormDTO dto = new SportFormDTO();
+        dto.setId(id);
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setCaloriesPerHour(caloriesPerHour);
+        dto.setType(type);
+        return dto;
     }
 }

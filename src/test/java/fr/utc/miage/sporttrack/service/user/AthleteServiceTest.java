@@ -1,11 +1,11 @@
 package fr.utc.miage.sporttrack.service.user;
 
-import fr.utc.miage.sporttrack.entity.user.Athlete;
-import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
-
 import fr.utc.miage.sporttrack.dto.AthleteProfileUpdateDTO;
+import fr.utc.miage.sporttrack.dto.AthleteRegisterFormDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.Gender;
 import fr.utc.miage.sporttrack.entity.enumeration.PracticeLevel;
+import fr.utc.miage.sporttrack.entity.user.Athlete;
+import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,25 +39,40 @@ class AthleteServiceTest {
     private AthleteService service;
 
     @Test
-    void shouldRefuseCreationWhenEmailIsAlreadyUsed() {
-        Athlete firstAthlete = new Athlete();
-        firstAthlete.setUsername(FIRST_USERNAME);
-        firstAthlete.setPassword(PASSWORD);
-        firstAthlete.setEmail(EMAIL);
+    void shouldCreateProfileSuccessfully() {
+        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
+        dto.setEmail(EMAIL);
+        dto.setUsername(FIRST_USERNAME);
+        dto.setPassword(PASSWORD);
 
-        Athlete secondAthlete = new Athlete();
-        secondAthlete.setUsername(SECOND_USERNAME);
-        secondAthlete.setPassword(PASSWORD);
-        secondAthlete.setEmail(EMAIL);
+        when(repository.existsByEmail(EMAIL)).thenReturn(false);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn("hashedPassword");
+
+        service.createProfile(dto);
+
+        org.mockito.Mockito.verify(repository).save(org.mockito.ArgumentMatchers.any(Athlete.class));
+    }
+
+    @Test
+    void shouldRefuseCreationWhenEmailIsAlreadyUsed() {
+        AthleteRegisterFormDTO firstDto = new AthleteRegisterFormDTO();
+        firstDto.setEmail(EMAIL);
+        firstDto.setUsername(FIRST_USERNAME);
+        firstDto.setPassword(PASSWORD);
+
+        AthleteRegisterFormDTO secondDto = new AthleteRegisterFormDTO();
+        secondDto.setEmail(EMAIL);
+        secondDto.setUsername(SECOND_USERNAME);
+        secondDto.setPassword(PASSWORD);
 
         when(repository.existsByEmail(EMAIL)).thenReturn(false, true);
         when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("hashedpassword");
 
-        service.createProfile(firstAthlete);
+        service.createProfile(firstDto);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> service.createProfile(secondAthlete)
+                () -> service.createProfile(secondDto)
         );
 
         assertEquals("Email is already used", exception.getMessage());

@@ -2,6 +2,7 @@ package fr.utc.miage.sporttrack.service.user;
 
 import fr.utc.miage.sporttrack.entity.user.Admin;
 import fr.utc.miage.sporttrack.repository.user.AdminRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,9 @@ public class AdminService {
 
     private static final String MAIL = "admin@mail.com";
     private static final String USERNAME = "admin";
-    private static final String PASSWORD = "admin";
+
+    @Value("${admin.default.password}")
+    private String defaultPassword;
 
     private final AdminRepository adminRepository;
 
@@ -22,7 +25,7 @@ public class AdminService {
             Admin defaultAdmin = new Admin();
             defaultAdmin.setEmail(MAIL);
             defaultAdmin.setUsername(USERNAME);
-            String encodedPassword = passwordEncoder.encode(PASSWORD);
+            String encodedPassword = passwordEncoder.encode(defaultPassword);
             defaultAdmin.setPassword(encodedPassword);
 
             adminRepository.save(defaultAdmin);
