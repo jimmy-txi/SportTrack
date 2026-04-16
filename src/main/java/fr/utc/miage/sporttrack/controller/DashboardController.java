@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.YearMonth;
+import java.time.temporal.WeekFields;
+import java.util.HashMap;
+import java.util.Comparator;
 
 @Controller
 public class DashboardController {
@@ -143,6 +147,153 @@ public class DashboardController {
         model.addAttribute("objectiveProgressMap", objectiveProgressMap);
 
         return "dashboard/compare";
+    }
+
+    @GetMapping("/growth")
+    public String showGrowth(HttpSession session, Model model,
+                            @RequestParam(required = false) Integer sportId) {
+        Athlete athlete = getAuthenticatedAthlete(session);
+        if (athlete == null) {
+            return "redirect:/login";
+        }
+
+        List<Activity> activities = activityService.findAllByAthlete(athlete);
+        List<Sport> sports = sportService.findAllActive();
+        Sport selectedSport = (sportId != null && sportId > 0)
+                ? sportService.findById(sportId).orElse(null)
+                : null;
+
+        List<Activity> filteredActivities = activities.stream()
+                .filter(activity -> activityService.filterBySport(activity, selectedSport))
+                .toList();
+
+        // Calculate KPI values
+        int consecutiveActiveWeeks = calculateConsecutiveActiveWeeks(filteredActivities);
+        double hoursCurrentMonth = calculateHoursForMonth(filteredActivities, YearMonth.now());
+        double hoursPreviousMonth = calculateHoursForMonth(filteredActivities, YearMonth.now().minusMonths(1));
+
+        // Check if selected sport has distance or repetition
+        boolean hasDistance = selectedSport != null && selectedSport.getType() == SportType.DISTANCE;
+        boolean hasRepetition = selectedSport != null && selectedSport.getType() == SportType.REPETITION;
+
+        // Build weekly data
+        List<Map<String, Object>> weeklyData = buildWeeklyData(filteredActivities, hasDistance, hasRepetition);
+        
+        List<String> weekLabels = weeklyData.stream()
+                .map(w -> "Sem. " + w.get("weekNumber"))
+                .collect(Collectors.toList());
+        List<Double> weekDurations = weeklyData.stream()
+                .map(w -> (Double) w.get("totalDuration"))
+                .collect(Collectors.toList());
+        List<Integer> weekActivityCounts = weeklyData.stream()
+                .map(w -> (Integer) w.get("activityCount"))
+                .collect(Collectors.toList());
+        List<Double> weekDistances = weeklyData.stream()
+                .map(w -> (Double) w.get("totalDistance"))
+                .collect(Collectors.toList());
+        List<Integer> weekRepetitions = weeklyData.stream()
+                .map(w -> (Integer) w.get("totalRepetition"))
+                .collect(Collectors.toList());
+
+        model.addAttribute("athlete", athlete);
+        model.addAttribute("sports", sports);
+        model.addAttribute("selectedSport", selectedSport);
+        model.addAttribute("selectedSportId", selectedSport != null ? selectedSport.getId() : null);
+        model.addAttribute("consecutiveActiveWeeks", consecutiveActiveWeeks);
+        model.addAttribute("hoursCurrentMonth", hoursCurrentMonth);
+        model.addAttribute("hoursPreviousMonth", hoursPreviousMonth);
+        model.addAttribute("hasDistance", hasDistance);
+        model.addAttribute("hasRepetition", hasRepetition);
+        model.addAttribute("weeklyData", weeklyData);
+        model.addAttribute("weekLabels", weekLabels);
+        model.addAttribute("weekDurations", weekDurations);
+        model.addAttribute("weekActivityCounts", weekActivityCounts);
+        model.addAttribute("weekDistances", weekDistances);
+        model.addAttribute("weekRepetitions", weekRepetitions);
+
+        return "dashboard/growth";
+    }
+
+    private int calculateConsecutiveActiveWeeks(List<Activity> activities) {
+        if (activities.isEmpty()) {
+            return 0;
+        }
+
+        WeekFields weekFields = WeekFields.ISO;
+        Map<Integer, Boolean> activeWeeks = new HashMap<>();
+
+        for (Activity activity : activities) {
+            int weekNumber = activity.getDateA().get(weekFields.weekOfYear());
+            int year = activity.getDateA().getYear();
+            int yearWeek = year * 100 + weekNumber;
+            activeWeeks.put(yearWeek, true);
+        }
+
+        if (activeWeeks.isEmpty()) {
+            return 0;
+        }
+
+        List<Integer> sortedWeeks = activeWeeks.keySet().stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        int consecutive = 1;
+        for (int i = 0; i < sortedWeeks.size() - 1; i++) {
+            if (sortedWeeks.get(i) - sortedWeeks.get(i + 1) == 1) {
+                consecutive++;
+            } else {
+                break;
+            }
+        }
+
+        return consecutive;
+    }
+
+    private double calculateHoursForMonth(List<Activity> activities, YearMonth month) {
+        return activities.stream()
+                .filter(activity -> YearMonth.from(activity.getDateA()).equals(month))
+                .mapToDouble(Activity::getDuration)
+                .sum();
+    }
+
+    private List<Map<String, Object>> buildWeeklyData(List<Activity> activities, boolean hasDistance, boolean hasRepetition) {
+        WeekFields weekFields = WeekFields.ISO;
+        Map<Integer, Map<String, Object>> weekDataMap = new HashMap<>();
+
+        for (Activity activity : activities) {
+            int weekNumber = activity.getDateA().get(weekFields.weekOfYear());
+            int year = activity.getDateA().getYear();
+            int yearWeek = year * 100 + weekNumber;
+
+            weekDataMap.putIfAbsent(yearWeek, new HashMap<>());
+            Map<String, Object> weekData = weekDataMap.get(yearWeek);
+
+            weekData.put("weekNumber", weekNumber);
+            weekData.put("startDate", activity.getDateA().with(weekFields.dayOfWeek(), 1));
+            weekData.put("endDate", activity.getDateA().with(weekFields.dayOfWeek(), 7));
+
+            int currentCount = (int) weekData.getOrDefault("activityCount", 0);
+            weekData.put("activityCount", currentCount + 1);
+
+            double currentDuration = (double) weekData.getOrDefault("totalDuration", 0.0);
+            weekData.put("totalDuration", currentDuration + activity.getDuration());
+
+            if (hasDistance) {
+                double currentDistance = (double) weekData.getOrDefault("totalDistance", 0.0);
+                double activityDistance = activity.getDistance() != null ? activity.getDistance() : 0.0;
+                weekData.put("totalDistance", currentDistance + activityDistance);
+            }
+
+            if (hasRepetition) {
+                int currentRepetition = (int) weekData.getOrDefault("totalRepetition", 0);
+                int activityRepetition = activity.getRepetition() != null ? activity.getRepetition() : 0;
+                weekData.put("totalRepetition", currentRepetition + activityRepetition);
+            }
+        }
+
+        return weekDataMap.values().stream()
+                .sorted((a, b) -> Integer.compare((int) a.get("weekNumber"), (int) b.get("weekNumber")))
+                .collect(Collectors.toList());
     }
 
     private Athlete getAuthenticatedAthlete(HttpSession session) {
