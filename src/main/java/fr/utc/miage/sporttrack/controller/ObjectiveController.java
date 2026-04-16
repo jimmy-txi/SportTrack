@@ -23,25 +23,45 @@ import fr.utc.miage.sporttrack.service.event.ObjectiveService;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * Controller for objective-related pages and actions.
+ * Spring MVC controller for objective management.
  *
- * This controller manages objective listing, creation, and the objective form display.
+ * <p>Manages objective listing, creation, completion, and deletion
+ * for the authenticated athlete.</p>
+ *
+ * @author SportTrack Team
  */
 @Controller
 public class ObjectiveController {
 
+    /** Redirect constant for the login page. */
     private static final String REDIRECT_LOGIN = "redirect:/login";
+
+    /** Redirect constant for the objectives list. */
     private static final String REDIRECT_OBJECTIVES = "redirect:/objectives";
+
+    /** Session attribute key for the cached athlete. */
     private static final String ATHLETE_ATTRIBUTE = "athlete";
-    
+
+    /** Service for objective operations. */
     private final ObjectiveService objectiveService;
 
+    /** Repository for sport lookups. */
     private final SportRepository sportRepository;
 
+    /** Repository for athlete authentication resolution. */
     private final AthleteRepository athleteRepository;
 
+    /** Service for sport lookups. */
     private final SportService sportService;
 
+    /**
+     * Constructs an {@code ObjectiveController} with the required dependencies.
+     *
+     * @param objectiveService  the objective service
+     * @param sportRepository   the sport repository
+     * @param athleteRepository the athlete repository
+     * @param sportService      the sport service
+     */
     public ObjectiveController(ObjectiveService objectiveService, SportRepository sportRepository, AthleteRepository athleteRepository, SportService sportService) {
         this.objectiveService = objectiveService;
         this.sportRepository = sportRepository;
@@ -101,12 +121,26 @@ public class ObjectiveController {
         return REDIRECT_OBJECTIVES;
     }
 
+    /**
+     * Deletes the objective with the given identifier.
+     *
+     * @param id the objective identifier to delete
+     * @return a redirect to the objectives list
+     */
     @PostMapping("/objectives/delete/{id}")
     public String deleteObjective(@PathVariable("id") int id) {
         objectiveService.deleteById(id);
         return REDIRECT_OBJECTIVES;
     }
 
+    /**
+     * Marks the specified objective as completed for the authenticated athlete.
+     *
+     * @param id                  the objective identifier
+     * @param session             the HTTP session for athlete resolution
+     * @param redirectAttributes  flash attributes for success/error messaging
+     * @return a redirect to the objectives list
+     */
     @PostMapping("/objectives/complete/{id}")
     public String completeObjective(@PathVariable("id") int id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
@@ -124,6 +158,13 @@ public class ObjectiveController {
         return REDIRECT_OBJECTIVES;
     }
 
+    /**
+     * Displays the form for creating a new objective.
+     *
+     * @param session the HTTP session for athlete resolution
+     * @param model   the Spring MVC model
+     * @return the view name "objective/objective_form", or a redirect to login
+     */
     @GetMapping("/objectives/add")
     public String showObjectivesForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);

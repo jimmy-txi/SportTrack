@@ -13,20 +13,41 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Spring MVC controller for administrator sport management.
+ *
+ * <p>Provides CRUD endpoints for sports, including creation, editing,
+ * and enabling/disabling, accessible only to authenticated admins.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/admin/sports")
 public class SportController {
 
+    /** Service for sport operations. */
     private final SportService sportService;
+
+    /** Service for admin authentication verification. */
     private final AdminService adminService;
 
+    /**
+     * Constructs a {@code SportController} with the required services.
+     *
+     * @param sportService the sport service
+     * @param adminService the admin service
+     */
     public SportController(SportService sportService, AdminService adminService) {
         this.sportService = sportService;
         this.adminService = adminService;
     }
 
     /**
-     * Affiche la liste de tous les sports
+     * Lists all sports for the admin dashboard.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "admin/sport/list", or a redirect to login
      */
     @GetMapping
     public String listSports(Model model, Authentication auth) {
@@ -40,7 +61,11 @@ public class SportController {
     }
 
     /**
-     * Affiche le formulaire de création d'un nouveau sport
+     * Displays the form for creating a new sport.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "admin/sport/create", or a redirect to login
      */
     @GetMapping("/create")
     public String showCreateForm(Model model, Authentication auth) {
@@ -53,7 +78,13 @@ public class SportController {
     }
 
     /**
-     * Affiche le formulaire d'édition d'un sport existant
+     * Displays the form for editing an existing sport.
+     *
+     * @param id                  the sport identifier
+     * @param model               the Spring MVC model
+     * @param redirectAttributes  flash attributes for error messaging
+     * @param auth                the current security authentication
+     * @return the edit view, or a redirect on failure
      */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable int id, Model model, RedirectAttributes redirectAttributes, Authentication auth) {
@@ -78,7 +109,12 @@ public class SportController {
     }
 
     /**
-     * Sauvegarde un nouveau sport ou met à jour un sport existant
+     * Creates or updates a sport from the submitted form data.
+     *
+     * @param dto                 the form DTO containing sport data
+     * @param redirectAttributes  flash attributes for success/error messaging
+     * @param auth                the current security authentication
+     * @return a redirect to the sport list or create form on error
      */
     @PostMapping("/save")
     public String saveSport(@ModelAttribute SportFormDTO dto, RedirectAttributes redirectAttributes, Authentication auth) {
@@ -114,6 +150,13 @@ public class SportController {
         return "redirect:/admin/sports";
     }
 
+    /**
+     * Enables the sport with the given identifier, making it available for athlete use.
+     *
+     * @param id   the sport identifier to enable
+     * @param auth the current security authentication
+     * @return a redirect to the sport list
+     */
     @PostMapping("/enable/{id}")
     public String enable(@PathVariable int id, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
@@ -124,6 +167,13 @@ public class SportController {
         return "redirect:/admin/sports";
     }
 
+    /**
+     * Disables the sport with the given identifier, hiding it from athlete selection.
+     *
+     * @param id   the sport identifier to disable
+     * @param auth the current security authentication
+     * @return a redirect to the sport list
+     */
     @PostMapping("/disable/{id}")
     public String disable(@PathVariable int id, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {

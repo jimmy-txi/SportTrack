@@ -1,36 +1,42 @@
 package fr.utc.miage.sporttrack.dto;
 
 /**
- * View-layer enum representing the relationship status between two athletes.
- * Used by the frontend (Thymeleaf templates) to determine which buttons to display.
- * This is computed from the underlying Friendship entity and FriendshipStatus.
+ * Enumeration serving as a view-layer Data Transfer Object (DTO) that represents
+ * the relationship status between two athletes within the SportTrack application.
+ *
+ * <p>Used by the frontend (Thymeleaf templates) to determine which action buttons
+ * to display (e.g., "Add Friend", "Cancel Request", "Block"). The value is
+ * computed from the underlying {@code Friendship} entity and
+ * {@link fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus}.</p>
+ *
+ * @author SportTrack Team
  */
 public enum RelationshipStatusDTO {
 
-    /** Viewing own profile */
+    /** The current user is viewing their own profile. */
     SELF,
 
-    /** Already friends (FriendshipStatus.ACCEPTED) */
+    /** Both athletes are already friends (FriendshipStatus.ACCEPTED). */
     FRIENDS,
 
-    /** Current user sent a pending friend request (is the initiator) */
+    /** The current user has sent a pending friend request (is the initiator). */
     REQUEST_SENT,
 
-    /** Current user received a pending friend request (is the recipient) */
+    /** The current user has received a pending friend request (is the recipient). */
     REQUEST_RECEIVED,
 
-    /** Friend request was rejected */
+    /** A friend request was previously rejected. */
     REJECTED,
 
-    /** Current user has blocked the target user */
+    /** The current user has blocked the target user. */
     BLOCKED_BY_ME,
 
-    /** Target user has blocked the current user */
+    /** The target user has blocked the current user. */
     BLOCKED_ME,
 
-    /** Both users have blocked each other */
+    /** Both users have blocked each other. */
     MUTUALLY_BLOCKED,
 
-    /** No relationship exists — can send a friend request */
+    /** No relationship exists between the two athletes; a friend request can be sent. */
     NONE
 }

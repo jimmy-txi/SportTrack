@@ -22,16 +22,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Spring MVC controller for private messaging between friends.
+ *
+ * <p>Provides endpoints for the messaging inbox and sending messages
+ * to friends.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/messages")
 public class MessageController {
 
+    /** Session attribute key for the cached athlete. */
     private static final String ATHLETE_ATTRIBUTE = "athlete";
 
+    /** Service for message persistence and retrieval. */
     private final MessageService messageService;
+
+    /** Service for friendship verification. */
     private final FriendshipService friendshipService;
+
+    /** Repository for athlete authentication resolution. */
     private final AthleteRepository athleteRepository;
 
+    /**
+     * Constructs a {@code MessageController} with the required dependencies.
+     *
+     * @param messageService      the message service
+     * @param friendshipService   the friendship service
+     * @param athleteRepository   the athlete repository
+     */
     public MessageController(MessageService messageService,
                              FriendshipService friendshipService,
                              AthleteRepository athleteRepository) {
@@ -40,6 +61,15 @@ public class MessageController {
         this.athleteRepository = athleteRepository;
     }
 
+    /**
+     * Displays the messaging inbox with a conversation view for the selected friend.
+     *
+     * @param friendId            the optional identifier of the friend whose conversation to display
+     * @param session             the HTTP session for athlete resolution
+     * @param model               the Spring MVC model
+     * @param redirectAttributes  flash attributes for error messaging
+     * @return the view name "athlete/friend/messages", or a redirect to login
+     */
     @GetMapping
     public String inbox(@RequestParam(name = "friendId", required = false) Integer friendId,
                         HttpSession session,
@@ -97,6 +127,15 @@ public class MessageController {
         return "athlete/friend/messages";
     }
 
+    /**
+     * Sends a message to a friend.
+     *
+     * @param recipientId         the identifier of the message recipient
+     * @param content             the message content
+     * @param session             the HTTP session for athlete resolution
+     * @param redirectAttributes  flash attributes for error messaging
+     * @return a redirect to the conversation with the recipient
+     */
     @PostMapping("/send")
     public String sendMessage(@RequestParam("recipientId") Integer recipientId,
                               @RequestParam("content") String content,
@@ -116,6 +155,12 @@ public class MessageController {
         return "redirect:/messages?friendId=" + recipientId;
     }
 
+    /**
+     * Resolves the currently authenticated athlete from the session or security context.
+     *
+     * @param session the HTTP session
+     * @return the authenticated athlete, or {@code null} if not available
+     */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
         Athlete athlete = (Athlete) session.getAttribute(ATHLETE_ATTRIBUTE);
         if (athlete != null) {
