@@ -6,6 +6,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,15 +31,21 @@ public class AthleteActivityController {
     private final SportService sportService;
     private final WeatherReportService weatherReportService;
     private final AthleteService athleteService;
+    private final BadgeService badgeService;
+    private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
     public AthleteActivityController(ActivityService activityService,
                                      SportService sportService,
                                      WeatherReportService weatherReportService,
-                                     AthleteService athleteService) {
+                                     AthleteService athleteService,
+                                     BadgeService badgeService,
+                                     fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.activityService = activityService;
         this.sportService = sportService;
         this.weatherReportService = weatherReportService;
         this.athleteService = athleteService;
+        this.badgeService = badgeService;
+        this.commentService = commentService;
     }
 
     @GetMapping
@@ -49,10 +56,16 @@ public class AthleteActivityController {
         }
 
         List<Activity> activities = activityService.findAllByAthlete(athlete);
-        activities.forEach(activity -> activity.setWeatherReport(
-                weatherReportService.findByActivityId(activity.getId()).orElse(null)
-        ));
+        activities.forEach(activity -> {
+            activity.setWeatherReport(
+                    weatherReportService.findByActivityId(activity.getId()).orElse(null)
+            );
+            activity.setComments(
+                    commentService.getCommentsForActivity(activity.getId())
+            );
+        });
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activities", activities);
         return "athlete/activity/list";
     }
@@ -64,6 +77,7 @@ public class AthleteActivityController {
             return REDIRECT_LOGIN;
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activity", new ActivityFormDTO());
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
@@ -83,6 +97,7 @@ public class AthleteActivityController {
             return REDIRECT_ATHLETE_ACTIVITIES;
         }
 
+        model.addAttribute("athlete", athlete);
         model.addAttribute("activity", toFormDTO(activity));
         model.addAttribute("sports", sportService.findAllActive());
         return "athlete/activity/create";
@@ -132,6 +147,12 @@ public class AthleteActivityController {
                 weatherReportService.refreshWeatherReport(savedActivity);
             } catch (RuntimeException ignored) {
                 // Best effort: weather should not block activity creation.
+            }
+
+            try {
+                badgeService.checkAndAwardBadges(savedActivity);
+            } catch (RuntimeException ignored) {
+                // Best effort: badge check should not block activity creation.
             }
 
             redirectAttributes.addAttribute(isNewActivity(activity) ? "created" : "updated", true);

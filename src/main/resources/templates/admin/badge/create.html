@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Badge</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .icon-option {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .icon-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .icon-option.selected {
+            border-color: #47b881;
+            background-color: #e8f5e9;
+        }
+
+        .icon-option i {
+            font-size: 1.8rem;
+            color: #e6a817;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div th:insert="~{fragments/header :: header}"></div>
+    <div class="container mt-5 mb-5">
+        <!-- Header -->
+        <div class="mb-4">
+            <a th:href="@{/admin/badges}" class="btn btn-secondary btn-sm mb-3">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+            <h1>
+                <i class="bi bi-award"></i>
+                <span th:if="${badge.id == null}">Créer un nouveau badge</span>
+                <span th:if="${badge.id != null}">Modifier le badge</span>
+            </h1>
+        </div>
+
+        <!-- Error -->
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
+            <span th:text="${param.error}">Erreur</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Form -->
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <form th:action="@{/admin/badges/save}" th:object="${badge}" method="post"
+                            class="needs-validation" novalidate>
+
+                            <!-- Hidden ID -->
+                            <input type="hidden" th:field="*{id}" />
+
+                            <!-- Label -->
+                            <div class="mb-3">
+                                <label for="label" class="form-label">
+                                    <i class="bi bi-tag"></i> Nom du badge *
+                                </label>
+                                <input type="text" class="form-control" id="label" th:field="*{label}"
+                                    placeholder="ex: Courreur 50km" required>
+                                <div class="form-text">Le nom affiché du badge</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="bi bi-chat-left-text"></i> Description / Condition *
+                                </label>
+                                <textarea class="form-control" id="description" th:field="*{description}"
+                                    placeholder="ex: Cumulez 50 km de course à pied" rows="3" required></textarea>
+                                <div class="form-text">Description affichée aux athlètes (condition d'obtention)</div>
+                            </div>
+
+                            <!-- Sport -->
+                            <div class="mb-3">
+                                <label for="sportId" class="form-label">
+                                    <i class="bi bi-trophy"></i> Sport associé *
+                                </label>
+                                <select class="form-select" id="sportId" th:field="*{sportId}" required>
+                                    <option value="">Sélectionner un sport</option>
+                                    <option th:each="sport : ${sports}" th:value="${sport.id}" th:text="${sport.name}">
+                                    </option>
+                                </select>
+                                <div class="form-text">Le sport concerné par ce badge</div>
+                            </div>
+
+                            <!-- Metric -->
+                            <div class="mb-3">
+                                <label for="metric" class="form-label">
+                                    <i class="bi bi-speedometer"></i> Métrique *
+                                </label>
+                                <select class="form-select" id="metric" th:field="*{metric}" required>
+                                    <option value="">Sélectionner une métrique</option>
+                                    <option th:each="m : ${metrics}" th:value="${m}" th:text="${m}"></option>
+                                </select>
+                                <div class="form-text">La valeur cumulative à vérifier (distance, durée, répétitions...)
+                                </div>
+                            </div>
+
+                            <!-- Threshold -->
+                            <div class="mb-3">
+                                <label for="threshold" class="form-label">
+                                    <i class="bi bi-bullseye"></i> Seuil cumulé *
+                                </label>
+                                <input type="number" class="form-control" id="threshold" th:field="*{threshold}"
+                                    placeholder="ex: 50" min="0.1" step="0.1" required>
+                                <div class="form-text">La valeur totale cumulée à atteindre (ex: 50 pour 50 km)</div>
+                            </div>
+
+                            <!-- Icon Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="bi bi-icons"></i> Icône du badge *
+                                </label>
+                                <input type="hidden" id="iconHidden" th:field="*{icon}" />
+                                <div class="row g-2" id="iconGrid">
+                                    <div th:each="iconPair : ${icons}" class="col-4 col-md-3 col-lg-2">
+                                        <div class="icon-option" th:attr="data-icon=${iconPair[0]}"
+                                            th:classappend="${badge.icon == iconPair[0]} ? 'selected' : ''"
+                                            onclick="selectIcon(this)">
+                                            <i th:class="'bi ' + ${iconPair[0]}"></i>
+                                            <div class="small text-muted mt-1" th:text="${iconPair[1]}">Icon</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text">Choisissez une icône pour ce badge</div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Aperçu du badge :</label>
+                                <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded">
+                                    <i id="previewIcon" class="bi bi-award display-4" style="color: #e6a817;"></i>
+                                    <div>
+                                        <strong id="previewLabel" class="text-muted">Nom du badge</strong>
+                                        <br>
+                                        <small id="previewDesc" class="text-muted">Description</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check"></i>
+                                    <span th:if="${badge.id == null}">Créer le badge</span>
+                                    <span th:if="${badge.id != null}">Mettre à jour</span>
+                                </button>
+                                <a th:href="@{/admin/badges}" class="btn btn-secondary">
+                                    <i class="bi bi-x"></i> Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function selectIcon(el) {
+            document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('iconHidden').value = el.dataset.icon;
+            updatePreview();
+        }
+
+        function updatePreview() {
+            var icon = document.getElementById('iconHidden').value;
+            var label = document.getElementById('label').value;
+            var desc = document.getElementById('description').value;
+            var previewIcon = document.getElementById('previewIcon');
+            if (icon) {
+                previewIcon.className = 'bi ' + icon + ' display-4';
+                previewIcon.style.color = '#e6a817';
+            }
+            document.getElementById('previewLabel').textContent = label || 'Nom du badge';
+            document.getElementById('previewDesc').textContent = desc || 'Description';
+        }
+
+        document.getElementById('label').addEventListener('input', updatePreview);
+        document.getElementById('description').addEventListener('input', updatePreview);
+
+        // Form validation
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        var iconVal = document.getElementById('iconHidden').value;
+                        if (!iconVal) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            alert('Veuillez sélectionner une icône pour le badge.');
+                            return;
+                        }
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+</body>
+
+</html>

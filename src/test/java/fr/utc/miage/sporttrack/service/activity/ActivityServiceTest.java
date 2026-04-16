@@ -8,6 +8,7 @@ import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.activity.WeatherReportRepository;
+import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +37,9 @@ class ActivityServiceTest {
     @Mock
     private WeatherReportRepository weatherReportRepository;
 
+    @Mock
+    private ChallengeRankingService challengeRankingService;
+
     @InjectMocks
     private ActivityService activityService;
 
@@ -43,11 +47,13 @@ class ActivityServiceTest {
     void shouldCreateActivitySuccessfullyForAthlete_Test34() {
         Athlete athlete = buildAthlete(10);
         Sport sport = buildSport(1, SportType.DISTANCE);
-        Activity saved = new Activity();
-        saved.setId(100);
 
         when(sportRepository.findById(1)).thenReturn(Optional.of(sport));
-        when(activityRepository.save(any(Activity.class))).thenReturn(saved);
+        when(activityRepository.save(any(Activity.class))).thenAnswer(invocation -> {
+            Activity persisted = invocation.getArgument(0);
+            persisted.setId(100);
+            return persisted;
+        });
 
         Activity result = activityService.createActivityForAthlete(
                 athlete,
@@ -72,6 +78,7 @@ class ActivityServiceTest {
         assertEquals("Compiegne", persisted.getLocationCity());
         assertEquals(athlete, persisted.getCreatedBy());
         assertEquals(sport.getId(), persisted.getSportAndType().getId());
+        verify(challengeRankingService).recomputeRankingsForActivity(10, 1, persisted.getDateA());
     }
 
     @Test
@@ -192,6 +199,9 @@ class ActivityServiceTest {
         Sport sport = buildSport(2, SportType.DISTANCE);
         Activity existing = new Activity();
         existing.setId(5);
+        existing.setCreatedBy(buildAthlete(7));
+        existing.setDateA(LocalDate.now().minusDays(4));
+        existing.setSportAndType(sport);
 
         when(sportRepository.findById(2)).thenReturn(Optional.of(sport));
         when(activityRepository.findById(5)).thenReturn(Optional.of(existing));
@@ -213,6 +223,7 @@ class ActivityServiceTest {
         assertEquals("Sortie longue", updated.getTitle());
         assertEquals("Lille", updated.getLocationCity());
         assertEquals(18.2, updated.getDistance());
+        verify(challengeRankingService, times(2)).recomputeRankingsForActivity(eq(7), eq(2), any(LocalDate.class));
     }
 
     @Test
@@ -235,17 +246,24 @@ class ActivityServiceTest {
 
     @Test
     void shouldDeleteActivitySuccessfully() {
-        when(activityRepository.existsById(10)).thenReturn(true);
+        Activity activity = new Activity();
+        activity.setDateA(LocalDate.now().minusDays(1));
+        activity.setCreatedBy(buildAthlete(55));
+        Sport sport = new Sport();
+        sport.setId(4);
+        activity.setSportAndType(sport);
+        when(activityRepository.findById(10)).thenReturn(Optional.of(activity));
 
         activityService.deleteById(10);
 
         verify(weatherReportRepository).deleteByActivity_Id(10);
         verify(activityRepository).deleteById(10);
+        verify(challengeRankingService).recomputeRankingsForActivity(55, 4, activity.getDateA());
     }
 
     @Test
     void shouldRejectDeleteWhenActivityUnknown() {
-        when(activityRepository.existsById(88)).thenReturn(false);
+        when(activityRepository.findById(88)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -257,18 +275,25 @@ class ActivityServiceTest {
     @Test
     void shouldDeleteActivityForAthleteSuccessfully() {
         Athlete athlete = buildAthlete(15);
-        when(activityRepository.existsByIdAndCreatedBy_Id(3, 15)).thenReturn(true);
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setDateA(LocalDate.now().minusDays(2));
+        Sport sport = new Sport();
+        sport.setId(6);
+        activity.setSportAndType(sport);
+        when(activityRepository.findByIdAndCreatedBy_Id(3, 15)).thenReturn(Optional.of(activity));
 
         activityService.deleteByIdForAthlete(athlete, 3);
 
         verify(weatherReportRepository).deleteByActivity_Id(3);
         verify(activityRepository).deleteById(3);
+        verify(challengeRankingService).recomputeRankingsForActivity(15, 6, activity.getDateA());
     }
 
     @Test
     void shouldRejectDeleteForAthleteWhenNotOwner() {
         Athlete athlete = buildAthlete(15);
-        when(activityRepository.existsByIdAndCreatedBy_Id(4, 15)).thenReturn(false);
+        when(activityRepository.findByIdAndCreatedBy_Id(4, 15)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
