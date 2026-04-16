@@ -26,7 +26,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.time.YearMonth;
 import java.time.temporal.WeekFields;
 import java.util.HashMap;
@@ -180,7 +179,7 @@ public class DashboardController {
         List<Map<String, Object>> weeklyData = buildWeeklyData(filteredActivities, hasDistance, hasRepetition);
         
         List<String> weekLabels = weeklyData.stream()
-                .map(w -> "Sem. " + w.get("weekNumber"))
+                .map(w -> "Sem. " + w.get("weekN    umber"))
                 .toList();
         List<Double> weekDurations = weeklyData.stream()
                 .map(w -> (Double) w.get("totalDuration"))
@@ -227,10 +226,6 @@ public class DashboardController {
             int year = activity.getDateA().getYear();
             int yearWeek = year * 100 + weekNumber;
             activeWeeks.put(yearWeek, true);
-        }
-
-        if (activeWeeks.isEmpty()) {
-            return 0;
         }
 
         List<Integer> sortedWeeks = activeWeeks.keySet().stream()
