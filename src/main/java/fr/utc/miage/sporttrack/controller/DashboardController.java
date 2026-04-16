@@ -115,7 +115,7 @@ public class DashboardController {
 
         List<Integer> activityCounts = chartLabels.stream()
                 .map(label -> activityCountBySport.getOrDefault(label, 0))
-                .collect(Collectors.toList());
+                .toList();
 
         long objectivesCompleted = objectiveProgressMap.values().stream().filter(Boolean::booleanValue).count();
         long objectivesRemaining = totalObjectives - objectivesCompleted;
@@ -125,7 +125,7 @@ public class DashboardController {
 
         model.addAttribute("athlete", athlete);
         model.addAttribute("activities", filteredActivities);
-        model.addAttribute("recentActivities", filteredActivities.stream().limit(5).collect(Collectors.toList()));
+        model.addAttribute("recentActivities", filteredActivities.stream().limit(5).toList());
         model.addAttribute("objectives", objectives);
         model.addAttribute("sports", sports);
         model.addAttribute("selectedSport", selectedSport);
@@ -181,19 +181,19 @@ public class DashboardController {
         
         List<String> weekLabels = weeklyData.stream()
                 .map(w -> "Sem. " + w.get("weekNumber"))
-                .collect(Collectors.toList());
+                .toList();
         List<Double> weekDurations = weeklyData.stream()
                 .map(w -> (Double) w.get("totalDuration"))
-                .collect(Collectors.toList());
+                .toList();
         List<Integer> weekActivityCounts = weeklyData.stream()
                 .map(w -> (Integer) w.get("activityCount"))
-                .collect(Collectors.toList());
+                .toList();
         List<Double> weekDistances = weeklyData.stream()
                 .map(w -> (Double) w.get("totalDistance"))
-                .collect(Collectors.toList());
+                .toList();
         List<Integer> weekRepetitions = weeklyData.stream()
                 .map(w -> (Integer) w.get("totalRepetition"))
-                .collect(Collectors.toList());
+                .toList();
 
         model.addAttribute("athlete", athlete);
         model.addAttribute("sports", sports);
@@ -235,7 +235,7 @@ public class DashboardController {
 
         List<Integer> sortedWeeks = activeWeeks.keySet().stream()
                 .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
+                .toList();
 
         int consecutive = 1;
         for (int i = 0; i < sortedWeeks.size() - 1; i++) {
@@ -293,7 +293,7 @@ public class DashboardController {
 
         return weekDataMap.values().stream()
                 .sorted((a, b) -> Integer.compare((int) a.get("weekNumber"), (int) b.get("weekNumber")))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Athlete getAuthenticatedAthlete(HttpSession session) {

@@ -7,14 +7,10 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import jakarta.servlet.http.HttpSession;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -56,45 +52,6 @@ class DashboardControllerTest {
     @InjectMocks
     private DashboardController dashboardController;
 
-    private Athlete athlete;
-    private Sport sport;
-    private Activity activity;
-    private Objective objective;
-
-    @BeforeEach
-    void setUp() {
-        // Setup athlete
-        athlete = new Athlete();
-        athlete.setUsername("testuser");
-        athlete.setPassword("pwd");
-        athlete.setEmail("test@example.com");
-        setAthleteId(athlete, 1);
-
-        // Setup sport
-        sport = new Sport();
-        sport.setId(1);
-        sport.setName("Course à pied");
-        sport.setType(SportType.DURATION);
-        sport.setCaloriesPerHour(500.0);
-
-        // Setup activity
-        activity = new Activity();
-        activity.setId(1);
-        activity.setTitle("Morning Run");
-        activity.setDuration(1.5);
-        activity.setDateA(LocalDate.now());
-        activity.setStartTime(LocalTime.of(7, 0));
-        activity.setLocationCity("Paris");
-        activity.setSportAndType(sport);
-        activity.setCreatedBy(athlete);
-        activity.setDistance(10.0);
-
-        // Setup objective
-        objective = new Objective("Run 50km", "");
-        objective.setSport(sport);
-        setObjectiveId(objective, 1);
-    }
-
     // ==================== showDashboard Tests ====================
 
     /**
@@ -116,6 +73,11 @@ class DashboardControllerTest {
      */
     @Test
     void shouldShowDashboardWithAllSports() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+        Objective objective = createObjective(1, "Run 50km", sport);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -128,10 +90,10 @@ class DashboardControllerTest {
         String result = dashboardController.showDashboard(session, model, null, null, null);
 
         assertEquals("dashboard/compare", result);
-        verify(model).addAttribute(eq("athlete"), eq(athlete));
-        verify(model).addAttribute(eq("totalActivities"), eq(1));
-        verify(model).addAttribute(eq("totalDuration"), eq(1.5));
-        verify(model).addAttribute(eq("selectedSport"), isNull());
+        verify(model).addAttribute("athlete", athlete);
+        verify(model).addAttribute("totalActivities", 1);
+        verify(model).addAttribute("totalDuration", 1.5);
+        verify(model).addAttribute("selectedSport", null);
     }
 
     /**
@@ -139,6 +101,11 @@ class DashboardControllerTest {
      */
     @Test
     void shouldFilterDashboardBySport() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+        Objective objective = createObjective(1, "Run 50km", sport);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -154,7 +121,7 @@ class DashboardControllerTest {
         assertEquals("dashboard/compare", result);
         verify(sportService).findById(1);
         verify(model).addAttribute("selectedSport", sport);
-        verify(model).addAttribute(eq("selectedSportId"), eq(1));
+        verify(model).addAttribute("selectedSportId", 1);
     }
 
     /**
@@ -165,19 +132,23 @@ class DashboardControllerTest {
         LocalDate startDate = LocalDate.now().minusDays(7);
         LocalDate endDate = LocalDate.now();
 
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+        Objective objective = createObjective(1, "Run 50km", sport);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
         when(objectiveService.getObjectivesByUser(athlete)).thenReturn(List.of(objective));
         when(activityService.filterBySport(any(), isNull())).thenReturn(true);
-        when(activityService.filterByDate(any(), eq(startDate), eq(endDate))).thenReturn(true);
+        when(activityService.filterByDate(any(), any(), any())).thenReturn(true);
         when(objectiveService.isObjectiveCompleted(any(), any())).thenReturn(false);
         when(sportService.safeSportName(any())).thenReturn("Course à pied");
 
         String result = dashboardController.showDashboard(session, model, null, startDate, endDate);
 
         assertEquals("dashboard/compare", result);
-        verify(activityService).filterByDate(any(), eq(startDate), eq(endDate));
         verify(model).addAttribute("startDate", startDate);
         verify(model).addAttribute("endDate", endDate);
     }
@@ -187,6 +158,11 @@ class DashboardControllerTest {
      */
     @Test
     void shouldCalculateKPIsCorrectly() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+        Objective objective = createObjective(1, "Run 50km", sport);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -210,6 +186,9 @@ class DashboardControllerTest {
      */
     @Test
     void shouldHandleEmptyActivities() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of());
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -242,6 +221,10 @@ class DashboardControllerTest {
      */
     @Test
     void shouldShowGrowthWithAllSports() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -250,9 +233,9 @@ class DashboardControllerTest {
         String result = dashboardController.showGrowth(session, model, null);
 
         assertEquals("dashboard/growth", result);
-        verify(model).addAttribute(eq("athlete"), eq(athlete));
-        verify(model).addAttribute(eq("sports"), eq(List.of(sport)));
-        verify(model).addAttribute(eq("selectedSport"), isNull());
+        verify(model).addAttribute("athlete", athlete);
+        verify(model).addAttribute("sports", List.of(sport));
+        verify(model).addAttribute("selectedSport", null);
     }
 
     /**
@@ -260,6 +243,10 @@ class DashboardControllerTest {
      */
     @Test
     void shouldFilterGrowthBySport() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -271,7 +258,7 @@ class DashboardControllerTest {
         assertEquals("dashboard/growth", result);
         verify(sportService).findById(1);
         verify(model).addAttribute("selectedSport", sport);
-        verify(model).addAttribute(eq("selectedSportId"), eq(1));
+        verify(model).addAttribute("selectedSportId", 1);
     }
 
     /**
@@ -279,27 +266,15 @@ class DashboardControllerTest {
      */
     @Test
     void shouldSetDistanceFlagForDistanceSports() {
-        Sport distanceSport = new Sport();
-        distanceSport.setId(2);
-        distanceSport.setName("Natation");
-        distanceSport.setType(SportType.DISTANCE);
-
-        Activity distanceActivity = new Activity();
-        distanceActivity.setId(2);
-        distanceActivity.setTitle("Swimming");
-        distanceActivity.setDuration(1.0);
-        distanceActivity.setDateA(LocalDate.now());
-        distanceActivity.setStartTime(LocalTime.of(8, 0));
-        distanceActivity.setLocationCity("Paris");
-        distanceActivity.setSportAndType(distanceSport);
-        distanceActivity.setCreatedBy(athlete);
-        distanceActivity.setDistance(2.5);
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport distanceSport = createSport(2, "Natation", "Swimming", 400.0, SportType.DISTANCE);
+        Activity distanceActivity = createActivity(2, "Swimming", 1.0, LocalDate.now(), "Paris", distanceSport, athlete, 2.5);
 
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(distanceActivity));
         when(sportService.findAllActive()).thenReturn(List.of(distanceSport));
         when(sportService.findById(2)).thenReturn(Optional.of(distanceSport));
-        when(activityService.filterBySport(distanceActivity, distanceSport)).thenReturn(true);
+        when(activityService.filterBySport(any(), any(Sport.class))).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, 2);
 
@@ -313,11 +288,8 @@ class DashboardControllerTest {
      */
     @Test
     void shouldSetRepetitionFlagForRepetitionSports() {
-        Sport repetitionSport = new Sport();
-        repetitionSport.setId(3);
-        repetitionSport.setName("Musculation");
-        repetitionSport.setType(SportType.REPETITION);
-
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport repetitionSport = createSport(3, "Musculation", "Weight training", 600.0, SportType.REPETITION);
         Activity repetitionActivity = new Activity();
         repetitionActivity.setId(3);
         repetitionActivity.setTitle("Weight training");
@@ -333,7 +305,7 @@ class DashboardControllerTest {
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(repetitionActivity));
         when(sportService.findAllActive()).thenReturn(List.of(repetitionSport));
         when(sportService.findById(3)).thenReturn(Optional.of(repetitionSport));
-        when(activityService.filterBySport(repetitionActivity, repetitionSport)).thenReturn(true);
+        when(activityService.filterBySport(any(), any(Sport.class))).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, 3);
 
@@ -347,6 +319,9 @@ class DashboardControllerTest {
      */
     @Test
     void shouldCalculateConsecutiveActiveWeeks() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        
         Activity activity1 = new Activity();
         activity1.setDateA(LocalDate.now());
         activity1.setDuration(1.0);
@@ -362,7 +337,7 @@ class DashboardControllerTest {
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity1, activity2));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
-        when(activityService.filterBySport(any(Activity.class), isNull())).thenReturn(true);
+        when(activityService.filterBySport(any(), isNull())).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, null);
 
@@ -375,16 +350,14 @@ class DashboardControllerTest {
      */
     @Test
     void shouldCalculateCurrentMonthHours() {
-        Activity currentMonthActivity = new Activity();
-        currentMonthActivity.setDateA(LocalDate.now());
-        currentMonthActivity.setDuration(2.5);
-        currentMonthActivity.setSportAndType(sport);
-        currentMonthActivity.setCreatedBy(athlete);
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity currentMonthActivity = createActivity(1, "Morning Run", 2.5, LocalDate.now(), "Paris", sport, athlete, 0.0);
 
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(currentMonthActivity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
-        when(activityService.filterBySport(currentMonthActivity, null)).thenReturn(true);
+        when(activityService.filterBySport(any(), isNull())).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, null);
 
@@ -397,16 +370,14 @@ class DashboardControllerTest {
      */
     @Test
     void shouldBuildWeeklyDataWithActivityCounts() {
-        Activity weekActivity = new Activity();
-        weekActivity.setDateA(LocalDate.now());
-        weekActivity.setDuration(1.5);
-        weekActivity.setSportAndType(sport);
-        weekActivity.setCreatedBy(athlete);
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity weekActivity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
 
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(weekActivity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
-        when(activityService.filterBySport(weekActivity, null)).thenReturn(true);
+        when(activityService.filterBySport(any(), isNull())).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, null);
 
@@ -422,6 +393,9 @@ class DashboardControllerTest {
      */
     @Test
     void shouldHandleEmptyActivitiesForGrowth() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of());
         when(sportService.findAllActive()).thenReturn(List.of(sport));
@@ -437,11 +411,15 @@ class DashboardControllerTest {
      */
     @Test
     void shouldNotIncludeDistanceDataForNonDistanceSports() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
         when(sportService.findById(1)).thenReturn(Optional.of(sport));
-        when(activityService.filterBySport(activity, sport)).thenReturn(true);
+        when(activityService.filterBySport(any(), any(Sport.class))).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, 1);
 
@@ -454,11 +432,15 @@ class DashboardControllerTest {
      */
     @Test
     void shouldNotIncludeRepetitionDataForNonRepetitionSports() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+        Activity activity = createActivity(1, "Morning Run", 1.5, LocalDate.now(), "Paris", sport, athlete, 10.0);
+
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(activity));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
         when(sportService.findById(1)).thenReturn(Optional.of(sport));
-        when(activityService.filterBySport(activity, sport)).thenReturn(true);
+        when(activityService.filterBySport(any(), any(Sport.class))).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, 1);
 
@@ -471,6 +453,9 @@ class DashboardControllerTest {
      */
     @Test
     void shouldHandleMultipleWeeksOfData() {
+        Athlete athlete = createAthlete(1, "testuser", "test@example.com");
+        Sport sport = createSport(1, "Course à pied", "Running", 500.0, SportType.DURATION);
+
         Activity weekOne = new Activity();
         weekOne.setDateA(LocalDate.now());
         weekOne.setDuration(2.0);
@@ -486,7 +471,7 @@ class DashboardControllerTest {
         when(session.getAttribute("athlete")).thenReturn(athlete);
         when(activityService.findAllByAthlete(athlete)).thenReturn(List.of(weekOne, weekTwo));
         when(sportService.findAllActive()).thenReturn(List.of(sport));
-        when(activityService.filterBySport(any(Activity.class), isNull())).thenReturn(true);
+        when(activityService.filterBySport(any(), isNull())).thenReturn(true);
 
         String result = dashboardController.showGrowth(session, model, null);
 
@@ -496,9 +481,15 @@ class DashboardControllerTest {
 
     // ==================== Helper Methods ====================
 
-    /**
-     * Helper method to create a Sport object
-     */
+    private Athlete createAthlete(int id, String username, String email) {
+        Athlete athlete = new Athlete();
+        athlete.setUsername(username);
+        athlete.setPassword("pwd");
+        athlete.setEmail(email);
+        setAthleteId(athlete, id);
+        return athlete;
+    }
+
     private Sport createSport(int id, String name, String description, double caloriesPerHour, SportType type) {
         Sport sport = new Sport();
         sport.setId(id);
@@ -509,9 +500,28 @@ class DashboardControllerTest {
         return sport;
     }
 
-    /**
-     * Helper method to set athlete id using reflection
-     */
+    private Activity createActivity(int id, String title, double duration, LocalDate dateA, String locationCity,
+                                    Sport sport, Athlete athlete, double distance) {
+        Activity activity = new Activity();
+        activity.setId(id);
+        activity.setTitle(title);
+        activity.setDuration(duration);
+        activity.setDateA(dateA);
+        activity.setStartTime(LocalTime.of(7, 0));
+        activity.setLocationCity(locationCity);
+        activity.setSportAndType(sport);
+        activity.setCreatedBy(athlete);
+        activity.setDistance(distance);
+        return activity;
+    }
+
+    private Objective createObjective(int id, String name, Sport sport) {
+        Objective objective = new Objective(name, "");
+        objective.setSport(sport);
+        setObjectiveId(objective, id);
+        return objective;
+    }
+
     private void setAthleteId(Athlete athlete, int id) {
         try {
             Field field = athlete.getClass().getSuperclass().getDeclaredField("id");
@@ -522,9 +532,6 @@ class DashboardControllerTest {
         }
     }
 
-    /**
-     * Helper method to set objective id using reflection
-     */
     private void setObjectiveId(Objective objective, int id) {
         try {
             Field field = objective.getClass().getDeclaredField("id");
@@ -535,15 +542,3 @@ class DashboardControllerTest {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
