@@ -11,7 +11,7 @@
 
 <body class="bg-light">
     <div th:insert="~{fragments/header :: header}"></div>
-
+    
     <main class="container py-4 py-lg-5">
         <!-- Visiteur -->
         <section sec:authorize="!isAuthenticated()">
@@ -292,6 +292,7 @@
                             <a th:href="@{/friends/activities}" class="btn btn-outline-primary">Voir activités des amis</a>
                             <a th:href="@{/objectives/add}" class="btn btn-outline-primary">Ajouter un objectif</a>
                             <a th:href="@{/challenges/new}" class="btn btn-outline-primary">Créer un challenge</a>
+                            <a th:href="@{/badges}" class="btn btn-outline-primary">Voir mes badges</a>
                             <a th:href="@{/profile}" class="btn btn-outline-secondary">Modifier mon profil</a>
                         </div>
                     </div>

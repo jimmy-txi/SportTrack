@@ -83,6 +83,23 @@
                 </div>
             </div>
 
+            <!-- Badges Section -->
+            <div class="card shadow mb-4" th:if="${profileBadges != null and !profileBadges.isEmpty()}">
+                <div class="card-header">
+                    <i class="bi bi-award me-1"></i> Badges
+                    <span class="badge rounded-pill text-bg-warning" th:text="${profileBadges.size()}">0</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div th:each="badge : ${profileBadges}" class="text-center" style="min-width: 60px;">
+                            <i th:class="'bi ' + ${badge.icon}" style="font-size: 1.8rem; color: #e6a817;"
+                               data-bs-toggle="tooltip" th:title="${badge.label}"></i>
+                            <div class="small text-muted mt-1" th:text="${badge.label}">Badge</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Relationship Status Card -->
             <div class="card shadow-sm">
                 <div class="card-body text-center py-4">

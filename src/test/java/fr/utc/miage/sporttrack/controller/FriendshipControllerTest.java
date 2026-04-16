@@ -32,6 +32,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import fr.utc.miage.sporttrack.entity.activity.Activity;
+import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.dto.RelationshipStatusDTO;
 import fr.utc.miage.sporttrack.entity.enumeration.FriendshipStatus;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
@@ -40,6 +41,7 @@ import fr.utc.miage.sporttrack.repository.user.AthleteRepository;
 import fr.utc.miage.sporttrack.repository.user.communication.FriendshipRepository;
 import fr.utc.miage.sporttrack.service.activity.ActivityService;
 import fr.utc.miage.sporttrack.service.activity.WeatherReportService;
+import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AthleteService;
 import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
@@ -68,6 +70,9 @@ class FriendshipControllerTest {
 
     @Mock
     private WeatherReportService weatherReportService;
+
+    @Mock
+    private BadgeService badgeService;
 
     @Mock
     private Model model;
@@ -257,12 +262,14 @@ class FriendshipControllerTest {
         when(activityService.findAllByAthleteIds(List.of(1))).thenReturn(Collections.emptyList());
         when(friendshipService.getRelationshipStatus(1, 1)).thenReturn(RelationshipStatusDTO.SELF);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, currentAthlete)).thenReturn(Optional.empty());
+        when(badgeService.getEarnedBadges(1)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(1, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "SELF");
         verify(model).addAttribute("profileAthlete", currentAthlete);
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
     }
 
     @Test
@@ -273,12 +280,14 @@ class FriendshipControllerTest {
 
         Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+        when(badgeService.getEarnedBadges(2)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "FRIENDS");
         verify(model).addAttribute("friendship", friendship);
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
     }
 
     @Test
@@ -287,12 +296,14 @@ class FriendshipControllerTest {
         when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
         when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.NONE);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.empty());
+        when(badgeService.getEarnedBadges(2)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "NONE");
         verify(model).addAttribute("friendship", (Object) null);
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
     }
 
     @Test
@@ -304,12 +315,14 @@ class FriendshipControllerTest {
         Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
         when(activityService.findAllByAthleteIds(List.of(2))).thenReturn(Collections.emptyList());
+        when(badgeService.getEarnedBadges(2)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "FRIENDS");
         verify(model).addAttribute("friendship", friendship);
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
     }
 
     @Test
@@ -320,11 +333,13 @@ class FriendshipControllerTest {
 
         Friendship friendship = createFriendship(11, currentAthlete, otherAthlete, FriendshipStatus.PENDING);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+        when(badgeService.getEarnedBadges(2)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "REQUEST_SENT");
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
     }
 
     @Test
@@ -335,11 +350,39 @@ class FriendshipControllerTest {
 
         Friendship friendship = createFriendship(12, currentAthlete, otherAthlete, FriendshipStatus.BLOCKED);
         when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+        when(badgeService.getEarnedBadges(2)).thenReturn(Collections.emptyList());
 
         String result = controller.friendProfile(2, session, model);
 
         assertEquals("athlete/friend/profile", result);
         verify(model).addAttribute("relationshipStatus", "BLOCKED_BY_ME");
+        verify(model).addAttribute("profileBadges", Collections.emptyList());
+    }
+
+    @Test
+    void friendProfile_shouldIncludeEarnedBadges_whenBadgesExist() {
+        when(session.getAttribute("athlete")).thenReturn(currentAthlete);
+        when(athleteRepository.findById(2)).thenReturn(Optional.of(otherAthlete));
+        when(friendshipService.getRelationshipStatus(1, 2)).thenReturn(RelationshipStatusDTO.FRIENDS);
+
+        Friendship friendship = createFriendship(10, currentAthlete, otherAthlete, FriendshipStatus.ACCEPTED);
+        when(friendshipRepository.findBetweenAthletes(currentAthlete, otherAthlete)).thenReturn(Optional.of(friendship));
+        when(activityService.findAllByAthleteIds(List.of(2))).thenReturn(Collections.emptyList());
+
+        Badge badge1 = new Badge();
+        badge1.setLabel("First Run");
+        badge1.setIcon("bi-trophy");
+        Badge badge2 = new Badge();
+        badge2.setLabel("Marathon");
+        badge2.setIcon("bi-award");
+        List<Badge> badges = List.of(badge1, badge2);
+        when(badgeService.getEarnedBadges(2)).thenReturn(badges);
+
+        String result = controller.friendProfile(2, session, model);
+
+        assertEquals("athlete/friend/profile", result);
+        verify(model).addAttribute("profileBadges", badges);
+        verify(badgeService).getEarnedBadges(2);
     }
 
     @Test

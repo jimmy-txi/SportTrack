@@ -27,6 +27,7 @@
                             <li><a class="dropdown-item" th:href="@{/athlete/list}">Liste des athlètes</a></li>
                             <li><a class="dropdown-item" th:href="@{/friends}">Mes amis</a></li>
                             <li><a class="dropdown-item" th:href="@{/friends/activities}">Activités de mes amis</a></li>
+                            <li><a class="dropdown-item" th:href="@{/badges}">Mes badges</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown me-lg-2" sec:authorize="hasRole('USER')">
@@ -59,6 +60,7 @@
                             <li><a class="dropdown-item" th:href="@{/admin/sports}">Sports</a></li>
                             <li><a class="dropdown-item" th:href="@{/admin/sports/create}">Nouveau sport</a></li>
                             <li><a class="dropdown-item" th:href="@{/admin/activities}">Activités</a></li>
+                            <li><a class="dropdown-item" th:href="@{/admin/badges}">Badges</a></li>
                         </ul>
                     </li>
                 </ul>

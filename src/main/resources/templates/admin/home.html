@@ -16,11 +16,6 @@
                     <h1 class="mb-1">Panneau d'Administration</h1>
                     <p class="mb-0">Gestion des ressources SportTrack</p>
                 </div>
-                <form th:action="@{/logout}" method="post" class="m-0">
-                    <button type="submit" class="btn btn-light btn-sm">
-                        <i class="bi bi-box-arrow-right"></i> Déconnexion
-                    </button>
-                </form>
             </div>
         </div>
 
@@ -55,6 +50,21 @@
                             <h5 class="card-title">Activités</h5>
                             <p class="card-text text-muted">Gérer les activités des utilisateurs</p>
                             <a th:href="@{/admin/activities}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-arrow-right"></i> Accéder
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Badges Management -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card admin-card shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="admin-card-icon">
+                                <i class="bi bi-award"></i>
+                            </div>
+                            <h5 class="card-title">Badges</h5>
+                            <p class="card-text text-muted">Gérer les badges et récompenses</p>
+                            <a th:href="@{/admin/badges}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-arrow-right"></i> Accéder
                             </a>
                         </div>
