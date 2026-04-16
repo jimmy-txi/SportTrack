@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.event.Objective;
@@ -28,6 +29,10 @@ import jakarta.servlet.http.HttpSession;
  */
 @Controller
 public class ObjectiveController {
+
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_OBJECTIVES = "redirect:/objectives";
+    private static final String ATHLETE_ATTRIBUTE = "athlete";
     
     private final ObjectiveService objectiveService;
 
@@ -55,10 +60,10 @@ public class ObjectiveController {
     public String getObjectives(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTRIBUTE, athlete);
         model.addAttribute("objectives", objectiveService.getObjectivesByUser(athlete));
         return "objective/objectives";
     }
@@ -81,7 +86,7 @@ public class ObjectiveController {
     ) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         Optional<Sport> sportOptional = sportRepository.findById(sportId);
@@ -93,23 +98,40 @@ public class ObjectiveController {
         Objective objective = new Objective(name, description);
         objectiveService.saveObjective(objective, athlete, sport);
         
-        return "redirect:/objectives";
+        return REDIRECT_OBJECTIVES;
     }
 
     @PostMapping("/objectives/delete/{id}")
     public String deleteObjective(@PathVariable("id") int id) {
         objectiveService.deleteById(id);
-        return "redirect:/objectives";
+        return REDIRECT_OBJECTIVES;
+    }
+
+    @PostMapping("/objectives/complete/{id}")
+    public String completeObjective(@PathVariable("id") int id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Athlete athlete = getAuthenticatedAthlete(session);
+        if (athlete == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        try {
+            objectiveService.markAsCompleted(id, athlete);
+            redirectAttributes.addFlashAttribute("success", "Objectif marqué comme atteint !");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return REDIRECT_OBJECTIVES;
     }
 
     @GetMapping("/objectives/add")
     public String showObjectivesForm(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTRIBUTE, athlete);
         model.addAttribute("sports", sportService.findAllActive());
         return "objective/objective_form";
     }
@@ -121,7 +143,7 @@ public class ObjectiveController {
      * @return the authenticated athlete, or null if no valid athlete is authenticated
      */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
-        Athlete athlete = (Athlete) session.getAttribute("athlete");
+        Athlete athlete = (Athlete) session.getAttribute(ATHLETE_ATTRIBUTE);
         if (athlete != null) {
             return athlete;
         }

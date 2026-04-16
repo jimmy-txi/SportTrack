@@ -2,7 +2,15 @@ package fr.utc.miage.sporttrack.entity.event;
 
 import fr.utc.miage.sporttrack.entity.activity.Sport;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+import java.time.LocalDateTime;
 
 @Entity
 public class Objective {
@@ -20,6 +28,12 @@ public class Objective {
     @ManyToOne
     @JoinColumn(name = "sport_id")
     private Sport sport;
+
+    @Column(nullable = false)
+    private boolean completed;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     public Objective() {}
         
@@ -65,5 +79,21 @@ public class Objective {
 
     public Sport getSport() {
         return sport;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 }

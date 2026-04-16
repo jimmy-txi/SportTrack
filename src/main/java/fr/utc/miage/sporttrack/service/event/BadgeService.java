@@ -12,17 +12,28 @@ import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.event.BadgeRepository;
+import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class BadgeService {
 
     private final BadgeRepository badgeRepository;
     private final ActivityRepository activityRepository;
+    private final NotificationService notificationService;
 
     public BadgeService(BadgeRepository badgeRepository,
                         ActivityRepository activityRepository) {
+        this(badgeRepository, activityRepository, null);
+    }
+
+    @Autowired
+    public BadgeService(BadgeRepository badgeRepository,
+                        ActivityRepository activityRepository,
+                        NotificationService notificationService) {
         this.badgeRepository = badgeRepository;
         this.activityRepository = activityRepository;
+        this.notificationService = notificationService;
     }
 
     // ========== Admin CRUD ==========
@@ -182,5 +193,8 @@ public class BadgeService {
         }
         badge.getEarnedBy().add(athlete);
         badgeRepository.save(badge);
+        if (notificationService != null) {
+            notificationService.notifyBadgeEarned(athlete, badge);
+        }
     }
 }

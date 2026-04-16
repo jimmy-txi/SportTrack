@@ -8,7 +8,10 @@ import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.activity.SportRepository;
 import fr.utc.miage.sporttrack.repository.activity.WeatherReportRepository;
 import fr.utc.miage.sporttrack.service.event.ChallengeRankingService;
+import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
+import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +26,29 @@ public class ActivityService {
     private final SportRepository sportRepository;
     private final WeatherReportRepository weatherReportRepository;
     private final ChallengeRankingService challengeRankingService;
+    private final FriendshipService friendshipService;
+    private final NotificationService notificationService;
 
     public ActivityService(ActivityRepository activityRepository,
                            SportRepository sportRepository,
                            WeatherReportRepository weatherReportRepository,
                            ChallengeRankingService challengeRankingService) {
+        this(activityRepository, sportRepository, weatherReportRepository, challengeRankingService, null, null);
+    }
+
+    @Autowired
+    public ActivityService(ActivityRepository activityRepository,
+                           SportRepository sportRepository,
+                           WeatherReportRepository weatherReportRepository,
+                           ChallengeRankingService challengeRankingService,
+                           FriendshipService friendshipService,
+                           NotificationService notificationService) {
         this.activityRepository = activityRepository;
         this.sportRepository = sportRepository;
         this.weatherReportRepository = weatherReportRepository;
         this.challengeRankingService = challengeRankingService;
+        this.friendshipService = friendshipService;
+        this.notificationService = notificationService;
     }
 
     public List<Activity> findAll() {
@@ -88,6 +105,13 @@ public class ActivityService {
         activity.setCreatedBy(athlete);
 
         Activity savedActivity = activityRepository.save(activity);
+        if (notificationService != null && friendshipService != null) {
+            notificationService.notifyActivityPublished(
+                    savedActivity.getCreatedBy(),
+                    savedActivity,
+                    friendshipService.getFriendsOfAthlete(savedActivity.getCreatedBy().getId())
+            );
+        }
         recalculateImpactedChallengeRankings(savedActivity.getCreatedBy(), savedActivity.getSportAndType(), savedActivity.getDateA());
         return savedActivity;
     }
