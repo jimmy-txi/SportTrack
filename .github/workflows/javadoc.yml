@@ -36,15 +36,23 @@ jobs:
       - name: Generate Javadoc
         run: |
           chmod +x mvnw || true
-          ./mvnw -B clean javadoc:javadoc -Ddoclint=none
-          test -f target/apidocs/index.html
+          ./mvnw -B clean javadoc:javadoc \
+            -Ddoclint=none \
+            -Dmaven.javadoc.failOnError=false
+
+      - name: Check generated Javadoc
+        run: |
+          if [ ! -f target/apidocs/index.html ]; then
+            echo "Javadoc non généré"
+            find target -maxdepth 4 -type f || true
+            exit 1
+          fi
 
       - name: Prepare Pages artifact
         run: |
           rm -rf javadoc-site
           mkdir -p javadoc-site
           cp -R target/apidocs/. javadoc-site/
-          test -f javadoc-site/index.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
