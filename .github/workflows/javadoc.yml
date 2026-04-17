@@ -27,11 +27,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
 
       - name: Generate Javadoc
         run: |
           chmod +x mvnw || true
-          ./mvnw javadoc:javadoc
+          ./mvnw clean javadoc:javadoc
+
+      - name: Verify Javadoc output
+        run: |
+          if [ ! -d "target/site/apidocs" ]; then
+            echo "Le dossier target/site/apidocs est introuvable"
+            find target -maxdepth 4 -type d || true
+            exit 1
+          fi
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
@@ -46,7 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
