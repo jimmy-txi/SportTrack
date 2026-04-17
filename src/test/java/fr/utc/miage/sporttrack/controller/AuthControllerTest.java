@@ -37,7 +37,7 @@ class AuthControllerTest {
         String viewName = controller.showRegistrationForm(model);
 
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 
     @Test
@@ -53,6 +53,7 @@ class AuthControllerTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
         verifyNoInteractions(athleteService);
     }
 
@@ -69,7 +70,7 @@ class AuthControllerTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
         verifyNoInteractions(athleteService);
     }
 
@@ -86,7 +87,7 @@ class AuthControllerTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
         verifyNoInteractions(athleteService);
     }
 
@@ -126,5 +127,6 @@ class AuthControllerTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Email is already used");
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 }

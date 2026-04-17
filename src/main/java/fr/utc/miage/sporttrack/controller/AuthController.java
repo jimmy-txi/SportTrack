@@ -52,21 +52,12 @@ public class AuthController {
      */
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
-        model.addAttribute("athlete", new AthleteRegisterFormDTO());
+        model.addAttribute("registerForm", new AthleteRegisterFormDTO());
         return REGISTER;
     }
 
-    /**
-     * Processes the registration form submission. Validates that the password
-     * and confirmation match before delegating to the athlete service.
-     *
-     * @param athleteDto     the registration form data bound from the request
-     * @param confirmPassword the confirmed password entered by the user
-     * @param model          the Spring MVC model for error rendering
-     * @return a redirect to the login page on success, or the register view on error
-     */
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute AthleteRegisterFormDTO athleteDto,
+    public String registerUser(@ModelAttribute("registerForm") AthleteRegisterFormDTO athleteDto,
                                @RequestParam(value = "email", required = false) String email,
                                @RequestParam(value = "username", required = false) String username,
                                @RequestParam(value = "password", required = false) String password,
@@ -82,12 +73,13 @@ public class AuthController {
 
         if (password == null || confirmPassword == null) {
             model.addAttribute(ERROR, "Passwords do not match");
-            model.addAttribute("athlete", athleteDto);
+            model.addAttribute("registerForm", athleteDto);
             return REGISTER;
         }
 
         if (!password.equals(confirmPassword)) {
             model.addAttribute(ERROR, "Passwords do not match");
+            model.addAttribute("registerForm", athleteDto);
             return REGISTER;
         }
 
@@ -96,6 +88,7 @@ public class AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
             model.addAttribute(ERROR, e.getMessage());
+            model.addAttribute("registerForm", athleteDto);
             return REGISTER;
         }
     }

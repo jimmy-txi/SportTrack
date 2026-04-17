@@ -15,7 +15,7 @@
                 </div>
                 <div class="card-body">
                     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-                    <form th:action="@{/register}" th:object="${athlete}" method="post">
+                    <form th:action="@{/register}" th:object="${registerForm}" method="post">
                         <div class="mb-3">
                             <label class="form-label">Adresse e-mail</label>
                             <input type="email" th:field="*{email}" class="form-control" required/>
