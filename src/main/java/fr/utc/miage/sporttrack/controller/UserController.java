@@ -41,7 +41,7 @@ public class UserController {
     }
 
     @PostMapping("/profile/update")
-    public String updateProfile(@ModelAttribute("athlete") AthleteProfileUpdateDTO updatedData, Authentication authentication) {
+    public String updateProfile(@ModelAttribute AthleteProfileUpdateDTO updatedData, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
             try {

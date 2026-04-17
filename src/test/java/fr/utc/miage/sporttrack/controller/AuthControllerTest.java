@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -36,42 +37,67 @@ class AuthControllerTest {
         String viewName = controller.showRegistrationForm(model);
 
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 
-    @Test
-    void testRegisterUserPasswordMismatch() {
-        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
-        dto.setPassword("1234");
-
-        String viewName = controller.registerUser(dto, "wrongPassword", model);
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(value = {
+        "1234, wrongPassword",
+        "1234, null",
+        "null, 1234"
+    }, nullValues = "null")
+    void testRegisterUserPasswordValidationFailures(String password, String confirmPassword) {
+        String viewName = controller.registerUser(
+                null,
+                "test@mail.com",
+                "runner",
+                password,
+                confirmPassword,
+                model
+        );
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
         verifyNoInteractions(athleteService);
     }
 
     @Test
     void testRegisterUserSuccess() {
-        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
-        dto.setPassword("1234");
-
-        String viewName = controller.registerUser(dto, "1234", model);
+        String viewName = controller.registerUser(
+            null,
+            "test@mail.com",
+            "runner",
+            "1234",
+            "1234",
+            model
+        );
 
         assertEquals("redirect:/login?registered", viewName);
-        verify(athleteService).createProfile(dto);
+        verify(athleteService).createProfile(argThat(dto ->
+            "test@mail.com".equals(dto.getEmail())
+                && "runner".equals(dto.getUsername())
+                && "1234".equals(dto.getPassword())
+        ));
     }
 
     @Test
     void testRegisterUserEmailAlreadyUsed() {
-        AthleteRegisterFormDTO dto = new AthleteRegisterFormDTO();
-        dto.setPassword("1234");
+        doThrow(new IllegalArgumentException("Email is already used"))
+            .when(athleteService)
+            .createProfile(any(AthleteRegisterFormDTO.class));
 
-        doThrow(new IllegalArgumentException("Email is already used")).when(athleteService).createProfile(dto);
-
-        String viewName = controller.registerUser(dto, "1234", model);
+        String viewName = controller.registerUser(
+            null,
+            "test@mail.com",
+            "runner",
+            "1234",
+            "1234",
+            model
+        );
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Email is already used");
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 }
