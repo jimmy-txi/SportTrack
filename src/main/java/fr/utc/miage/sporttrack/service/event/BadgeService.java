@@ -256,6 +256,9 @@ public class BadgeService {
                         total = Math.max(rpm, total);
                     }
                     break;
+                default:
+                    // should be unreachable
+                    break;
             }
         }
         return total;

@@ -498,7 +498,7 @@ class AdminBadgeControllerTest {
         String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/badges/create", viewName);
-        verify(redirectAttributes).addAttribute(eq("error"), eq("Global badges are only allowed for COUNT and DURATION metrics"));
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
         verify(badgeService, never()).saveBadge(any(), any());
     }
 
@@ -516,7 +516,7 @@ class AdminBadgeControllerTest {
         String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/badges/create", viewName);
-        verify(redirectAttributes).addAttribute(eq("error"), eq("Global badges are only allowed for COUNT and DURATION metrics"));
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
         verify(badgeService, never()).saveBadge(any(), any());
     }
 
@@ -534,7 +534,7 @@ class AdminBadgeControllerTest {
         String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/badges/create", viewName);
-        verify(redirectAttributes).addAttribute(eq("error"), eq("Global badges are only allowed for COUNT and DURATION metrics"));
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
         verify(badgeService, never()).saveBadge(any(), any());
     }
 
@@ -552,7 +552,7 @@ class AdminBadgeControllerTest {
         String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
 
         assertEquals("redirect:/admin/badges/create", viewName);
-        verify(redirectAttributes).addAttribute(eq("error"), eq("Global badges are only allowed for COUNT and DURATION metrics"));
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
         verify(badgeService, never()).saveBadge(any(), any());
     }
 }

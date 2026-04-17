@@ -181,9 +181,7 @@ public class ChallengeRankingService {
                 double totalDurationMinutes = participantActivities.stream().mapToDouble(Activity::getDuration).sum() * 60d;
                 yield totalDurationMinutes > 0 ? totalRepetitions / totalDurationMinutes : 0d;
             }
-            case COUNT -> {
-                throw new IllegalArgumentException("COUNT metric is not supported for challenge rankings.");
-            }
+            case COUNT -> throw new IllegalArgumentException("COUNT metric is not supported for challenge rankings.");
         };
     }
 }
