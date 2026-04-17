@@ -64,7 +64,7 @@ public class ChallengeRankingService {
         for (Challenge challenge : impactedChallenges) {
             recomputeRanking(challenge);
         }
-    }it a
+    }
 
     /**
      * Recomputes and persists the full ranking for the given challenge.
