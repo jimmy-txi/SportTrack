@@ -36,28 +36,15 @@ jobs:
           chmod +x mvnw || true
           ./mvnw clean javadoc:javadoc
 
-      - name: Debug generated files
+      - name: Verify Javadoc output
         run: |
-          echo "HEAD SHA: ${{ github.event.workflow_run.head_sha }}"
-          echo "HEAD BRANCH: ${{ github.event.workflow_run.head_branch }}"
-          pwd
-          ls -la
-          find . -maxdepth 5 -type d | sort
-          find . -maxdepth 5 -type f | sort | grep -E "index\.html|apidocs|javadoc" || true
-
-      - name: Ensure Javadoc exists
-        run: |
-          if [ -d "target/site/apidocs" ]; then
-            echo "Javadoc trouvé dans target/site/apidocs"
-          else
-            echo "Javadoc introuvable"
-            exit 1
-          fi
+          ls -la target || true
+          test -d target/apidocs
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/site/apidocs
+          path: target/apidocs
 
   deploy:
     needs: build
