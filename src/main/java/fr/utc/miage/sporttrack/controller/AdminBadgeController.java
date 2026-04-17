@@ -21,15 +21,40 @@ import fr.utc.miage.sporttrack.service.activity.SportService;
 import fr.utc.miage.sporttrack.service.event.BadgeService;
 import fr.utc.miage.sporttrack.service.user.AdminService;
 
+/**
+ * Spring MVC controller for administrator badge management.
+ *
+ * <p>Provides CRUD endpoints for badges, accessible only to authenticated admins.</p>
+ *
+ * @author SportTrack Team
+ */
 @Controller
 @RequestMapping("/admin/badges")
 public class AdminBadgeController {
 
+    /** Service for badge operations. */
     private final BadgeService badgeService;
-    private final SportService sportService;
-    private final AdminService adminService;
-    private final SportRepository sportRepository;
 
+    /** Service for sport lookups. */
+    private final SportService sportService;
+
+    /** Service for admin authentication verification. */
+    private final AdminService adminService;
+
+    /** Repository for direct sport lookups. */
+    private final SportRepository sportRepository;
+    private static final String ERROR_ATTRIBUTE = "error";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_BADGES = "redirect:/admin/badges";
+
+    /**
+     * Constructs an {@code AdminBadgeController} with the required dependencies.
+     *
+     * @param badgeService    the badge service
+     * @param sportService    the sport service
+     * @param adminService    the admin service
+     * @param sportRepository the sport repository
+     */
     public AdminBadgeController(BadgeService badgeService,
                                 SportService sportService,
                                 AdminService adminService,
@@ -40,10 +65,17 @@ public class AdminBadgeController {
         this.sportRepository = sportRepository;
     }
 
+    /**
+     * Lists all badges for the admin dashboard.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "admin/badge/list", or a redirect to login
+     */
     @GetMapping
     public String listBadges(Model model, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         List<Badge> badges = badgeService.findAll();
@@ -51,10 +83,17 @@ public class AdminBadgeController {
         return "admin/badge/list";
     }
 
+    /**
+     * Displays the form for creating a new badge.
+     *
+     * @param model the Spring MVC model
+     * @param auth  the current security authentication
+     * @return the view name "admin/badge/create", or a redirect to login
+     */
     @GetMapping("/create")
     public String showCreateForm(Model model, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         model.addAttribute("badge", new BadgeFormDTO());
@@ -64,10 +103,19 @@ public class AdminBadgeController {
         return "admin/badge/create";
     }
 
+    /**
+     * Displays the form for editing an existing badge.
+     *
+     * @param id                  the badge identifier
+     * @param model               the Spring MVC model
+     * @param redirectAttributes  flash attributes for error messaging
+     * @param auth                the current security authentication
+     * @return the view name "admin/badge/create", or a redirect on failure
+     */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable int id, Model model, RedirectAttributes redirectAttributes, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
@@ -86,17 +134,25 @@ public class AdminBadgeController {
             model.addAttribute("icons", PRESET_ICONS);
             return "admin/badge/create";
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
-            return "redirect:/admin/badges";
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
+            return REDIRECT_BADGES;
         }
     }
 
+    /**
+     * Creates or updates a badge from the submitted form data.
+     *
+     * @param badgeForm          the form DTO containing badge data
+     * @param redirectAttributes flash attributes for success/error messaging
+     * @param auth               the current security authentication
+     * @return a redirect to the badge list or create form on error
+     */
     @PostMapping("/save")
     public String saveBadge(@ModelAttribute BadgeFormDTO badgeForm,
                             RedirectAttributes redirectAttributes,
                             Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
@@ -127,28 +183,36 @@ public class AdminBadgeController {
             badgeService.saveBadge(badge, sport);
             redirectAttributes.addAttribute("saved", true);
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
             return "redirect:/admin/badges/create";
         }
-        return "redirect:/admin/badges";
+        return REDIRECT_BADGES;
     }
 
+    /**
+     * Deletes the badge with the given identifier.
+     *
+     * @param id                  the badge identifier to delete
+     * @param redirectAttributes  flash attributes for success/error messaging
+     * @param auth                the current security authentication
+     * @return a redirect to the badge list
+     */
     @PostMapping("/delete/{id}")
     public String deleteBadge(@PathVariable int id, RedirectAttributes redirectAttributes, Authentication auth) {
         if (!adminService.checkAdminLoggedIn(auth)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             badgeService.deleteById(id);
             redirectAttributes.addAttribute("deleted", true);
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute(ERROR_ATTRIBUTE, e.getMessage());
         }
-        return "redirect:/admin/badges";
+        return REDIRECT_BADGES;
     }
 
-    /** Preset Bootstrap Icons for badge selection */
+    /** Preset Bootstrap Icons available for badge icon selection. */
     private static final List<String[]> PRESET_ICONS = List.of(
         new String[]{"bi-trophy", "Trophée"},
         new String[]{"bi-star-fill", "Étoile"},

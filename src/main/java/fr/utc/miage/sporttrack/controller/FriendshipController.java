@@ -31,23 +31,59 @@ import fr.utc.miage.sporttrack.service.user.communication.FriendshipService;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * Controller for friendship-related pages and actions.
- * <p>
- * Manages friend listing, sending/accepting/rejecting friend requests,
- * removing friends, blocking/unblocking users, and viewing friend profiles.
+ * Spring MVC controller for friendship-related pages and actions.
+ *
+ * <p>Manages friend listing, sending/accepting/rejecting friend requests,
+ * removing friends, blocking/unblocking users, and viewing friend profiles
+ * with their activities.</p>
+ *
+ * @author SportTrack Team
  */
 @Controller
 public class FriendshipController {
 
+    /** Service for friendship operations. */
     private final FriendshipService friendshipService;
+
+    /** Repository for direct friendship queries. */
     private final FriendshipRepository friendshipRepository;
+
+    /** Repository for athlete lookups. */
     private final AthleteRepository athleteRepository;
+
+    /** Service for athlete authentication resolution. */
     private final AthleteService athleteService;
+
+    /** Service for activity queries. */
     private final ActivityService activityService;
+
+    /** Service for weather report retrieval. */
     private final WeatherReportService weatherReportService;
+
+    /** Service for badge lookups. */
     private final BadgeService badgeService;
+
+    /** Service for comment retrieval on activities. */
     private final fr.utc.miage.sporttrack.service.user.communication.CommentService commentService;
 
+    private final String REDIRECT_LOGIN = "redirect:/login";
+    private final String ATHLETE_ATTR = "athlete";
+    private final String FRIENDS_ATTR = "friends";
+    private final String SUCCESS_ATTR = "success";
+    private final String ERROR_ATTR = "error";
+
+    /**
+     * Constructs a {@code FriendshipController} with the required dependencies.
+     *
+     * @param friendshipService  the friendship service
+     * @param friendshipRepository the friendship repository
+     * @param athleteRepository  the athlete repository
+     * @param athleteService     the athlete service
+     * @param activityService    the activity service
+     * @param weatherReportService the weather report service
+     * @param badgeService       the badge service
+     * @param commentService     the comment service
+     */
     public FriendshipController(FriendshipService friendshipService, FriendshipRepository friendshipRepository, AthleteRepository athleteRepository, AthleteService athleteService, ActivityService activityService, WeatherReportService weatherReportService, BadgeService badgeService, fr.utc.miage.sporttrack.service.user.communication.CommentService commentService) {
         this.friendshipService = friendshipService;
         this.friendshipRepository = friendshipRepository;
@@ -73,7 +109,7 @@ public class FriendshipController {
     public String friendsPage(HttpSession session, @RequestParam(name = "q", required = false) String query, @RequestParam(name = "tab", required = false) String tab, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         // Load data for all tabs
@@ -94,8 +130,8 @@ public class FriendshipController {
             relationshipStatuses.put(a.getId(), friendshipService.getRelationshipStatus(athlete.getId(), a.getId()));
         }
 
-        model.addAttribute("athlete", athlete);
-        model.addAttribute("friends", friends);
+        model.addAttribute(ATHLETE_ATTR, athlete);
+        model.addAttribute(FRIENDS_ATTR, friends);
         model.addAttribute("requests", requests);
         model.addAttribute("sentRequests", sentRequests);
         model.addAttribute("athletes", athletes);
@@ -118,7 +154,7 @@ public class FriendshipController {
     public String friendProfile(@PathVariable("id") Integer id, HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         // Look up the target athlete
@@ -134,7 +170,7 @@ public class FriendshipController {
         // Also get the raw friendship record for display
         Optional<Friendship> friendshipOpt = friendshipRepository.findBetweenAthletes(athlete, target);
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("profileAthlete", target);
         model.addAttribute("relationshipStatus", relationshipStatus.name());
         model.addAttribute("friendship", friendshipOpt.orElse(null));
@@ -151,16 +187,16 @@ public class FriendshipController {
     public String friendsActivities(HttpSession session, Model model) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         List<Athlete> friends = friendshipService.getFriendsOfAthlete(athlete.getId());
         List<Integer> friendIds = friends.stream().map(Athlete::getId).toList();
         List<Activity> activities = loadActivitiesForAthletes(friendIds);
 
-        model.addAttribute("athlete", athlete);
+        model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("activities", activities);
-        model.addAttribute("friends", friends);
+        model.addAttribute(FRIENDS_ATTR, friends);
 
         return "athlete/friend/activities";
     }
@@ -172,14 +208,14 @@ public class FriendshipController {
     public String sendFriendRequest(HttpSession session, @RequestParam("recipientId") Integer recipientId, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.sendFriendRequest(athlete.getId(), recipientId);
-            redirectAttributes.addFlashAttribute("success", "Demande d'ami envoyée avec succès !");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Demande d'ami envoyée avec succès !");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         return "redirect:/friends?tab=add";
@@ -192,14 +228,14 @@ public class FriendshipController {
     public String acceptFriendRequest(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.acceptFriendRequest(id, athlete.getId());
-            redirectAttributes.addFlashAttribute("success", "Demande d'ami acceptée !");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Demande d'ami acceptée !");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         return "redirect:/friends?tab=requests";
@@ -212,14 +248,14 @@ public class FriendshipController {
     public String rejectFriendRequest(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.rejectFriendRequest(id, athlete.getId());
-            redirectAttributes.addFlashAttribute("success", "Demande d'ami refusée.");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Demande d'ami refusée.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         return "redirect:/friends?tab=requests";
@@ -232,14 +268,14 @@ public class FriendshipController {
     public String removeFriend(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.removeFriend(athlete.getId(), id);
-            redirectAttributes.addFlashAttribute("success", "Ami supprimé avec succès.");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Ami supprimé avec succès.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         return "redirect:/friends?tab=friends";
@@ -252,14 +288,14 @@ public class FriendshipController {
     public String blockUser(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.blockUser(athlete.getId(), id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur bloqué avec succès.");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Utilisateur bloqué avec succès.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         // Redirect back to the referring page
@@ -273,14 +309,14 @@ public class FriendshipController {
     public String unblockUser(@PathVariable("id") Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
         Athlete athlete = getAuthenticatedAthlete(session);
         if (athlete == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         try {
             friendshipService.unblockUser(athlete.getId(), id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur débloqué avec succès.");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTR, "Utilisateur débloqué avec succès.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_ATTR, e.getMessage());
         }
 
         return "redirect:/friends?tab=blocked";
@@ -293,7 +329,7 @@ public class FriendshipController {
      * @return the authenticated athlete, or null if no valid athlete is authenticated
      */
     private Athlete getAuthenticatedAthlete(HttpSession session) {
-        Athlete athlete = (Athlete) session.getAttribute("athlete");
+        Athlete athlete = (Athlete) session.getAttribute(ATHLETE_ATTR);
         if (athlete != null) {
             return athlete;
         }
@@ -306,12 +342,20 @@ public class FriendshipController {
         Optional<Athlete> athleteOptional = athleteRepository.findByEmail(authentication.getName());
         if (athleteOptional.isPresent()) {
             athlete = athleteOptional.get();
-            session.setAttribute("athlete", athlete);
+            session.setAttribute(ATHLETE_ATTR, athlete);
         }
 
         return athlete;
     }
 
+    /**
+     * Loads activities visible to the current user based on relationship status.
+     * Only friends and the user themselves can see activities.
+     *
+     * @param target             the athlete whose activities are being loaded
+     * @param relationshipStatus the current relationship between the viewer and the target
+     * @return a list of visible activities, or an empty list if not permitted
+     */
     private List<Activity> loadVisibleActivities(Athlete target, RelationshipStatusDTO relationshipStatus) {
         if (relationshipStatus != RelationshipStatusDTO.FRIENDS
                 && relationshipStatus != RelationshipStatusDTO.SELF) {
@@ -321,6 +365,12 @@ public class FriendshipController {
         return loadActivitiesForAthletes(List.of(target.getId()));
     }
 
+    /**
+     * Loads activities for the specified athlete identifiers, enriched with weather and comment data.
+     *
+     * @param athleteIds the list of athlete identifiers whose activities should be loaded
+     * @return a list of enriched activities
+     */
     private List<Activity> loadActivitiesForAthletes(List<Integer> athleteIds) {
         List<Activity> activities = activityService.findAllByAthleteIds(athleteIds);
         activities.forEach(activity -> {

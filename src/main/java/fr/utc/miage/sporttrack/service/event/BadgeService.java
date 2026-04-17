@@ -15,18 +15,46 @@ import fr.utc.miage.sporttrack.repository.event.BadgeRepository;
 import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Service layer component responsible for managing {@link Badge} entities
+ * within the SportTrack application.
+ *
+ * <p>Provides business logic for badge CRUD operations, querying earned and
+ * unearned badges per athlete, and automatically awarding badges based on
+ * cumulative activity metrics.</p>
+ *
+ * @author SportTrack Team
+ */
 @Service
 public class BadgeService {
 
+    /** The repository for badge data access. */
     private final BadgeRepository badgeRepository;
+
+    /** The repository for activity data access, used in badge award computation. */
     private final ActivityRepository activityRepository;
+
+    /** The notification service for sending badge-earned notifications (optional). */
     private final NotificationService notificationService;
 
+    /**
+     * Constructs a {@code BadgeService} without notification support.
+     *
+     * @param badgeRepository      the badge repository
+     * @param activityRepository   the activity repository
+     */
     public BadgeService(BadgeRepository badgeRepository,
                         ActivityRepository activityRepository) {
         this(badgeRepository, activityRepository, null);
     }
 
+    /**
+     * Constructs a {@code BadgeService} with full notification support.
+     *
+     * @param badgeRepository      the badge repository
+     * @param activityRepository   the activity repository
+     * @param notificationService  the notification service for badge-earned events
+     */
     @Autowired
     public BadgeService(BadgeRepository badgeRepository,
                         ActivityRepository activityRepository,
@@ -38,6 +66,14 @@ public class BadgeService {
 
     // ========== Admin CRUD ==========
 
+    /**
+     * Saves a badge entity after associating it with the given sport.
+     * Initialises the earned-by list if it is null.
+     *
+     * @param badge the badge entity to save
+     * @param sport the sport to associate with the badge
+     * @throws IllegalArgumentException if either the badge or sport is null
+     */
     public void saveBadge(Badge badge, Sport sport) {
         if (badge == null || sport == null) {
             throw new IllegalArgumentException("Badge and Sport are required");
@@ -49,15 +85,33 @@ public class BadgeService {
         badgeRepository.save(badge);
     }
 
+    /**
+     * Returns all badges in the database.
+     *
+     * @return a list of all badges
+     */
     public List<Badge> findAll() {
         return badgeRepository.findAll();
     }
 
+    /**
+     * Finds a badge by its unique identifier.
+     *
+     * @param id the badge identifier
+     * @return the matching {@link Badge}
+     * @throws IllegalArgumentException if no badge is found
+     */
     public Badge findById(int id) {
         return badgeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Badge not found with id: " + id));
     }
 
+    /**
+     * Deletes the badge with the given identifier.
+     *
+     * @param id the badge identifier to delete
+     * @throws IllegalArgumentException if no badge is found with the given identifier
+     */
     public void deleteById(int id) {
         if (!badgeRepository.existsById(id)) {
             throw new IllegalArgumentException("Badge not found with id: " + id);
@@ -68,14 +122,20 @@ public class BadgeService {
     // ========== Athlete Badge Queries ==========
 
     /**
-     * Get all badges earned by an athlete.
+     * Returns all badges earned by the specified athlete.
+     *
+     * @param athleteId the unique identifier of the athlete
+     * @return a list of badges earned by the athlete
      */
     public List<Badge> getEarnedBadges(Integer athleteId) {
         return badgeRepository.findByEarnedBy_Id(athleteId);
     }
 
     /**
-     * Get all badges NOT yet earned by an athlete (with description showing conditions).
+     * Returns all badges not yet earned by the specified athlete.
+     *
+     * @param athleteId the unique identifier of the athlete
+     * @return a list of badges the athlete has not yet earned
      */
     public List<Badge> getUnearnedBadges(Integer athleteId) {
         List<Badge> earned = getEarnedBadges(athleteId);
@@ -87,8 +147,12 @@ public class BadgeService {
     }
 
     /**
-     * Get the N most recently earned badges for an athlete.
-     * Since we don't track earnedAt, we return the last N from the earned list.
+     * Returns the N most recently earned badges for the specified athlete.
+     * Since earned-at timestamps are not tracked, the last N from the list are returned.
+     *
+     * @param athleteId the unique identifier of the athlete
+     * @param limit     the maximum number of badges to return
+     * @return a list of up to {@code limit} recent badges
      */
     public List<Badge> getRecentBadges(Integer athleteId, int limit) {
         List<Badge> earned = getEarnedBadges(athleteId);
@@ -101,8 +165,10 @@ public class BadgeService {
     // ========== Auto-award Logic ==========
 
     /**
-     * Check and award badges after an activity is created.
-     * Only checks badges related to the activity's sport.
+     * Checks and awards badges after an activity is created.
+     * Only badges related to the activity's sport are evaluated.
+     *
+     * @param activity the newly created activity that may trigger badge awards
      */
     public void checkAndAwardBadges(Activity activity) {
         if (activity == null || activity.getCreatedBy() == null || activity.getSportAndType() == null) {
@@ -140,7 +206,13 @@ public class BadgeService {
     }
 
     /**
-     * Compute the cumulative sum of a metric across all given activities.
+     * Computes the cumulative or maximum value of a metric across all given activities.
+     * For {@code MEAN_VELOCITY} and {@code REPS_PER_MINUTE}, the maximum is used;
+     * for other metrics the sum is used.
+     *
+     * @param activities the list of activities to aggregate
+     * @param metric     the metric to compute
+     * @return the computed cumulative or maximum metric value
      */
     private double computeCumulativeMetric(List<Activity> activities, Metric metric) {
         double total = 0;
@@ -174,7 +246,11 @@ public class BadgeService {
     }
 
     /**
-     * Check if an athlete has already earned a badge.
+     * Checks whether the specified athlete has already earned the given badge.
+     *
+     * @param badge   the badge to check
+     * @param athlete the athlete to verify
+     * @return {@code true} if the athlete has already earned the badge
      */
     private boolean hasEarned(Badge badge, Athlete athlete) {
         if (badge.getEarnedBy() == null) {
@@ -185,7 +261,10 @@ public class BadgeService {
     }
 
     /**
-     * Award a badge to an athlete.
+     * Awards the given badge to the specified athlete and sends a notification.
+     *
+     * @param badge   the badge to award
+     * @param athlete the athlete receiving the badge
      */
     private void awardBadge(Badge badge, Athlete athlete) {
         if (badge.getEarnedBy() == null) {
