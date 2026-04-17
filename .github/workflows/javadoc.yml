@@ -1,28 +1,31 @@
 name: Deploy Javadoc
 
 on:
-  workflow_run:
-    workflows: ["Test Spring Boot App"]
-    types:
-      - completed
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: true
+
 jobs:
-  build:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'prod'
+  deploy-javadoc:
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout source workflow commit
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,32 +34,18 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Generate Javadoc
+      - name: Generate Javadoc in fixed folder
         run: |
           chmod +x mvnw || true
-          ./mvnw clean javadoc:javadoc
-
-      - name: Verify Javadoc output
-        run: |
-          ls -la target || true
-          test -d target/apidocs
+          rm -rf javadoc-site
+          ./mvnw -B clean javadoc:javadoc -DoutputDirectory=javadoc-site
+          test -f javadoc-site/index.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/apidocs
+          path: ./javadoc-site
 
-  deploy:
-    needs: build
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'prod'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
