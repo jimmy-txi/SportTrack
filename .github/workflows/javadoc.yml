@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "github-pages"
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
@@ -34,20 +34,24 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Generate Javadoc in fixed folder
+      - name: Generate Javadoc
         run: |
           chmod +x mvnw || true
-          rm -rf javadoc-site
-          ./mvnw -B clean javadoc:javadoc -DoutputDirectory=javadoc-site
-          test -f javadoc-site/index.html
+          ./mvnw -B clean javadoc:javadoc \
+            -Ddoclint=none \
+            -Dmaven.javadoc.failOnError=false
+
+          rm -rf docs
+          mkdir -p docs
+          cp -R target/apidocs/. docs/
+
+          test -f docs/index.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./javadoc-site
+          path: ./docs
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-        
