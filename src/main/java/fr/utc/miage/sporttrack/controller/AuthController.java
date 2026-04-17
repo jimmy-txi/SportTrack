@@ -57,6 +57,15 @@ public class AuthController {
         return REGISTER;
     }
 
+    /**
+     * Processes the registration form submission. Validates that the password
+     * and confirmation match before delegating to the athlete service.
+     *
+     * @param athleteDto     the registration form data bound from the request
+     * @param confirmPassword the confirmed password entered by the user
+     * @param model          the Spring MVC model for error rendering
+     * @return a redirect to the login page on success, or the register view on error
+     */
     @PostMapping("/register")
     public String registerUser(@ModelAttribute(REGISTER_FORM) AthleteRegisterFormDTO athleteDto,
             @RequestParam(value = "email", required = false) String email,

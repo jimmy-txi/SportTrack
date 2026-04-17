@@ -41,10 +41,11 @@ jobs:
             -Ddoclint=none \
             -Dmaven.javadoc.failOnError=false
 
+      - name: Prepare docs
+        run: |
           rm -rf docs
           mkdir -p docs
-          cp -R target/apidocs/. docs/
-
+          cp -R target/reports/apidocs/. docs/
           test -f docs/index.html
 
       - name: Upload Pages Artifact

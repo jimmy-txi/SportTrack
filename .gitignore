@@ -32,10 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 /db
-<<<<<<< main
-
 ### docs ###
-/docs
-=======
 data/db/sporttrack.db
->>>>>>> prod
+/docs
