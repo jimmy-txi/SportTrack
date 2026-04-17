@@ -37,56 +37,28 @@ class AuthControllerTest {
         String viewName = controller.showRegistrationForm(model);
 
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 
-    @Test
-    void testRegisterUserPasswordMismatch() {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(value = {
+        "1234, wrongPassword",
+        "1234, null",
+        "null, 1234"
+    }, nullValues = "null")
+    void testRegisterUserPasswordValidationFailures(String password, String confirmPassword) {
         String viewName = controller.registerUser(
                 null,
                 "test@mail.com",
                 "runner",
-                "1234",
-                "wrongPassword",
+                password,
+                confirmPassword,
                 model
         );
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Passwords do not match");
-        verifyNoInteractions(athleteService);
-    }
-
-    @Test
-    void testRegisterUserMissingConfirmPassword() {
-        String viewName = controller.registerUser(
-            null,
-            "test@mail.com",
-            "runner",
-            "1234",
-            null,
-            model
-        );
-
-        assertEquals("register", viewName);
-        verify(model).addAttribute("error", "Passwords do not match");
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
-        verifyNoInteractions(athleteService);
-    }
-
-    @Test
-    void testRegisterUserWithNullDto() {
-        String viewName = controller.registerUser(
-            null,
-            "test@mail.com",
-            "runner",
-            null,
-            "1234",
-            model
-        );
-
-        assertEquals("register", viewName);
-        verify(model).addAttribute("error", "Passwords do not match");
-        verify(model).addAttribute(eq("athlete"), any(AthleteRegisterFormDTO.class));
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
         verifyNoInteractions(athleteService);
     }
 
@@ -126,5 +98,6 @@ class AuthControllerTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Email is already used");
+        verify(model).addAttribute(eq("registerForm"), any(AthleteRegisterFormDTO.class));
     }
 }

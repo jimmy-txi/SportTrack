@@ -68,7 +68,7 @@ public class UserController {
      * @return a redirect to the profile page with a success or error parameter
      */
     @PostMapping("/profile/update")
-    public String updateProfile(@ModelAttribute("athlete") AthleteProfileUpdateDTO updatedData, Authentication authentication) {
+    public String updateProfile(@ModelAttribute AthleteProfileUpdateDTO updatedData, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
             try {
