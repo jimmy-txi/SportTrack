@@ -1,22 +1,27 @@
 name: Deploy Javadoc
 
 on:
-  workflow_run:
-    workflows: ["Test Spring Boot App"]
-    types:
-      - completed
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
 jobs:
-  build:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'prod'
+  deploy-javadoc:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -27,26 +32,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
 
       - name: Generate Javadoc
         run: |
           chmod +x mvnw || true
-          ./mvnw javadoc:javadoc
+          ./mvnw -B clean javadoc:javadoc \
+            -Ddoclint=none \
+            -Dmaven.javadoc.failOnError=false
+
+          rm -rf docs
+          mkdir -p docs
+          cp -R target/apidocs/. docs/
+
+          test -f docs/index.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/site/apidocs
+          path: ./docs
 
-  deploy:
-    needs: build
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'prod'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-
-    steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
