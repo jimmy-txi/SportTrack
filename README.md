@@ -7,7 +7,7 @@ SportTrack permet a un athlete de suivre ses activites, definir des objectifs, p
 
 # Lien de la documentation  
 
-[https://sonarcloud.io/project/overview?id=jimmy-txi_SportTrack](https://jimmy-txi.github.io/SportTrack/)
+[https://jimmy-txi.github.io/SportTrack/](https://jimmy-txi.github.io/SportTrack/)
 
 # Lien de SonarQube
 
