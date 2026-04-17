@@ -142,6 +142,9 @@ public class AdminBadgeController {
     /**
      * Creates or updates a badge from the submitted form data.
      *
+     * <p>Global (universal) badges without a sport are only allowed for COUNT and DURATION metrics.
+     * Sport-specific badges can use any metric.</p>
+     *
      * @param badgeForm          the form DTO containing badge data
      * @param redirectAttributes flash attributes for success/error messaging
      * @param auth               the current security authentication
@@ -156,8 +159,12 @@ public class AdminBadgeController {
         }
 
         try {
-            Sport sport = sportRepository.findById(badgeForm.getSportId())
-                    .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + badgeForm.getSportId()));
+            // Sport is optional - null means universal badge
+            Sport sport = null;
+            if (badgeForm.getSportId() != null) {
+                sport = sportRepository.findById(badgeForm.getSportId())
+                        .orElseThrow(() -> new IllegalArgumentException("Sport not found with id: " + badgeForm.getSportId()));
+            }
 
             if (badgeForm.getLabel() == null || badgeForm.getLabel().isBlank()) {
                 throw new IllegalArgumentException("Badge label is required");
@@ -170,6 +177,11 @@ public class AdminBadgeController {
             }
             if (badgeForm.getThreshold() <= 0) {
                 throw new IllegalArgumentException("Threshold must be greater than zero");
+            }
+
+            // Global (universal) badges are only allowed for COUNT and DURATION metrics
+            if (sport == null && badgeForm.getMetric() != Metric.COUNT && badgeForm.getMetric() != Metric.DURATION) {
+                throw new IllegalArgumentException("Global badges are only allowed for COUNT and DURATION metrics");
             }
 
             Badge badge = new Badge();

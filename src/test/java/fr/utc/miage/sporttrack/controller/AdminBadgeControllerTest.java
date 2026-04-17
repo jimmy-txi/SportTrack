@@ -404,4 +404,155 @@ class AdminBadgeControllerTest {
         assertEquals("redirect:/login", viewName);
         verifyNoInteractions(badgeService);
     }
+
+    // ========== Universal Badges (no sport) ==========
+
+    @Test
+    void testSaveBadgeUniversalNullSport() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setId(0);
+        dto.setLabel("Universal Badge");
+        dto.setDescription("Applies to all sports");
+        dto.setSportId(null); // No sport - universal badge
+        dto.setMetric(Metric.COUNT);
+        dto.setThreshold(100.0);
+        dto.setIcon("bi-star");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges", viewName);
+        verify(badgeService).saveBadge(any(Badge.class), isNull());
+        verify(redirectAttributes).addAttribute("saved", true);
+    }
+
+    @Test
+    void testSaveBadgeUniversalEmptySportId() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Universal Badge");
+        dto.setDescription("Applies to all sports");
+        dto.setSportId(null); // Empty sportId - universal badge
+        dto.setMetric(Metric.COUNT);
+        dto.setThreshold(5.0);
+        dto.setIcon("bi-globe");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges", viewName);
+        verify(badgeService).saveBadge(any(Badge.class), isNull());
+        verify(redirectAttributes).addAttribute("saved", true);
+    }
+
+    // ========== Global badges validation ==========
+
+    @Test
+    void testSaveBadgeGlobalBadgeCountMetricAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global Count Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.COUNT);
+        dto.setThreshold(10.0);
+        dto.setIcon("bi-star");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges", viewName);
+        verify(badgeService).saveBadge(any(Badge.class), isNull());
+        verify(redirectAttributes).addAttribute("saved", true);
+    }
+
+    @Test
+    void testSaveBadgeGlobalBadgeDurationMetricAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global Duration Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.DURATION);
+        dto.setThreshold(100.0);
+        dto.setIcon("bi-hourglass");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges", viewName);
+        verify(badgeService).saveBadge(any(Badge.class), isNull());
+        verify(redirectAttributes).addAttribute("saved", true);
+    }
+
+    @Test
+    void testSaveBadgeGlobalBadgeDistanceMetricNotAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global Distance Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.DISTANCE);
+        dto.setThreshold(100.0);
+        dto.setIcon("bi-ruler");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges/create", viewName);
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
+        verify(badgeService, never()).saveBadge(any(), any());
+    }
+
+    @Test
+    void testSaveBadgeGlobalBadgeRepetitionMetricNotAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global Repetition Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.REPETITION);
+        dto.setThreshold(50.0);
+        dto.setIcon("bi-repeat");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges/create", viewName);
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
+        verify(badgeService, never()).saveBadge(any(), any());
+    }
+
+    @Test
+    void testSaveBadgeGlobalBadgeMeanVelocityMetricNotAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global Mean Velocity Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.MEAN_VELOCITY);
+        dto.setThreshold(15.0);
+        dto.setIcon("bi-speedometer");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges/create", viewName);
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
+        verify(badgeService, never()).saveBadge(any(), any());
+    }
+
+    @Test
+    void testSaveBadgeGlobalBadgeRepsPerMinuteMetricNotAllowed() {
+        when(adminService.checkAdminLoggedIn(authentication)).thenReturn(true);
+
+        BadgeFormDTO dto = new BadgeFormDTO();
+        dto.setLabel("Global RPM Badge");
+        dto.setSportId(null); // Global badge
+        dto.setMetric(Metric.REPS_PER_MINUTE);
+        dto.setThreshold(5.0);
+        dto.setIcon("bi-clock");
+
+        String viewName = controller.saveBadge(dto, redirectAttributes, authentication);
+
+        assertEquals("redirect:/admin/badges/create", viewName);
+        verify(redirectAttributes).addAttribute("error", "Global badges are only allowed for COUNT and DURATION metrics");
+        verify(badgeService, never()).saveBadge(any(), any());
+    }
 }

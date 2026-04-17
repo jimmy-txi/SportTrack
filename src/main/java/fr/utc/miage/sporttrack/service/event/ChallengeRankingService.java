@@ -67,31 +67,25 @@ public class ChallengeRankingService {
     }
 
     /**
-     * Recomputes the ranking for a single challenge identified by its identifier.
-     *
-     * @param challengeId the unique identifier of the challenge
-     */
-    @Transactional
-    public void recomputeRankingByChallengeId(Integer challengeId) {
-        if (challengeId == null) {
-            return;
-        }
-        challengeRepository.findById(challengeId).ifPresent(this::recomputeRanking);
-    }
-
-    /**
      * Recomputes and persists the full ranking for the given challenge.
      *
      * @param challenge the challenge whose rankings should be recomputed
+     * @throws IllegalArgumentException if the challenge uses COUNT as a metric, which is not allowed for challenges
      */
     public void recomputeRanking(Challenge challenge) {
         if (challenge == null || challenge.getId() <= 0) {
             return;
         }
 
+        if (challenge.getMetric() == Metric.COUNT) {
+            throw new IllegalArgumentException("COUNT metric is not allowed for challenges. It is reserved for badge verification only.");
+        }
+
         List<ChallengeRanking> computedRanking = buildRanking(challenge);
-        challenge.setRankings(computedRanking);
-        challengeRepository.save(challenge);
+        if (!computedRanking.isEmpty()) {
+            challenge.setRankings(computedRanking);
+            challengeRepository.save(challenge);
+        }
     }
 
     /**
@@ -187,6 +181,7 @@ public class ChallengeRankingService {
                 double totalDurationMinutes = participantActivities.stream().mapToDouble(Activity::getDuration).sum() * 60d;
                 yield totalDurationMinutes > 0 ? totalRepetitions / totalDurationMinutes : 0d;
             }
+            case COUNT -> throw new IllegalArgumentException("COUNT metric is not supported for challenge rankings.");
         };
     }
 }
