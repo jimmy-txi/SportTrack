@@ -17,7 +17,7 @@ import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.event.BadgeRepository;
-import fr.utc.miage.sporttrack.service.user.NotificationService;
+import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;

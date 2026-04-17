@@ -1,10 +1,8 @@
 package fr.utc.miage.sporttrack.service.event;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -266,11 +264,6 @@ class ChallengeRankingServiceTest {
         setPrivateField(athlete.getClass().getSuperclass(), athlete, "id", null);
         Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(athlete));
 
-        when(activityRepository.findActivitiesForChallengeRanking(
-                List.of(), 5, challenge.getStartDate(), challenge.getEndDate()))
-                .thenReturn(List.of());
-        when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
         verify(challengeRepository, never()).save(any());
     }
@@ -330,20 +323,6 @@ class ChallengeRankingServiceTest {
     void testRecomputeRankingsForActivityWithNullDate() {
         assertDoesNotThrow(() -> challengeRankingService.recomputeRankingsForActivity(1, 5, null));
         verify(challengeRepository, never()).findChallengesImpactedByActivity(anyInt(), anyInt(), any());
-    }
-
-    @Test
-    void testRecomputeRankingByChallengeIdWithNull() {
-        assertDoesNotThrow(() -> challengeRankingService.recomputeRankingByChallengeId(null));
-        verify(challengeRepository, never()).findById(anyInt());
-    }
-
-    @Test
-    void testRecomputeRankingByChallengeIdNotFound() {
-        when(challengeRepository.findById(99)).thenReturn(java.util.Optional.empty());
-
-        assertDoesNotThrow(() -> challengeRankingService.recomputeRankingByChallengeId(99));
-        verify(challengeRepository, never()).save(any());
     }
 
     private Activity buildActivity(Athlete athlete, int sportId, LocalDate date, double duration, double distance,

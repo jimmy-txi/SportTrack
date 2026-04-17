@@ -64,20 +64,7 @@ public class ChallengeRankingService {
         for (Challenge challenge : impactedChallenges) {
             recomputeRanking(challenge);
         }
-    }
-
-    /**
-     * Recomputes the ranking for a single challenge identified by its identifier.
-     *
-     * @param challengeId the unique identifier of the challenge
-     */
-    @Transactional
-    public void recomputeRankingByChallengeId(Integer challengeId) {
-        if (challengeId == null) {
-            return;
-        }
-        challengeRepository.findById(challengeId).ifPresent(this::recomputeRanking);
-    }
+    }it a
 
     /**
      * Recomputes and persists the full ranking for the given challenge.
@@ -95,8 +82,10 @@ public class ChallengeRankingService {
         }
 
         List<ChallengeRanking> computedRanking = buildRanking(challenge);
-        challenge.setRankings(computedRanking);
-        challengeRepository.save(challenge);
+        if (!computedRanking.isEmpty()) {
+            challenge.setRankings(computedRanking);
+            challengeRepository.save(challenge);
+        }
     }
 
     /**
