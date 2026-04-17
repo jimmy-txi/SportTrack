@@ -24,6 +24,7 @@ public class AuthController {
     private final AthleteService athleteService;
     private static final String REGISTER = "register";
     private static final String ERROR = "error";
+    private static final String REGISTER_FORM = "registerForm";
 
     /**
      * Constructs an {@code AuthController} with the required service.
@@ -52,17 +53,17 @@ public class AuthController {
      */
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
-        model.addAttribute("registerForm", new AthleteRegisterFormDTO());
+        model.addAttribute(REGISTER_FORM, new AthleteRegisterFormDTO());
         return REGISTER;
     }
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute("registerForm") AthleteRegisterFormDTO athleteDto,
-                               @RequestParam(value = "email", required = false) String email,
-                               @RequestParam(value = "username", required = false) String username,
-                               @RequestParam(value = "password", required = false) String password,
-                               @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
-                               Model model) {
+    public String registerUser(@ModelAttribute(REGISTER_FORM) AthleteRegisterFormDTO athleteDto,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
+            Model model) {
         if (athleteDto == null) {
             athleteDto = new AthleteRegisterFormDTO();
         }
@@ -73,13 +74,13 @@ public class AuthController {
 
         if (password == null || confirmPassword == null) {
             model.addAttribute(ERROR, "Passwords do not match");
-            model.addAttribute("registerForm", athleteDto);
+            model.addAttribute(REGISTER_FORM, athleteDto);
             return REGISTER;
         }
 
         if (!password.equals(confirmPassword)) {
             model.addAttribute(ERROR, "Passwords do not match");
-            model.addAttribute("registerForm", athleteDto);
+            model.addAttribute(REGISTER_FORM, athleteDto);
             return REGISTER;
         }
 
@@ -88,7 +89,7 @@ public class AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
             model.addAttribute(ERROR, e.getMessage());
-            model.addAttribute("registerForm", athleteDto);
+            model.addAttribute(REGISTER_FORM, athleteDto);
             return REGISTER;
         }
     }
