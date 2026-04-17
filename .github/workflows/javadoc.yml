@@ -36,15 +36,17 @@ jobs:
 
       - name: Generate Javadoc
         run: |
-          chmod +x mvnw || true
+          chmod +x SportTrack/mvnw || true
+          cd SportTrack
           ./mvnw -B clean javadoc:javadoc \
             -Ddoclint=none \
             -Dmaven.javadoc.failOnError=false
 
+      - name: Prepare docs
+        run: |
           rm -rf docs
           mkdir -p docs
-          cp -R target/apidocs/. docs/
-
+          cp -R SportTrack/target/reports/apidocs/. docs/
           test -f docs/index.html
 
       - name: Upload Pages Artifact
