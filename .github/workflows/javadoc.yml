@@ -19,8 +19,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source workflow commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -34,11 +36,21 @@ jobs:
           chmod +x mvnw || true
           ./mvnw clean javadoc:javadoc
 
-      - name: Verify Javadoc output
+      - name: Debug generated files
         run: |
-          if [ ! -d "target/site/apidocs" ]; then
-            echo "Le dossier target/site/apidocs est introuvable"
-            find target -maxdepth 4 -type d || true
+          echo "HEAD SHA: ${{ github.event.workflow_run.head_sha }}"
+          echo "HEAD BRANCH: ${{ github.event.workflow_run.head_branch }}"
+          pwd
+          ls -la
+          find . -maxdepth 5 -type d | sort
+          find . -maxdepth 5 -type f | sort | grep -E "index\.html|apidocs|javadoc" || true
+
+      - name: Ensure Javadoc exists
+        run: |
+          if [ -d "target/site/apidocs" ]; then
+            echo "Javadoc trouvé dans target/site/apidocs"
+          else
+            echo "Javadoc introuvable"
             exit 1
           fi
 
