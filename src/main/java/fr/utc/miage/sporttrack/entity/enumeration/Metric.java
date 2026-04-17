@@ -25,7 +25,10 @@ public enum Metric {
     MEAN_VELOCITY("Vitesse moyenne"),
 
     /** Represents the number of repetitions performed per minute, indicating pace. */
-    REPS_PER_MINUTE("Répétitions par minute");
+    REPS_PER_MINUTE("Répétitions par minute"),
+
+    /** Counts the number of different days on which activities were performed. */
+    COUNT("Nombre de jours");
 
     /** The localized display label for this metric, intended for UI rendering. */
     private final String displayValue;
@@ -46,5 +49,15 @@ public enum Metric {
      */
     public String getDisplayValue() {
         return displayValue;
+    }
+
+    /**
+     * Returns all metrics except COUNT, suitable for challenge creation.
+     * COUNT is excluded because it is intended only for badge verification.
+     *
+     * @return an array of metrics excluding COUNT
+     */
+    public static Metric[] valuesForChallenges() {
+        return new Metric[]{DURATION, REPETITION, DISTANCE, MEAN_VELOCITY, REPS_PER_MINUTE};
     }
 }

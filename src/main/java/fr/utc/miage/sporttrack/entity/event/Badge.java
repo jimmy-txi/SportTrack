@@ -21,10 +21,11 @@ import java.util.List;
 /**
  * JPA entity representing an achievement badge within the SportTrack application.
  *
- * <p>A badge defines a performance milestone tied to a specific sport and
+ * <p>A badge defines a performance milestone tied to an optional sport and
  * measurement metric (e.g., "Run 100 km in total"). When an athlete meets or
  * exceeds the defined threshold value, the badge is awarded and linked to that
- * athlete via a many-to-many relationship.</p>
+ * athlete via a many-to-many relationship. If no sport is specified, the badge
+ * is universal and applies to activities of any sport.</p>
  *
  * @author SportTrack Team
  */
@@ -45,7 +46,7 @@ public class Badge {
     @Column(name = "description_col", columnDefinition = "TEXT")
     private String description;
 
-    /** The sport to which this badge is applicable. */
+    /** The sport to which this badge is applicable, or null if the badge applies to all sports. */
     @ManyToOne
     @JoinColumn(name = "sport_id")
     private Sport sport;

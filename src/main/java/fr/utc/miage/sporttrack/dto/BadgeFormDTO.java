@@ -24,7 +24,7 @@ public class BadgeFormDTO {
     /** A detailed description of the criteria for earning this badge. */
     private String description;
 
-    /** The identifier of the sport to which this badge applies. */
+    /** The identifier of the sport to which this badge applies, or {@code null} for universal badges. */
     private Integer sportId;
 
     /** The performance metric used to evaluate whether the badge threshold has been met. */

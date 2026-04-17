@@ -71,14 +71,14 @@ public class BadgeService {
      * Initialises the earned-by list if it is null.
      *
      * @param badge the badge entity to save
-     * @param sport the sport to associate with the badge
-     * @throws IllegalArgumentException if either the badge or sport is null
+     * @param sport the sport to associate with the badge, or {@code null} for universal badges
+     * @throws IllegalArgumentException if the badge is null
      */
     public void saveBadge(Badge badge, Sport sport) {
-        if (badge == null || sport == null) {
-            throw new IllegalArgumentException("Badge and Sport are required");
+        if (badge == null) {
+            throw new IllegalArgumentException("Badge is required");
         }
-        badge.setSport(sport);
+        badge.setSport(sport); // Sport can be null for universal badges
         if (badge.getEarnedBy() == null) {
             badge.setEarnedBy(new ArrayList<>());
         }
@@ -166,7 +166,7 @@ public class BadgeService {
 
     /**
      * Checks and awards badges after an activity is created.
-     * Only badges related to the activity's sport are evaluated.
+     * Evaluates both sport-specific badges and universal badges (with no sport filter).
      *
      * @param activity the newly created activity that may trigger badge awards
      */
@@ -178,9 +178,15 @@ public class BadgeService {
         Athlete athlete = activity.getCreatedBy();
         Sport sport = activity.getSportAndType();
 
-        // Find all badges for this sport
+        // Find all badges: both sport-specific and universal (no sport assigned)
         List<Badge> sportBadges = badgeRepository.findBySportId(sport.getId());
-        if (sportBadges.isEmpty()) {
+        List<Badge> universalBadges = badgeRepository.findBySportIsNull();
+
+        // Combine the lists
+        List<Badge> allRelevantBadges = new ArrayList<>(sportBadges);
+        allRelevantBadges.addAll(universalBadges);
+
+        if (allRelevantBadges.isEmpty()) {
             return;
         }
 
@@ -192,7 +198,7 @@ public class BadgeService {
                 .toList();
 
         // Check each badge
-        for (Badge badge : sportBadges) {
+        for (Badge badge : allRelevantBadges) {
             // Skip if already earned
             if (hasEarned(badge, athlete)) {
                 continue;
@@ -208,6 +214,7 @@ public class BadgeService {
     /**
      * Computes the cumulative or maximum value of a metric across all given activities.
      * For {@code MEAN_VELOCITY} and {@code REPS_PER_MINUTE}, the maximum is used;
+     * for {@code COUNT}, the number of distinct days is returned;
      * for other metrics the sum is used.
      *
      * @param activities the list of activities to aggregate
@@ -216,6 +223,15 @@ public class BadgeService {
      */
     private double computeCumulativeMetric(List<Activity> activities, Metric metric) {
         double total = 0;
+
+        if (metric == Metric.COUNT) {
+            // For COUNT metric, return the number of distinct days with activities
+            return activities.stream()
+                    .map(Activity::getDateA) // Get the date (without time)
+                    .distinct()
+                    .count();
+        }
+
         for (Activity a : activities) {
             switch (metric) {
                 case DISTANCE:
@@ -231,13 +247,13 @@ public class BadgeService {
                     // duration in minutes, distance in km -> km/h
                     if (a.getDistance() != null && a.getDuration() > 0) {
                         double velocity = a.getDistance() / (a.getDuration() / 60.0);
-                        total = velocity > total ? velocity : total;
+                        total = Math.max(velocity, total);
                     }
                     break;
                 case REPS_PER_MINUTE:
                     if (a.getRepetition() != null && a.getDuration() > 0) {
                         double rpm = a.getRepetition() / (a.getDuration() / 60.0);
-                        total = rpm > total ? rpm : total;
+                        total = Math.max(rpm, total);
                     }
                     break;
             }
