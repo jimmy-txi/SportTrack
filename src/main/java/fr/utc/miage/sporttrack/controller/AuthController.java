@@ -66,7 +66,7 @@ public class AuthController {
      * @return a redirect to the login page on success, or the register view on error
      */
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute("athlete") AthleteRegisterFormDTO athleteDto,
+    public String registerUser(@ModelAttribute AthleteRegisterFormDTO athleteDto,
                                @RequestParam(value = "email", required = false) String email,
                                @RequestParam(value = "username", required = false) String username,
                                @RequestParam(value = "password", required = false) String password,
