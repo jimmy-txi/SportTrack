@@ -27,6 +27,13 @@ public interface BadgeRepository extends JpaRepository<Badge, Integer> {
     List<Badge> findBySportId(Integer sportId);
 
     /**
+     * Finds all badges with no sport assigned (universal badges that apply to all sports).
+     *
+     * @return a list of badges with sport field null
+     */
+    List<Badge> findBySportIsNull();
+
+    /**
      * Finds all badges earned by the specified athlete.
      *
      * @param athleteId the unique identifier of the athlete

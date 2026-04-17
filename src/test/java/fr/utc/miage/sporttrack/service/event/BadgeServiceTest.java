@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 import fr.utc.miage.sporttrack.entity.activity.Activity;
 import fr.utc.miage.sporttrack.entity.activity.Sport;
@@ -16,6 +17,7 @@ import fr.utc.miage.sporttrack.entity.event.Badge;
 import fr.utc.miage.sporttrack.entity.user.Athlete;
 import fr.utc.miage.sporttrack.repository.activity.ActivityRepository;
 import fr.utc.miage.sporttrack.repository.event.BadgeRepository;
+import fr.utc.miage.sporttrack.service.user.communication.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
@@ -106,22 +108,7 @@ class BadgeServiceTest {
     void testSaveBadgeNullBadgeThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> badgeService.saveBadge(null, sport));
-        assertEquals("Badge and Sport are required", ex.getMessage());
-        verify(badgeRepository, never()).save(any());
-    }
-
-    @Test
-    void testSaveBadgeNullSportThrows() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> badgeService.saveBadge(badge, null));
-        assertEquals("Badge and Sport are required", ex.getMessage());
-        verify(badgeRepository, never()).save(any());
-    }
-
-    @Test
-    void testSaveBadgeBothNullThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> badgeService.saveBadge(null, null));
+        assertEquals("Badge is required", ex.getMessage());
         verify(badgeRepository, never()).save(any());
     }
 
@@ -705,4 +692,375 @@ class BadgeServiceTest {
 
         verify(badgeRepository, never()).save(badge);
     }
+
+    @Test
+    void testCheckAndAwardBadgesCountMetricAwarded() {
+        badge.setMetric(Metric.COUNT);
+        badge.setThreshold(3.0); // 3 different days
+
+        // Create activities on 4 different days
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setDateA(LocalDate.of(2026, 4, 10)); // same day as activity1
+
+        Activity activity3 = new Activity();
+        activity3.setCreatedBy(athlete);
+        activity3.setSportAndType(sport);
+        activity3.setDateA(LocalDate.of(2026, 4, 12));
+
+        Activity activity4 = new Activity();
+        activity4.setCreatedBy(athlete);
+        activity4.setSportAndType(sport);
+        activity4.setDateA(LocalDate.of(2026, 4, 15));
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2, activity3, activity4));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+        assertEquals(athlete, badge.getEarnedBy().get(0));
+    }
+
+    @Test
+    void testCheckAndAwardBadgesCountMetricNotMet() {
+        badge.setMetric(Metric.COUNT);
+        badge.setThreshold(5.0); // 5 different days required
+
+        // Only 2 different days
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity3 = new Activity();
+        activity3.setCreatedBy(athlete);
+        activity3.setSportAndType(sport);
+        activity3.setDateA(LocalDate.of(2026, 4, 15));
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2, activity3));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository, never()).save(badge);
+        assertTrue(badge.getEarnedBy().isEmpty());
+    }
+
+    @Test
+    void testCheckAndAwardBadgesCountMetricSingleDay() {
+        badge.setMetric(Metric.COUNT);
+        badge.setThreshold(1.0); // Just 1 day
+
+        // All activities on the same day
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setDateA(LocalDate.of(2026, 4, 10));
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+    }
+
+    @Test
+    void testCheckAndAwardBadgesCountMetricExactlyMet() {
+        badge.setMetric(Metric.COUNT);
+        badge.setThreshold(3.0); // Exactly 3 different days
+
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setDateA(LocalDate.of(2026, 4, 12));
+
+        Activity activity3 = new Activity();
+        activity3.setCreatedBy(athlete);
+        activity3.setSportAndType(sport);
+        activity3.setDateA(LocalDate.of(2026, 4, 15));
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2, activity3));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+    }
+
+    @Test
+    void testCheckAndAwardBadgesUniversalBadgeNoSport() {
+        badge.setMetric(Metric.DISTANCE);
+        badge.setThreshold(50.0);
+        badge.setSport(null); // Universal badge
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(60.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of()); // No sport-specific badges
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of(badge)); // Universal badge
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeService.checkAndAwardBadges(activity);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+    }
+
+    @Test
+    void testCheckAndAwardBadgesBothSportAndUniversal() {
+        badge.setMetric(Metric.DISTANCE);
+        badge.setThreshold(50.0);
+        badge.setSport(sport); // Sport-specific badge
+
+        Badge universalBadge = new Badge();
+        universalBadge.setId(2);
+        universalBadge.setLabel("Voyageur 100km");
+        universalBadge.setMetric(Metric.DISTANCE);
+        universalBadge.setThreshold(100.0);
+        universalBadge.setIcon("bi-globe");
+        universalBadge.setEarnedBy(new ArrayList<>());
+        universalBadge.setSport(null); // Universal badge
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(60.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge)); // Sport-specific badge
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of(universalBadge)); // Universal badge
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeService.checkAndAwardBadges(activity);
+
+        // Sport-specific badge should be awarded (60 >= 50)
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+
+        // Universal badge should NOT be awarded (60 < 100)
+        // We don't verify save on universalBadge because it's not awarded
+    }
+
+    @Test
+    void testCheckAndAwardBadgesUniversalBadgeAwarded() {
+        Badge universalBadge = new Badge();
+        universalBadge.setId(2);
+        universalBadge.setLabel("Athlète Polyvalent 75km");
+        universalBadge.setMetric(Metric.DISTANCE);
+        universalBadge.setThreshold(75.0);
+        universalBadge.setIcon("bi-star");
+        universalBadge.setEarnedBy(new ArrayList<>());
+        universalBadge.setSport(null); // Universal badge
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(80.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of()); // No sport-specific badges
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of(universalBadge)); // Universal badge
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeService.checkAndAwardBadges(activity);
+
+        verify(badgeRepository).save(universalBadge);
+        assertEquals(1, universalBadge.getEarnedBy().size());
+    }
+
+    // ========== Branch Coverage: computeCumulativeMetric edge cases ==========
+
+    @Test
+    void testComputeCumulativeMetricMeanVelocityMultipleActivities() {
+        badge.setMetric(Metric.MEAN_VELOCITY);
+        badge.setThreshold(15.0);
+
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDistance(10.0);
+        activity1.setDuration(60.0); // 10 km/h
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setDistance(20.0);
+        activity2.setDuration(60.0); // 20 km/h - should be the max
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+    }
+
+    @Test
+    void testComputeCumulativeMetricRepsPerMinuteMultipleActivities() {
+        badge.setMetric(Metric.REPS_PER_MINUTE);
+        badge.setThreshold(1.0);
+
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setRepetition(30);
+        activity1.setDuration(60.0); // 0.5 reps/min
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(sport);
+        activity2.setRepetition(120);
+        activity2.setDuration(60.0); // 2 reps/min - should be the max
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        verify(badgeRepository).save(badge);
+        assertEquals(1, badge.getEarnedBy().size());
+    }
+
+    @Test
+    void testComputeCumulativeMetricCountMultipleSports() {
+        badge.setMetric(Metric.COUNT);
+        badge.setThreshold(2.0);
+
+        Sport otherSport = new Sport();
+        otherSport.setId(2);
+
+        Activity activity1 = new Activity();
+        activity1.setCreatedBy(athlete);
+        activity1.setSportAndType(sport);
+        activity1.setDateA(LocalDate.of(2026, 4, 10));
+
+        Activity activity2 = new Activity();
+        activity2.setCreatedBy(athlete);
+        activity2.setSportAndType(otherSport);
+        activity2.setDateA(LocalDate.of(2026, 4, 12));
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity1, activity2));
+
+        badgeService.checkAndAwardBadges(activity1);
+
+        // Only activity1 should be counted (sport 1), activity2 is filtered out
+        verify(badgeRepository, never()).save(badge);
+    }
+
+    @Test
+    void testCheckAndAwardBadgesWithNotificationService() {
+        NotificationService notifService = mock(NotificationService.class);
+        BadgeService badgeServiceWithNotif = new BadgeService(badgeRepository, activityRepository, notifService);
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(60.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of());
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeServiceWithNotif.checkAndAwardBadges(activity);
+
+        verify(badgeRepository).save(badge);
+        verify(notifService).notifyBadgeEarned(athlete, badge);
+    }
+
+    @Test
+    void testCheckAndAwardBadgesNoNotificationServiceNull() {
+        BadgeService badgeServiceNoNotif = new BadgeService(badgeRepository, activityRepository, null);
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(60.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of());
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeServiceNoNotif.checkAndAwardBadges(activity);
+
+        verify(badgeRepository).save(badge);
+    }
+
+    @Test
+    void testHasEarnedWithNullEarnedByList() {
+        badge.setEarnedBy(null);
+
+        Activity activity = new Activity();
+        activity.setCreatedBy(athlete);
+        activity.setSportAndType(sport);
+        activity.setDistance(60.0);
+
+        when(badgeRepository.findBySportId(1)).thenReturn(List.of(badge));
+        when(badgeRepository.findBySportIsNull()).thenReturn(List.of());
+        when(activityRepository.findByCreatedBy_IdOrderByDateADescStartTimeDesc(1))
+                .thenReturn(List.of(activity));
+
+        badgeService.checkAndAwardBadges(activity);
+
+        verify(badgeRepository).save(badge);
+        assertNotNull(badge.getEarnedBy());
+    }
+
+    @Test
+    void testSaveBadgeWithNullSport() {
+        badgeService.saveBadge(badge, null);
+
+        assertNull(badge.getSport());
+        assertNotNull(badge.getEarnedBy());
+        verify(badgeRepository).save(badge);
+    }
+
+    @Test
+    void testGetRecentBadgesEmpty() {
+        when(badgeRepository.findByEarnedBy_Id(99)).thenReturn(Collections.emptyList());
+
+        List<Badge> result = badgeService.getRecentBadges(99, 5);
+
+        assertTrue(result.isEmpty());
+    }
 }
+

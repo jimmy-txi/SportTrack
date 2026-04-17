@@ -1,9 +1,8 @@
 package fr.utc.miage.sporttrack.service.event;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -157,6 +156,24 @@ class ChallengeRankingServiceTest {
         assertEquals(6d, challenge.getRankings().get(0).getScore());
     }
 
+    @Test
+    void shouldComputeCountMetric() throws Exception {
+        Athlete a1 = buildAthlete(8, "grace");
+        Athlete a2 = buildAthlete(9, "henry");
+        Challenge challenge = buildChallenge(33, Metric.COUNT, 14, List.of(a1, a2));
+
+        assertThrows(IllegalArgumentException.class, () -> challengeRankingService.recomputeRanking(challenge));
+    }
+
+    @Test
+    void shouldThrowExceptionForCountMetric() throws Exception {
+        Athlete a1 = buildAthlete(11, "jack");
+        Challenge challenge = buildChallenge(35, Metric.COUNT, 16, List.of(a1));
+
+        assertThrows(IllegalArgumentException.class, () -> challengeRankingService.recomputeRanking(challenge),
+                "COUNT metric should not be allowed for challenges");
+    }
+
     private Challenge buildChallenge(int id, Metric metric, int sportId, List<Athlete> participants) throws Exception {
         Challenge challenge = new Challenge();
         setPrivateField(Challenge.class, challenge, "id", id);
@@ -180,7 +197,136 @@ class ChallengeRankingServiceTest {
         return athlete;
     }
 
+    // ========== Branch Coverage: Edge Cases ==========
+
+    @Test
+    void testRecomputeRankingWithNullChallenge() {
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(null));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithZeroId() throws Exception {
+        Challenge challenge = buildChallenge(0, Metric.DISTANCE, 5, List.of(buildAthlete(1, "test")));
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullParticipants() throws Exception {
+        Challenge challenge = buildChallenge(10, Metric.DURATION, 5, List.of());
+        challenge.setParticipants(null);
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullSport() throws Exception {
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(buildAthlete(1, "test")));
+        challenge.setSport(null);
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullStartDate() throws Exception {
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(buildAthlete(1, "test")));
+        challenge.setStartDate(null);
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullEndDate() throws Exception {
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(buildAthlete(1, "test")));
+        challenge.setEndDate(null);
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullMetric() throws Exception {
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(buildAthlete(1, "test")));
+        challenge.setMetric(null);
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNullAthleteId() throws Exception {
+        Athlete athlete = buildAthlete(1, "test");
+        setPrivateField(athlete.getClass().getSuperclass(), athlete, "id", null);
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(athlete));
+
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRanking(challenge));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void testRecomputeRankingWithNoParticipantActivities() throws Exception {
+        Athlete a1 = buildAthlete(1, "alice");
+        Challenge challenge = buildChallenge(10, Metric.DISTANCE, 5, List.of(a1));
+
+        when(activityRepository.findActivitiesForChallengeRanking(
+                List.of(1), 5, challenge.getStartDate(), challenge.getEndDate()))
+                .thenReturn(List.of());
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        challengeRankingService.recomputeRanking(challenge);
+
+        ArgumentCaptor<Challenge> challengeCaptor = ArgumentCaptor.forClass(Challenge.class);
+        verify(challengeRepository).save(challengeCaptor.capture());
+        assertEquals(1, challengeCaptor.getValue().getRankings().size());
+        assertEquals(0d, challengeCaptor.getValue().getRankings().get(0).getScore());
+    }
+
+    @Test
+    void testComputeScoreMeanVelocityWithMultipleActivitiesDifferentVelocities() throws Exception {
+        Athlete a1 = buildAthlete(1, "alice");
+        Challenge challenge = buildChallenge(10, Metric.MEAN_VELOCITY, 5, List.of(a1));
+
+        Activity activity1 = buildActivity(a1, 5, LocalDate.of(2026, 4, 10), 1d, 10d, 0);
+        Activity activity2 = buildActivity(a1, 5, LocalDate.of(2026, 4, 11), 2d, 30d, 0); // 15 km/h
+        Activity activity3 = buildActivity(a1, 5, LocalDate.of(2026, 4, 12), 1d, 8d, 0); // 8 km/h
+
+        when(activityRepository.findActivitiesForChallengeRanking(
+                List.of(1), 5, challenge.getStartDate(), challenge.getEndDate()))
+                .thenReturn(List.of(activity1, activity2, activity3));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        challengeRankingService.recomputeRanking(challenge);
+
+        // Average distance / total duration: (10 + 30 + 8) / (1 + 2 + 1) = 48 / 4 = 12 km/h
+        assertEquals(1, challenge.getRankings().size());
+        assertEquals(12d, challenge.getRankings().get(0).getScore());
+    }
+
+    @Test
+    void testRecomputeRankingsForActivityWithNullAthleteId() {
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRankingsForActivity(null, 5, LocalDate.now()));
+        verify(challengeRepository, never()).findChallengesImpactedByActivity(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testRecomputeRankingsForActivityWithNullSportId() {
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRankingsForActivity(1, null, LocalDate.now()));
+        verify(challengeRepository, never()).findChallengesImpactedByActivity(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testRecomputeRankingsForActivityWithNullDate() {
+        assertDoesNotThrow(() -> challengeRankingService.recomputeRankingsForActivity(1, 5, null));
+        verify(challengeRepository, never()).findChallengesImpactedByActivity(anyInt(), anyInt(), any());
+    }
+
     private Activity buildActivity(Athlete athlete, int sportId, LocalDate date, double duration, double distance,
+
             int repetitions) {
         Activity activity = new Activity();
         activity.setCreatedBy(athlete);

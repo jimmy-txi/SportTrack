@@ -91,7 +91,7 @@ public class ChallengeController {
         }
         model.addAttribute(ATHLETE_ATTR, athlete);
         model.addAttribute("challenge", new ChallengeFormDTO());
-        model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+        model.addAttribute(ALL_METRICS_ATTR, Metric.valuesForChallenges());
         model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
         return CHALLENGE_FORM_VIEW;
     }
@@ -120,7 +120,7 @@ public class ChallengeController {
             if (sportId == null || sportId <= 0) {
                 model.addAttribute(ATHLETE_ATTR, athlete);
                 model.addAttribute(ERROR_ATTR, "Veuillez sélectionner une discipline sportive valide.");
-                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(ALL_METRICS_ATTR, Metric.valuesForChallenges());
                 model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
                 return CHALLENGE_FORM_VIEW;
             }
@@ -129,7 +129,7 @@ public class ChallengeController {
             if (sportOpt.isEmpty()) {
                 model.addAttribute(ATHLETE_ATTR, athlete);
                 model.addAttribute(ERROR_ATTR, "La discipline sportive sélectionnée est introuvable.");
-                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(ALL_METRICS_ATTR, Metric.valuesForChallenges());
                 model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
                 return CHALLENGE_FORM_VIEW;
             }
@@ -137,7 +137,7 @@ public class ChallengeController {
             if (challengeDto.getStartDate().isAfter(challengeDto.getEndDate()) || challengeDto.getStartDate().isBefore(now) || challengeDto.getEndDate().isBefore(now)) {
                 model.addAttribute(ATHLETE_ATTR, athlete);
                 model.addAttribute(ERROR_ATTR, "La date de début doit être antérieure ou égale à la date de fin.et les dates doivent être supérieures ou égales à la date actuelle.");
-                model.addAttribute(ALL_METRICS_ATTR, Metric.values());
+                model.addAttribute(ALL_METRICS_ATTR, Metric.valuesForChallenges());
                 model.addAttribute(SPORTS_ATTR, sportService.findAllActive());
                 return CHALLENGE_FORM_VIEW;
             }

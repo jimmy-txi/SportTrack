@@ -89,14 +89,14 @@
                             <!-- Sport -->
                             <div class="mb-3">
                                 <label for="sportId" class="form-label">
-                                    <i class="bi bi-trophy"></i> Sport associé *
+                                    <i class="bi bi-trophy"></i> Sport associé
                                 </label>
-                                <select class="form-select" id="sportId" th:field="*{sportId}" required>
-                                    <option value="">Sélectionner un sport</option>
+                                <select class="form-select" id="sportId" th:field="*{sportId}" onchange="updateMetricOptions()">
+                                    <option value="">Aucun (badge universel)</option>
                                     <option th:each="sport : ${sports}" th:value="${sport.id}" th:text="${sport.name}">
                                     </option>
                                 </select>
-                                <div class="form-text">Le sport concerné par ce badge</div>
+                                <div class="form-text" id="sportHelp">Laissez vide pour un badge universel applicable à tous les sports</div>
                             </div>
 
                             <!-- Metric -->
@@ -108,7 +108,11 @@
                                     <option value="">Sélectionner une métrique</option>
                                     <option th:each="m : ${metrics}" th:value="${m}" th:text="${m}"></option>
                                 </select>
-                                <div class="form-text">La valeur cumulative à vérifier (distance, durée, répétitions...)
+                                <div class="form-text" id="metricHelp">La valeur cumulative à vérifier (distance, durée, répétitions...)
+                                </div>
+                                <div class="alert alert-warning d-none mt-2" id="globalBadgeWarning" role="alert">
+                                    <i class="bi bi-info-circle"></i>
+                                    Les badges universels ne sont autorisés que pour <strong>Nombre de jours</strong> et <strong>Durée</strong>
                                 </div>
                             </div>
 
@@ -198,6 +202,52 @@
         document.getElementById('label').addEventListener('input', updatePreview);
         document.getElementById('description').addEventListener('input', updatePreview);
 
+        // Update metric options based on sport selection
+        function updateMetricOptions() {
+            const sportId = document.getElementById('sportId').value;
+            const metricSelect = document.getElementById('metric');
+            const globalBadgeWarning = document.getElementById('globalBadgeWarning');
+            const metricHelp = document.getElementById('metricHelp');
+            const sportHelp = document.getElementById('sportHelp');
+
+            const isGlobalBadge = sportId === '';
+
+            if (isGlobalBadge) {
+                // Show warning for global badges
+                globalBadgeWarning.classList.remove('d-none');
+                metricHelp.textContent = 'Les badges universels ne supportent que "Nombre de jours" et "Durée"';
+                sportHelp.innerHTML = '<i class="bi bi-info-circle"></i> Badge universel - applicable à tous les sports (limité à certaines métriques)';
+
+                // Disable metrics that are not allowed for global badges
+                Array.from(metricSelect.options).forEach(option => {
+                    if (option.value && option.value !== 'COUNT' && option.value !== 'DURATION') {
+                        option.disabled = true;
+                        option.textContent += ' (non autorisé pour badges universels)';
+                    } else {
+                        option.disabled = false;
+                    }
+                });
+            } else {
+                // Hide warning for sport-specific badges
+                globalBadgeWarning.classList.add('d-none');
+                metricHelp.textContent = 'La valeur cumulative à vérifier (distance, durée, répétitions...)';
+                sportHelp.textContent = 'Laissez vide pour un badge universel applicable à tous les sports';
+
+                // Enable all metrics
+                Array.from(metricSelect.options).forEach(option => {
+                    if (option.value) {
+                        // Remove the suffix if it exists
+                        let text = option.textContent;
+                        if (text.includes(' (non autorisé')) {
+                            text = text.substring(0, text.indexOf(' (non autorisé'));
+                        }
+                        option.textContent = text;
+                    }
+                    option.disabled = false;
+                });
+            }
+        }
+
         // Form validation
         (function () {
             'use strict';
@@ -206,12 +256,25 @@
                 Array.prototype.slice.call(forms).forEach(function (form) {
                     form.addEventListener('submit', function (event) {
                         var iconVal = document.getElementById('iconHidden').value;
+                        var sportId = document.getElementById('sportId').value;
+                        var metric = document.getElementById('metric').value;
+
+                        // Check if icon is selected
                         if (!iconVal) {
                             event.preventDefault();
                             event.stopPropagation();
                             alert('Veuillez sélectionner une icône pour le badge.');
                             return;
                         }
+
+                        // Check if global badge has valid metric
+                        if (sportId === '' && metric && metric !== 'COUNT' && metric !== 'DURATION') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            alert('Les badges universels ne sont autorisés que pour "Nombre de jours" et "Durée"');
+                            return;
+                        }
+
                         if (!form.checkValidity()) {
                             event.preventDefault();
                             event.stopPropagation();
@@ -221,6 +284,11 @@
                 });
             }, false);
         })();
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMetricOptions();
+        });
     </script>
 </body>
 
