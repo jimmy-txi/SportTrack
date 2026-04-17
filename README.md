@@ -4,6 +4,11 @@ Application web de suivi sportif construite avec Spring Boot et Thymeleaf.
 
 SportTrack permet a un athlete de suivre ses activites, definir des objectifs, participer a des challenges et interagir avec ses amis. Un espace administrateur permet aussi de gerer les activites et les sports proposes sur la plateforme.
 
+
+# Lien de la documentation  
+
+[https://jimmy-txi.github.io/SportTrack/](https://jimmy-txi.github.io/SportTrack/)
+
 # Lien de SonarQube
 
 https://sonarcloud.io/project/overview?id=jimmy-txi_SportTrack
